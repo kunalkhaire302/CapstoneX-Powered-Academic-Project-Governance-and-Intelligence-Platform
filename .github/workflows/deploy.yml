@@ -8,7 +8,7 @@ jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -24,7 +24,7 @@ jobs:
   deploy-backend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Deploy to Render
         run: |
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}"
@@ -36,7 +36,7 @@ jobs:
   deploy-ai-service:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Deploy to Render
         run: |
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_AI }}"
