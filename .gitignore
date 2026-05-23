@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.pyo
+*.pyd
+venv/
+env/
+.venv/
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.staging
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# ML artifacts
+ai-service/app/ml/data/*.csv
+ai-service/app/ml/data/*.zip
+ai-service/app/ml/data/*.json
+ai-service/app/ml/*.pkl
+!ai-service/app/ml/risk_model.pkl
+ai-service/app/ml/models/
+*.h5
+*.pt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Test coverage
+coverage/
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Docker
+*.log
+
+# Misc
+*.tgz
+.vercel
+.turbo

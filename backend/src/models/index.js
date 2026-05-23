@@ -1,0 +1,271 @@
+const { sequelize, Sequelize } = require('../config/database');
+const { DataTypes } = Sequelize;
+
+// ──────────────────────────────────────────
+// Model Definitions
+// ──────────────────────────────────────────
+
+const Institution = sequelize.define('institutions', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  name: { type: DataTypes.STRING(255), allowNull: false },
+  domain: { type: DataTypes.STRING(255), unique: true },
+  settings_json: { type: DataTypes.JSONB, defaultValue: {} },
+});
+
+const User = sequelize.define('users', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  name: { type: DataTypes.STRING(255), allowNull: false },
+  email: { type: DataTypes.STRING(255), allowNull: false, unique: true, validate: { isEmail: true } },
+  password_hash: { type: DataTypes.STRING(255) },
+  role: {
+    type: DataTypes.ENUM('student', 'mentor', 'coordinator', 'hod', 'admin', 'accreditation'),
+    allowNull: false,
+    defaultValue: 'student',
+  },
+  institution_id: { type: DataTypes.UUID, references: { model: 'institutions', key: 'id' } },
+  avatar_url: { type: DataTypes.STRING(500) },
+  firebase_uid: { type: DataTypes.STRING(255), unique: true },
+  department: { type: DataTypes.STRING(255) },
+  skills: { type: DataTypes.JSONB, defaultValue: [] },
+  interests: { type: DataTypes.JSONB, defaultValue: [] },
+  is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
+  last_login_at: { type: DataTypes.DATE },
+});
+
+const Group = sequelize.define('groups', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  name: { type: DataTypes.STRING(255), allowNull: false },
+  join_code: { type: DataTypes.STRING(10), unique: true },
+  topic_id: { type: DataTypes.UUID },
+  mentor_id: { type: DataTypes.UUID, references: { model: 'users', key: 'id' } },
+  coordinator_id: { type: DataTypes.UUID, references: { model: 'users', key: 'id' } },
+  department: { type: DataTypes.STRING(255) },
+  batch_year: { type: DataTypes.INTEGER },
+  status: {
+    type: DataTypes.ENUM('not_started', 'in_progress', 'submitted', 'evaluated'),
+    defaultValue: 'not_started',
+  },
+  max_members: { type: DataTypes.INTEGER, defaultValue: 4 },
+});
+
+const GroupMember = sequelize.define('group_members', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  group_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'groups', key: 'id' } },
+  student_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'users', key: 'id' } },
+  role_in_group: {
+    type: DataTypes.ENUM('leader', 'member'),
+    defaultValue: 'member',
+  },
+});
+
+const Topic = sequelize.define('topics', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  group_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'groups', key: 'id' } },
+  title: { type: DataTypes.STRING(500), allowNull: false },
+  abstract: { type: DataTypes.TEXT },
+  domain_tags: { type: DataTypes.JSONB, defaultValue: [] },
+  technology_tags: { type: DataTypes.JSONB, defaultValue: [] },
+  file_url: { type: DataTypes.STRING(500) },
+  status: {
+    type: DataTypes.ENUM('draft', 'submitted', 'approved', 'revision_requested', 'rejected'),
+    defaultValue: 'draft',
+  },
+  rejection_reason: { type: DataTypes.TEXT },
+  submitted_at: { type: DataTypes.DATE },
+  approved_at: { type: DataTypes.DATE },
+  approved_by: { type: DataTypes.UUID, references: { model: 'users', key: 'id' } },
+});
+
+const Logbook = sequelize.define('logbooks', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  group_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'groups', key: 'id' } },
+  student_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'users', key: 'id' } },
+  week_number: { type: DataTypes.INTEGER, allowNull: false },
+  title: { type: DataTypes.STRING(500) },
+  content: { type: DataTypes.TEXT, allowNull: false },
+  file_url: { type: DataTypes.STRING(500) },
+  status: {
+    type: DataTypes.ENUM('draft', 'submitted', 'approved', 'rejected'),
+    defaultValue: 'draft',
+  },
+  submitted_at: { type: DataTypes.DATE },
+});
+
+const LogbookFeedback = sequelize.define('logbook_feedback', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  logbook_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'logbooks', key: 'id' } },
+  mentor_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'users', key: 'id' } },
+  comment: { type: DataTypes.TEXT, allowNull: false },
+  status: {
+    type: DataTypes.ENUM('approved', 'rejected', 'revision_requested'),
+    allowNull: false,
+  },
+});
+
+const Evaluation = sequelize.define('evaluations', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  group_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'groups', key: 'id' } },
+  mentor_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'users', key: 'id' } },
+  student_id: { type: DataTypes.UUID, references: { model: 'users', key: 'id' } },
+  type: {
+    type: DataTypes.ENUM('mid_term', 'final', 'viva', 'presentation', 'report'),
+    allowNull: false,
+  },
+  rubric_json: { type: DataTypes.JSONB, allowNull: false, defaultValue: {} },
+  total_score: { type: DataTypes.FLOAT },
+  max_score: { type: DataTypes.FLOAT, defaultValue: 100 },
+  ai_feedback: { type: DataTypes.TEXT },
+  submitted_at: { type: DataTypes.DATE },
+});
+
+const Notification = sequelize.define('notifications', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  user_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'users', key: 'id' } },
+  type: {
+    type: DataTypes.ENUM('submission', 'feedback', 'approval', 'alert', 'system'),
+    allowNull: false,
+  },
+  title: { type: DataTypes.STRING(500), allowNull: false },
+  body: { type: DataTypes.TEXT },
+  read: { type: DataTypes.BOOLEAN, defaultValue: false },
+  link: { type: DataTypes.STRING(500) },
+  metadata_json: { type: DataTypes.JSONB, defaultValue: {} },
+});
+
+const AuditLog = sequelize.define('audit_logs', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  user_id: { type: DataTypes.UUID, references: { model: 'users', key: 'id' } },
+  action: { type: DataTypes.STRING(100), allowNull: false },
+  entity_type: { type: DataTypes.STRING(100) },
+  entity_id: { type: DataTypes.UUID },
+  metadata_json: { type: DataTypes.JSONB, defaultValue: {} },
+  ip_address: { type: DataTypes.STRING(45) },
+});
+
+const AiReport = sequelize.define('ai_reports', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  group_id: { type: DataTypes.UUID, references: { model: 'groups', key: 'id' } },
+  student_id: { type: DataTypes.UUID, references: { model: 'users', key: 'id' } },
+  model_name: { type: DataTypes.STRING(100), allowNull: false },
+  model_version: { type: DataTypes.STRING(50) },
+  report_type: {
+    type: DataTypes.ENUM('recommendation', 'risk_prediction', 'feedback', 'team_formation'),
+    allowNull: false,
+  },
+  result_json: { type: DataTypes.JSONB, allowNull: false },
+  confidence: { type: DataTypes.FLOAT },
+});
+
+const RiskScore = sequelize.define('risk_scores', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  group_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'groups', key: 'id' } },
+  score: { type: DataTypes.FLOAT, allowNull: false },
+  label: {
+    type: DataTypes.ENUM('low', 'medium', 'high'),
+    allowNull: false,
+  },
+  features_json: { type: DataTypes.JSONB, defaultValue: {} },
+  predicted_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+});
+
+const Meeting = sequelize.define('meetings', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  group_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'groups', key: 'id' } },
+  mentor_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'users', key: 'id' } },
+  title: { type: DataTypes.STRING(255), allowNull: false },
+  description: { type: DataTypes.TEXT },
+  scheduled_at: { type: DataTypes.DATE, allowNull: false },
+  duration_minutes: { type: DataTypes.INTEGER, defaultValue: 30 },
+  meeting_link: { type: DataTypes.STRING(500) },
+  status: {
+    type: DataTypes.ENUM('scheduled', 'completed', 'cancelled'),
+    defaultValue: 'scheduled',
+  },
+});
+
+// ──────────────────────────────────────────
+// Associations
+// ──────────────────────────────────────────
+
+// Institution ↔ Users
+Institution.hasMany(User, { foreignKey: 'institution_id' });
+User.belongsTo(Institution, { foreignKey: 'institution_id' });
+
+// Group ↔ Users (mentor, coordinator)
+User.hasMany(Group, { foreignKey: 'mentor_id', as: 'mentored_groups' });
+User.hasMany(Group, { foreignKey: 'coordinator_id', as: 'coordinated_groups' });
+Group.belongsTo(User, { foreignKey: 'mentor_id', as: 'mentor' });
+Group.belongsTo(User, { foreignKey: 'coordinator_id', as: 'coordinator' });
+
+// Group ↔ GroupMembers ↔ Users (many-to-many through group_members)
+Group.hasMany(GroupMember, { foreignKey: 'group_id', as: 'members' });
+GroupMember.belongsTo(Group, { foreignKey: 'group_id' });
+User.hasMany(GroupMember, { foreignKey: 'student_id', as: 'group_memberships' });
+GroupMember.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
+
+// Group ↔ Topic (one-to-one through group_id)
+Group.hasOne(Topic, { foreignKey: 'group_id', as: 'topic' });
+Topic.belongsTo(Group, { foreignKey: 'group_id' });
+User.hasMany(Topic, { foreignKey: 'approved_by', as: 'approved_topics' });
+
+// Logbook associations
+Group.hasMany(Logbook, { foreignKey: 'group_id' });
+Logbook.belongsTo(Group, { foreignKey: 'group_id' });
+User.hasMany(Logbook, { foreignKey: 'student_id', as: 'logbooks' });
+Logbook.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
+
+// Logbook ↔ LogbookFeedback
+Logbook.hasMany(LogbookFeedback, { foreignKey: 'logbook_id', as: 'feedback' });
+LogbookFeedback.belongsTo(Logbook, { foreignKey: 'logbook_id' });
+User.hasMany(LogbookFeedback, { foreignKey: 'mentor_id', as: 'given_feedback' });
+LogbookFeedback.belongsTo(User, { foreignKey: 'mentor_id', as: 'mentor' });
+
+// Evaluation associations
+Group.hasMany(Evaluation, { foreignKey: 'group_id' });
+Evaluation.belongsTo(Group, { foreignKey: 'group_id' });
+User.hasMany(Evaluation, { foreignKey: 'mentor_id', as: 'given_evaluations' });
+Evaluation.belongsTo(User, { foreignKey: 'mentor_id', as: 'evaluator' });
+User.hasMany(Evaluation, { foreignKey: 'student_id', as: 'received_evaluations' });
+Evaluation.belongsTo(User, { foreignKey: 'student_id', as: 'evaluated_student' });
+
+// Notification associations
+User.hasMany(Notification, { foreignKey: 'user_id' });
+Notification.belongsTo(User, { foreignKey: 'user_id' });
+
+// AuditLog associations
+User.hasMany(AuditLog, { foreignKey: 'user_id' });
+AuditLog.belongsTo(User, { foreignKey: 'user_id' });
+
+// AI Report associations
+Group.hasMany(AiReport, { foreignKey: 'group_id' });
+AiReport.belongsTo(Group, { foreignKey: 'group_id' });
+User.hasMany(AiReport, { foreignKey: 'student_id' });
+AiReport.belongsTo(User, { foreignKey: 'student_id' });
+
+// Risk Score associations
+Group.hasMany(RiskScore, { foreignKey: 'group_id' });
+RiskScore.belongsTo(Group, { foreignKey: 'group_id' });
+
+// Meeting associations
+Group.hasMany(Meeting, { foreignKey: 'group_id' });
+Meeting.belongsTo(Group, { foreignKey: 'group_id' });
+User.hasMany(Meeting, { foreignKey: 'mentor_id', as: 'scheduled_meetings' });
+Meeting.belongsTo(User, { foreignKey: 'mentor_id', as: 'mentor_scheduler' });
+
+module.exports = {
+  sequelize,
+  Sequelize,
+  Institution,
+  User,
+  Group,
+  GroupMember,
+  Topic,
+  Logbook,
+  LogbookFeedback,
+  Evaluation,
+  Notification,
+  AuditLog,
+  AiReport,
+  RiskScore,
+  Meeting,
+};

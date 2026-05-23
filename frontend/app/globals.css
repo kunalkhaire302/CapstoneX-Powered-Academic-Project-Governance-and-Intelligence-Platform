@@ -1,0 +1,217 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* Brand */
+  --color-primary: #D2232A;
+  --color-primary-hover: #B01E24;
+
+  /* Typography */
+  --color-text-primary: #231F20;
+  --color-text-secondary: #666666;
+
+  /* Surfaces */
+  --color-bg-main: #FFFFFF;
+  --color-bg-surface: #F8F9FA;
+  --color-border: #E5E7EB;
+
+  /* System / Status */
+  --color-success: #16A34A;
+  --color-warning: #F59E0B;
+  --color-info: #2563EB;
+  --color-error: #D2232A;
+
+  /* Font Families */
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-surface);
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+code, pre, .mono {
+  font-family: var(--font-mono);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Focus States */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Tailwind Layer Overrides */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  input, textarea, select {
+    @apply border border-gray-200 rounded-md px-3 py-2 text-sm transition-all duration-200;
+    font-family: var(--font-body);
+  }
+
+  input:focus, textarea:focus, select:focus {
+    @apply ring-2 ring-offset-2 outline-none;
+    --tw-ring-color: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+
+  button {
+    font-family: var(--font-body);
+    @apply transition-all duration-200;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-lg border border-gray-200 p-6;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: all 0.2s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .stat-number {
+    font-family: var(--font-display);
+    @apply text-3xl;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-success {
+    background: #DCFCE7;
+    color: #16A34A;
+  }
+
+  .badge-warning {
+    background: #FEF3C7;
+    color: #F59E0B;
+  }
+
+  .badge-info {
+    background: #DBEAFE;
+    color: #2563EB;
+  }
+
+  .badge-error {
+    background: #FEE2E2;
+    color: #D2232A;
+  }
+
+  .badge-default {
+    background: #F3F4F6;
+    color: #666666;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 rounded-md text-white font-medium text-sm;
+    background: var(--color-primary);
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary:hover {
+    background: var(--color-primary-hover);
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 rounded-md font-medium text-sm border;
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
+    transition: all 0.2s ease;
+  }
+
+  .btn-secondary:hover {
+    background: var(--color-bg-surface);
+  }
+
+  /* Sidebar Active State */
+  .nav-active {
+    border-left: 3px solid var(--color-primary);
+    background: #FFF1F1;
+    color: var(--color-primary);
+  }
+
+  /* Table Styling */
+  .table-row-alt:nth-child(even) {
+    background: var(--color-bg-surface);
+  }
+
+  .table-row-alt:nth-child(odd) {
+    background: var(--color-bg-main);
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes countUp {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.animate-count-up {
+  animation: countUp 0.5s ease forwards;
+}
