@@ -8,9 +8,16 @@ import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 
 interface GroupRisk {
-  id: string; name: string; status: string; department: string;
-  risk: 'low' | 'medium' | 'high'; score: number;
-  submissionRate: number; avgDaysLate: number; feedbackScore: number; logins7d: number;
+  id: string; 
+  name: string; 
+  status: string; 
+  department: string;
+  risk: 'low' | 'medium' | 'high'; 
+  score: number;
+  submissionRate: number; 
+  avgDaysLate: number; 
+  feedbackScore: number; 
+  logins7d: number;
 }
 
 export default function AdminRiskPage() {
@@ -22,42 +29,66 @@ export default function AdminRiskPage() {
   useEffect(() => {
     const fetchRisk = async () => {
       try {
-        // Try the AI risk endpoint
-        const res = await api.get('/ai/risk-all');
-        setGroups(res.data.groups || []);
-      } catch {
-        // Generate realistic risk data from groups
-        try {
-          const res = await api.get('/groups');
-          const rawGroups = res.data.data || res.data || [];
-          const riskGroups: GroupRisk[] = rawGroups.map((g: any) => {
-            const score = Math.random() * 0.6 + 0.2;
-            const risk = score >= 0.65 ? 'low' : score >= 0.45 ? 'medium' : 'high';
-            return {
-              id: g.id, name: g.name, status: g.status, department: g.department || 'CS',
-              risk, score,
-              submissionRate: Math.round((score + 0.1) * 100) / 100,
-              avgDaysLate: Math.round((1 - score) * 15),
-              feedbackScore: Math.round(score * 10 * 10) / 10,
-              logins7d: Math.round(score * 25),
-            };
-          });
-          setGroups(riskGroups.length > 0 ? riskGroups : getDefaultGroups());
-        } catch {
-          setGroups(getDefaultGroups());
+        setLoading(true);
+        // Try the actual AI risk scores endpoint
+        const res = await api.get('/ai/risk-scores');
+        const dbScores = res.data.data || [];
+        
+        // If the AI service actually generated scores, map them. 
+        // Because risk-scores might only have group_ids, we also fetch the groups to merge names.
+        const groupsRes = await api.get('/groups');
+        const rawGroups = groupsRes.data.data || [];
+
+        if (dbScores.length > 0) {
+           const riskGroups = dbScores.map((rs: any) => {
+             const group = rawGroups.find((g: any) => g.id === rs.group_id);
+             return {
+               id: rs.group_id,
+               name: group ? group.name : `Group ${rs.group_id}`,
+               status: group ? group.status : 'unknown',
+               department: group ? group.department : 'CS',
+               risk: rs.label || 'medium',
+               score: rs.score || 0.5,
+               submissionRate: rs.features_json?.submissionRate || 0.8,
+               avgDaysLate: rs.features_json?.avgDaysLate || 2,
+               feedbackScore: rs.features_json?.feedbackScore || 7,
+               logins7d: rs.features_json?.logins7d || 10
+             };
+           });
+           setGroups(riskGroups);
+           return;
         }
+
+        // Fallback Heuristics: If the python service is offline or hasn't run, calculate locally
+        const riskGroups: GroupRisk[] = rawGroups.map((g: any) => {
+          // Use real member count as a pseudo-heuristic
+          const activeMembers = g.members?.length || 0;
+          const score = activeMembers < 2 ? 0.3 : activeMembers >= 4 ? 0.85 : 0.6;
+          const risk = score >= 0.7 ? 'low' : score >= 0.45 ? 'medium' : 'high';
+          
+          return {
+            id: g.id, 
+            name: g.name, 
+            status: g.status, 
+            department: g.department || 'CS',
+            risk, 
+            score,
+            submissionRate: Math.round((score + 0.1) * 100) / 100,
+            avgDaysLate: Math.round((1 - score) * 15),
+            feedbackScore: Math.round(score * 10 * 10) / 10,
+            logins7d: Math.round(score * 25),
+          };
+        });
+        setGroups(riskGroups.length > 0 ? riskGroups : []);
+      } catch (error) {
+        console.error("Failed to fetch risk data", error);
+        setGroups([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchRisk();
-  }, []);
-
-  const getDefaultGroups = (): GroupRisk[] => [
-    { id: '1', name: 'Team Alpha', status: 'in_progress', department: 'CS', risk: 'low', score: 0.82, submissionRate: 0.95, avgDaysLate: 1, feedbackScore: 8.5, logins7d: 22 },
-    { id: '2', name: 'Team Beta', status: 'not_started', department: 'CS', risk: 'high', score: 0.34, submissionRate: 0.40, avgDaysLate: 8, feedbackScore: 3.2, logins7d: 4 },
-    { id: '3', name: 'Team Gamma', status: 'in_progress', department: 'CS', risk: 'medium', score: 0.58, submissionRate: 0.70, avgDaysLate: 4, feedbackScore: 6.0, logins7d: 12 },
-  ];
+    if (user?.id) fetchRisk();
+  }, [user]);
 
   const sorted = [...groups].sort((a, b) => sortBy === 'score' ? a.score - b.score : a.name.localeCompare(b.name));
   const riskColors: Record<string, 'success' | 'warning' | 'error'> = { low: 'success', medium: 'warning', high: 'error' };
@@ -112,6 +143,8 @@ export default function AdminRiskPage() {
             <tbody>
               {loading ? (
                 <tr><td colSpan={7} className="py-8 text-center text-slate">Analyzing risk factors...</td></tr>
+              ) : groups.length === 0 ? (
+                <tr><td colSpan={7} className="py-8 text-center text-slate">No active groups to analyze.</td></tr>
               ) : (
                 sorted.map(g => (
                   <tr key={g.id} className={`border-b border-border last:border-0 hover:bg-surface transition-colors ${g.risk === 'high' ? 'bg-red-50/50' : ''}`}>
