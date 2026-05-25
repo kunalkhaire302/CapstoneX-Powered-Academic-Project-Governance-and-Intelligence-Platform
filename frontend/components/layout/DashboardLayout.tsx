@@ -35,7 +35,7 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
 
   // Load from localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem('capstonex_user_profile');
+    const saved = localStorage.getItem(`capstonex_user_profile_${role}`);
     if (saved) {
       try {
         setUserProfile(JSON.parse(saved));
@@ -47,8 +47,8 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
 
   // Save to localStorage when it changes
   useEffect(() => {
-    localStorage.setItem('capstonex_user_profile', JSON.stringify(userProfile));
-  }, [userProfile]);
+    localStorage.setItem(`capstonex_user_profile_${role}`, JSON.stringify(userProfile));
+  }, [userProfile, role]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-50">
