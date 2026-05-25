@@ -48,7 +48,15 @@ export default function SettingsModal({ isOpen, onClose, profile, onSaveProfile 
     
     try {
       const token = localStorage.getItem('accessToken');
-      if (!token) throw new Error('Not authenticated');
+      
+      if (!token) {
+        // Fallback for local UI testing without login
+        onSaveProfile(formData);
+        alert('Profile updated locally! (Note: You are not logged in, so this was not saved to the database).');
+        onClose();
+        setLoading(false);
+        return;
+      }
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/users/profile`, {
         method: 'PUT',
