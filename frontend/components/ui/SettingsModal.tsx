@@ -42,16 +42,44 @@ export default function SettingsModal({ isOpen, onClose, profile, onSaveProfile 
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+    
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) throw new Error('Not authenticated');
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/users/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          bio: formData.bio
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update profile');
+
+      // Update local storage user object if needed
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        localStorage.setItem('user', JSON.stringify({ ...parsed, ...data.user }));
+      }
+
       onSaveProfile(formData);
-      alert('Profile updated successfully!');
+      alert('Profile updated successfully in the database!');
       onClose();
-    }, 800);
+    } catch (err: any) {
+      alert(err.message || 'An error occurred while saving.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

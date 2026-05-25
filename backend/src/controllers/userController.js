@@ -209,4 +209,39 @@ const bulkImport = async (req, res, next) => {
   }
 };
 
-module.exports = { listUsers, getUser, updateUser, deleteUser, bulkImport };
+/**
+ * Update the current user's profile.
+ */
+const updateProfile = async (req, res, next) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const { name, bio, avatar_url, skills, interests } = req.body;
+
+    await user.update({
+      ...(name !== undefined && { name }),
+      ...(bio !== undefined && { bio }),
+      ...(avatar_url !== undefined && { avatar_url }),
+      ...(skills !== undefined && { skills }),
+      ...(interests !== undefined && { interests }),
+    });
+
+    await createAuditLog({
+      userId: req.user.id,
+      action: 'user.profile_updated',
+      entityType: 'user',
+      entityId: user.id,
+      metadata: req.body,
+      ipAddress: req.ip,
+    });
+
+    res.json({ message: 'Profile updated successfully.', user: { ...user.toJSON(), password_hash: undefined } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { listUsers, getUser, updateUser, deleteUser, bulkImport, updateProfile };
