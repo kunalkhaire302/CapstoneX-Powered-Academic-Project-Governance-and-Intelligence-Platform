@@ -1,6 +1,7 @@
 'use client';
 
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface ModalProps {
   isOpen: boolean;
@@ -11,8 +12,13 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
+  const [mounted, setMounted] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -63,13 +69,13 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
     return () => modal.removeEventListener('keydown', handler);
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const sizes = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl' };
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -83,8 +89,8 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
         aria-hidden="true"
       />
       {/* Content */}
-      <div className={`relative bg-white rounded-2xl shadow-xl ${sizes[size]} w-full animate-scale-in overflow-hidden`}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+      <div className={`relative bg-white rounded-2xl shadow-xl ${sizes[size]} w-full animate-scale-in overflow-hidden max-h-[90vh] flex flex-col`}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
           <h3 id="modal-title" className="text-lg font-display text-thunder">{title}</h3>
           <button
             ref={closeRef}
@@ -97,8 +103,9 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
             </svg>
           </button>
         </div>
-        <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">{children}</div>
+        <div className="px-6 py-5 overflow-y-auto">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
