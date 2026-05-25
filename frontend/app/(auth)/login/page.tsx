@@ -106,6 +106,31 @@ export default function LoginPage() {
             </div>
 
             <Button type="submit" className="w-full" size="lg" loading={loading} id="login-submit">Sign In</Button>
+
+            <div className="mt-4 border-t border-gray-100 pt-5">
+              <p className="text-[11px] text-slate/70 font-semibold mb-3 text-center uppercase tracking-wider">Demo Credentials (CapstoneX@2024)</p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {[
+                  { role: 'Student', email: 'student1@capstonex.com' },
+                  { role: 'Mentor', email: 'mentor1@capstonex.com' },
+                  { role: 'Coord', email: 'coord1@capstonex.com' },
+                  { role: 'HOD', email: 'hod@capstonex.com' },
+                  { role: 'Admin', email: 'admin@capstonex.com' }
+                ].map(demo => (
+                  <button
+                    key={demo.role}
+                    type="button"
+                    onClick={() => {
+                      setEmail(demo.email);
+                      setPassword('CapstoneX@2024');
+                    }}
+                    className="px-2.5 py-1 text-xs bg-gray-50 border border-gray-200 text-slate hover:bg-cardinal-50 hover:text-cardinal hover:border-cardinal/30 rounded-md transition-colors font-medium"
+                  >
+                    {demo.role}
+                  </button>
+                ))}
+              </div>
+            </div>
           </form>
 
           <div className="mt-6 text-center text-sm text-slate">
