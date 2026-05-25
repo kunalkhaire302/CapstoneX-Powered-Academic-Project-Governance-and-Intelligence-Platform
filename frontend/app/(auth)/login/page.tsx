@@ -44,7 +44,7 @@ export default function LoginPage() {
       {/* Left Panel — Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-thunder relative overflow-hidden items-center justify-center">
         <div className="relative z-10 p-12 text-white max-w-md">
-          <img src="/logo-full.png" alt="CapstoneX" className="w-48 mb-8 drop-shadow-lg" />
+          <img src="/logo-full.png" alt="CapstoneX" className="w-56 mb-8 drop-shadow-[0_4px_24px_rgba(255,255,255,0.25)]" />
           <h1 className="text-4xl font-display mb-4">Welcome to CapstoneX</h1>
           <p className="text-white/70 text-lg leading-relaxed">
             AI-powered academic project governance platform. Manage your capstone journey with intelligent insights.
@@ -73,7 +73,7 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           <div className="lg:hidden mb-8">
-            <img src="/logo-full.png" alt="CapstoneX" className="w-36 mb-4" />
+            <img src="/logo-full.png" alt="CapstoneX" className="w-44 mb-6 drop-shadow-md" />
           </div>
 
           <h2 className="text-2xl font-display text-thunder mb-1">Sign in to your account</h2>

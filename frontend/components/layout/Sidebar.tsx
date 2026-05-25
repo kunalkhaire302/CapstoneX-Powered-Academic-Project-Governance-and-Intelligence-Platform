@@ -49,10 +49,12 @@ export default function Sidebar({ role = 'student', userName = '', userRole = ''
   return (
     <aside className="fixed left-0 top-0 h-screen w-60 bg-white border-r border-border flex flex-col z-40">
       {/* Logo */}
-      <div className="p-4 border-b border-border">
-        <Link href="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="CX" className="w-8 h-8 object-contain" />
-          <span className="font-display text-xl text-thunder">CapstoneX</span>
+      <div className="px-4 py-5 border-b border-border">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-lg bg-cardinal/10 flex items-center justify-center shadow-sm">
+            <img src="/logo.png" alt="CX" className="w-9 h-9 object-contain" />
+          </div>
+          <span className="font-display text-xl font-bold text-thunder tracking-tight">CapstoneX</span>
         </Link>
       </div>
 

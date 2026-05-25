@@ -5,9 +5,11 @@ export default function HomePage() {
     <div className="min-h-screen bg-white">
       {/* Navigation */}
       <nav className="flex items-center justify-between px-8 py-4 border-b border-border max-w-7xl mx-auto">
-        <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="CX" className="w-8 h-8 object-contain" />
-          <span className="font-display text-xl text-thunder">CapstoneX</span>
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-lg bg-cardinal/10 flex items-center justify-center shadow-sm">
+            <img src="/logo.png" alt="CX" className="w-9 h-9 object-contain" />
+          </div>
+          <span className="font-display text-2xl font-bold text-thunder tracking-tight">CapstoneX</span>
         </div>
         <div className="flex items-center gap-4">
           <Link href="/login" className="text-sm text-slate hover:text-thunder transition-colors font-medium">
