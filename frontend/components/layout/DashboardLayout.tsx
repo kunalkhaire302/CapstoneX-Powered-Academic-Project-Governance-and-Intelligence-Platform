@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import { UserProfile } from '../ui/SettingsModal';
@@ -11,6 +11,17 @@ interface DashboardLayoutProps {
   title?: string;
   userName?: string;
 }
+
+export const UserProfileContext = createContext<{
+  userProfile: UserProfile;
+  setUserProfile: (profile: UserProfile) => void;
+} | null>(null);
+
+export const useUserProfile = () => {
+  const context = useContext(UserProfileContext);
+  if (!context) throw new Error('useUserProfile must be used within DashboardLayout');
+  return context;
+};
 
 export default function DashboardLayout({ children, role = 'student', title = 'Dashboard', userName = '' }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -68,7 +79,9 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
           setUserProfile={setUserProfile}
         />
         <main id="main-content" className="flex-1 p-4 sm:p-6 max-w-[1200px] w-full mx-auto animate-fade-in" role="main">
-          {children}
+          <UserProfileContext.Provider value={{ userProfile, setUserProfile }}>
+            {children}
+          </UserProfileContext.Provider>
         </main>
       </div>
     </div>

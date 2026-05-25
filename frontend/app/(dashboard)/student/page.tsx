@@ -1,11 +1,12 @@
 'use client';
 
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import DashboardLayout, { useUserProfile } from '@/components/layout/DashboardLayout';
 import { StatCard } from '@/components/ui/Card';
 import Card from '@/components/ui/Card';
 import Badge, { StatusBadge } from '@/components/ui/Badge';
 
 export default function StudentDashboard() {
+  const { userProfile } = useUserProfile();
   const stats = [
     { label: 'Groups Joined', value: 1, trend: { value: 0, positive: true }, iconBg: 'bg-blue-50 text-blue-500', icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg> },
     { label: 'Logbooks Submitted', value: 8, trend: { value: 15, positive: true }, iconBg: 'bg-emerald-50 text-emerald-500', icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg> },
@@ -27,14 +28,14 @@ export default function StudentDashboard() {
   ];
 
   return (
-    <DashboardLayout role="student" title="Student Dashboard" userName="Student 1">
+    <DashboardLayout role="student" title="Student Dashboard" userName={userProfile.name}>
       {/* Welcome Banner */}
       <div className="mb-8 bg-gradient-to-r from-[#0F172A] via-[#1a2744] to-[#0F172A] rounded-2xl p-6 md:p-8 text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-48 h-48 bg-cardinal/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-1/3 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl" />
         <div className="relative z-10">
           <p className="text-white/50 text-sm mb-1">Welcome back,</p>
-          <h2 className="text-2xl font-display mb-2">Student 1 👋</h2>
+          <h2 className="text-2xl font-display mb-2">{userProfile.name} 👋</h2>
           <p className="text-white/40 text-sm">Your capstone journey is progressing well. Keep up the great work!</p>
         </div>
       </div>
