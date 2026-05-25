@@ -8,20 +8,14 @@ import SettingsModal, { UserProfile } from '../ui/SettingsModal';
 interface TopbarProps {
   title?: string;
   onMenuToggle?: () => void;
+  userProfile: UserProfile;
+  setUserProfile: (profile: UserProfile) => void;
 }
 
-export default function Topbar({ title = 'Dashboard', onMenuToggle }: TopbarProps) {
+export default function Topbar({ title = 'Dashboard', onMenuToggle, userProfile, setUserProfile }: TopbarProps) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
-  
-  // Manage user profile state to reflect edits
-  const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: 'User',
-    email: 'user@capstonex.com',
-    role: 'Student',
-    bio: ''
-  });
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
