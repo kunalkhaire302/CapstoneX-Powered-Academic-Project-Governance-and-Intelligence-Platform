@@ -5,18 +5,27 @@ import Modal from './Modal';
 import Input from './Input';
 import Button from './Button';
 
+export interface UserProfile {
+  name: string;
+  email: string;
+  role: string;
+  bio?: string;
+}
+
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultName?: string;
-  defaultEmail?: string;
-  role?: string;
+  profile: UserProfile;
+  onSaveProfile: (profile: UserProfile) => void;
 }
 
-export default function SettingsModal({ isOpen, onClose, defaultName = 'User', defaultEmail = 'user@capstonex.com', role = 'Student' }: SettingsModalProps) {
+export default function SettingsModal({ isOpen, onClose, profile, onSaveProfile }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Local form state
+  const [formData, setFormData] = useState<UserProfile>(profile);
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -39,6 +48,7 @@ export default function SettingsModal({ isOpen, onClose, defaultName = 'User', d
     // Simulate API call
     setTimeout(() => {
       setLoading(false);
+      onSaveProfile(formData);
       alert('Profile updated successfully!');
       onClose();
     }, 800);
@@ -77,7 +87,7 @@ export default function SettingsModal({ isOpen, onClose, defaultName = 'User', d
                 {/* Avatar Section */}
                 <div className="flex items-center gap-4 mb-2">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cardinal to-cardinal-600 flex items-center justify-center text-white text-2xl font-bold shadow-inner-glow">
-                    {defaultName.charAt(0)}
+                    {formData.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <input 
@@ -93,11 +103,22 @@ export default function SettingsModal({ isOpen, onClose, defaultName = 'User', d
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Input label="Full Name" defaultValue={defaultName} required />
-                  <Input label="Email Address" type="email" defaultValue={defaultEmail} required />
+                  <Input 
+                    label="Full Name" 
+                    value={formData.name} 
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    required 
+                  />
+                  <Input 
+                    label="Email Address" 
+                    type="email" 
+                    value={formData.email} 
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    required 
+                  />
                 </div>
                 
-                <Input label="Role / Department" defaultValue={role} disabled />
+                <Input label="Role / Department" value={formData.role} disabled />
                 
                 <div className="space-y-1.5">
                   <label className="block text-sm font-medium text-thunder">Bio</label>
@@ -105,6 +126,8 @@ export default function SettingsModal({ isOpen, onClose, defaultName = 'User', d
                     className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-cardinal/15 focus:border-cardinal focus:outline-none transition-all resize-none"
                     rows={3}
                     placeholder="Write a short bio about yourself..."
+                    value={formData.bio || ''}
+                    onChange={(e) => setFormData({...formData, bio: e.target.value})}
                   />
                 </div>
               </div>

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import SettingsModal from '../ui/SettingsModal';
+import SettingsModal, { UserProfile } from '../ui/SettingsModal';
 
 interface TopbarProps {
   title?: string;
@@ -14,6 +14,15 @@ export default function Topbar({ title = 'Dashboard', onMenuToggle }: TopbarProp
   const [notifOpen, setNotifOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  
+  // Manage user profile state to reflect edits
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    name: 'User',
+    email: 'user@capstonex.com',
+    role: 'Student',
+    bio: ''
+  });
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -129,7 +138,7 @@ export default function Topbar({ title = 'Dashboard', onMenuToggle }: TopbarProp
             aria-expanded={userMenuOpen}
           >
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cardinal to-cardinal-600 flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-xs" aria-hidden="true">U</span>
+              <span className="text-white font-bold text-xs" aria-hidden="true">{userProfile.name.charAt(0).toUpperCase()}</span>
             </div>
             <svg className={`w-4 h-4 text-slate/50 hidden sm:block transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -140,8 +149,8 @@ export default function Topbar({ title = 'Dashboard', onMenuToggle }: TopbarProp
           {userMenuOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 p-1.5 z-50 animate-fade-in">
               <div className="px-3 py-2.5 mb-1 border-b border-gray-100/60">
-                <p className="text-sm font-semibold text-thunder">User Profile</p>
-                <p className="text-[13px] text-slate truncate">user@capstonex.com</p>
+                <p className="text-sm font-semibold text-thunder">{userProfile.name}</p>
+                <p className="text-[13px] text-slate truncate">{userProfile.email}</p>
               </div>
               <div className="space-y-0.5">
                 <button 
@@ -176,8 +185,8 @@ export default function Topbar({ title = 'Dashboard', onMenuToggle }: TopbarProp
       <SettingsModal 
         isOpen={settingsModalOpen} 
         onClose={() => setSettingsModalOpen(false)} 
-        defaultName="User"
-        defaultEmail="user@capstonex.com"
+        profile={userProfile}
+        onSaveProfile={(newProfile) => setUserProfile(newProfile)}
       />
     </header>
   );
