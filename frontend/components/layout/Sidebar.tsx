@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 
 interface NavItem {
   label: string;
@@ -42,56 +42,108 @@ const roleNavItems: Record<string, NavItem[]> = {
   ],
 };
 
-export default function Sidebar({ role = 'student', userName = '', userRole = '' }: { role?: string; userName?: string; userRole?: string }) {
+interface SidebarProps {
+  role?: string;
+  userName?: string;
+  userRole?: string;
+  mobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function Sidebar({ role = 'student', userName = '', userRole = '', mobileOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const navItems = roleNavItems[role] || roleNavItems.student;
 
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    if (mobileOpen && onClose) onClose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  // Lock body scroll on mobile when sidebar open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
+  }, [mobileOpen]);
+
   return (
-    <aside className="fixed left-0 top-0 h-screen w-60 bg-white border-r border-border flex flex-col z-40">
+    <aside
+      className={`fixed left-0 top-0 h-screen w-[270px] sm:w-[250px] bg-gradient-to-b from-[#0F172A] to-[#1a2744] flex flex-col z-40
+        transition-transform duration-300 ease-out
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
+      role="navigation"
+      aria-label="Main navigation"
+    >
+      {/* Close button — mobile only */}
+      <button
+        onClick={onClose}
+        className="lg:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+        aria-label="Close navigation menu"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-border">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-lg bg-cardinal/10 flex items-center justify-center shadow-sm">
-            <img src="/logo.png" alt="CX" className="w-9 h-9 object-contain" />
+      <div className="px-5 py-6 border-b border-white/[0.06]">
+        <Link href="/" className="flex items-center gap-3" aria-label="CapstoneX — Go to homepage">
+          <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/[0.08] shadow-inner-glow">
+            <img src="/logo.png" alt="" className="w-7 h-7 object-contain brightness-0 invert" aria-hidden="true" />
           </div>
-          <span className="font-display text-xl font-bold text-thunder tracking-tight">CapstoneX</span>
+          <div>
+            <span className="font-display text-lg text-white tracking-tight block leading-tight">CapstoneX</span>
+            <span className="text-[10px] text-white/40 font-medium uppercase tracking-wider">AI Platform</span>
+          </div>
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 overflow-y-auto">
-        <div className="px-3 mb-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate">Navigation</span>
+      <nav className="flex-1 py-5 overflow-y-auto px-3" aria-label="Sidebar navigation">
+        <div className="mb-3 px-3">
+          <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/25" aria-hidden="true">Navigation</span>
         </div>
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== `/${role}` && pathname.startsWith(item.href));
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                isActive
-                  ? 'border-l-[3px] border-cardinal bg-cardinal-light text-cardinal'
-                  : 'text-slate hover:bg-surface hover:text-thunder'
-              }`}
-            >
-              <span className="w-5 h-5">{item.icon}</span>
-              {item.label}
-            </Link>
-          );
-        })}
+        <ul className="space-y-0.5 list-none" role="list">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href || (item.href !== `/${role}` && pathname.startsWith(item.href));
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`flex items-center gap-3 px-3 py-3 rounded-lg text-[13px] font-medium transition-all duration-200 group ${
+                    isActive
+                      ? 'bg-cardinal/15 text-cardinal-400 shadow-[inset_0_0_0_1px_rgba(210,35,42,0.15)]'
+                      : 'text-white/50 hover:text-white/80 hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <span className={`w-5 h-5 flex-shrink-0 transition-colors ${isActive ? 'text-cardinal-400' : 'text-white/30 group-hover:text-white/60'}`}>
+                    {item.icon}
+                  </span>
+                  <span className="truncate">{item.label}</span>
+                  {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-cardinal-400 animate-pulse flex-shrink-0" aria-hidden="true" />}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </nav>
 
       {/* User Info */}
-      <div className="p-4 border-t border-border">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-cardinal-light flex items-center justify-center">
-            <span className="text-cardinal font-semibold text-sm">{userName?.charAt(0) || 'U'}</span>
+      <div className="p-4 border-t border-white/[0.06]">
+        <div className="flex items-center gap-3 px-2 py-2.5 rounded-lg hover:bg-white/[0.04] transition-colors cursor-pointer" role="button" tabIndex={0} aria-label={`User menu for ${userName || 'User'}`}>
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cardinal to-cardinal-600 flex items-center justify-center ring-2 ring-cardinal/20 flex-shrink-0">
+            <span className="text-white font-bold text-xs">{userName?.charAt(0) || 'U'}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-thunder truncate">{userName || 'User'}</p>
-            <p className="text-xs text-slate capitalize">{userRole || role}</p>
+            <p className="text-sm font-medium text-white/80 truncate">{userName || 'User'}</p>
+            <p className="text-[11px] text-white/30 capitalize">{userRole || role}</p>
           </div>
+          <svg className="w-4 h-4 text-white/20 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
+          </svg>
         </div>
       </div>
     </aside>
