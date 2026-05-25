@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CapstoneX — AI-Powered Academic Project Governance",
+  title: "CapstoneX",
   description: "CapstoneX is an AI-powered platform for managing capstone projects, team formation, logbook tracking, evaluation, and risk prediction in academic institutions.",
   keywords: ["capstone", "academic", "project management", "AI", "evaluation", "logbook"],
 };
