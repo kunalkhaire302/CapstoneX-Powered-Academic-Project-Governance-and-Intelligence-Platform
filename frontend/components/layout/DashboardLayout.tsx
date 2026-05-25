@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import { UserProfile } from '../ui/SettingsModal';
@@ -21,6 +21,23 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
     role: role || 'Student',
     bio: ''
   });
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('capstonex_user_profile');
+    if (saved) {
+      try {
+        setUserProfile(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse saved profile');
+      }
+    }
+  }, []);
+
+  // Save to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('capstonex_user_profile', JSON.stringify(userProfile));
+  }, [userProfile]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-50">
