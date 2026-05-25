@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Modal from './Modal';
 import Input from './Input';
 import Button from './Button';
@@ -16,6 +16,22 @@ interface SettingsModalProps {
 export default function SettingsModal({ isOpen, onClose, defaultName = 'User', defaultEmail = 'user@capstonex.com', role = 'Student' }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert('File size exceeds 2MB limit.');
+        return;
+      }
+      alert(`Avatar "${file.name}" selected! (Upload simulation)`);
+    }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +80,14 @@ export default function SettingsModal({ isOpen, onClose, defaultName = 'User', d
                     {defaultName.charAt(0)}
                   </div>
                   <div>
-                    <Button variant="secondary" size="sm" type="button">Change Avatar</Button>
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleAvatarChange} 
+                      accept="image/png, image/jpeg, image/gif" 
+                      className="hidden" 
+                    />
+                    <Button variant="secondary" size="sm" type="button" onClick={handleAvatarClick}>Change Avatar</Button>
                     <p className="text-xs text-slate mt-2">JPG, GIF or PNG. Max size 2MB.</p>
                   </div>
                 </div>
