@@ -30,7 +30,7 @@ const PORT = process.env.PORT || 5000;
 // ──────────────────────────────────────────
 // Environment Strictness
 // ──────────────────────────────────────────
-const requiredSecrets = ['JWT_SECRET', 'JWT_REFRESH_SECRET', 'DATABASE_URL', 'OPENAI_KEY'];
+const requiredSecrets = ['JWT_SECRET', 'JWT_REFRESH_SECRET', 'DATABASE_URL'];
 const missingSecrets = requiredSecrets.filter(s => !process.env[s] || process.env[s] === 'fallback_secret');
 if (missingSecrets.length > 0) {
   logger.error(`FATAL ERROR: Missing or insecure secrets: ${missingSecrets.join(', ')}`);
