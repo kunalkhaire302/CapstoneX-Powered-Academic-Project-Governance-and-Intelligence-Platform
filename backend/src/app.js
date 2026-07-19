@@ -22,6 +22,7 @@ const auditLogRoutes = require('./routes/auditLogRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const exportRoutes = require('./routes/exportRoutes');
 const aiRoutes = require('./routes/aiRoutes');
+const recommendationRoutes = require('./routes/recommendationRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -70,6 +71,7 @@ app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api', recommendationRoutes);
 
 // ──────────────────────────────────────────
 // 404 Handler

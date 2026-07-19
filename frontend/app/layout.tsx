@@ -13,6 +13,8 @@ export const viewport: Viewport = {
   themeColor: '#D2232A',
 };
 
+import { Toaster } from 'react-hot-toast';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -21,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main-content" className="skip-to-content">
           Skip to main content
         </a>
+        <Toaster position="top-right" toastOptions={{ duration: 4000, style: { background: '#1E293B', color: '#fff', fontSize: '14px', borderRadius: '8px' } }} />
         {children}
       </body>
     </html>

@@ -51,17 +51,20 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
   }, [userProfile, role]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-50">
+    <div className="min-h-screen w-full overflow-hidden bg-transparent flex">
+      {/* Dynamic Background Orb */}
+      <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-cardinal/20 blur-[120px] rounded-full pointer-events-none mix-blend-screen animate-pulse-glow z-0" aria-hidden="true" />
+      
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-opacity"
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         />
       )}
 
-      {/* Sidebar — hidden on mobile by default, toggled */}
+      {/* Floating Sidebar (Navigation) */}
       <Sidebar
         role={role}
         userName={userProfile.name}
@@ -70,19 +73,26 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
         onClose={() => setSidebarOpen(false)}
       />
 
-      {/* Main content area */}
-      <div className="lg:ml-[250px] min-h-screen flex flex-col">
-        <Topbar 
-          title={title} 
-          onMenuToggle={() => setSidebarOpen(true)} 
-          userProfile={userProfile}
-          setUserProfile={setUserProfile}
-        />
-        <main id="main-content" className="flex-1 p-4 sm:p-6 max-w-[1200px] w-full mx-auto animate-fade-in" role="main">
-          <UserProfileContext.Provider value={{ userProfile, setUserProfile }}>
-            {children}
-          </UserProfileContext.Provider>
-        </main>
+      {/* Main App-in-App Canvas */}
+      <div className="flex-1 flex flex-col min-h-screen lg:pl-[280px] p-2 sm:p-4 lg:py-4 lg:pr-4 transition-all duration-300 z-10 w-full max-w-[100vw]">
+        <div className="flex-1 flex flex-col bg-white rounded-2xl sm:rounded-[32px] shadow-glass-panel border border-white/60 overflow-hidden relative isolate">
+          
+          <Topbar 
+            title={title} 
+            onMenuToggle={() => setSidebarOpen(true)} 
+            userProfile={userProfile}
+            setUserProfile={setUserProfile}
+          />
+
+          <main id="main-content" className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 w-full bg-slate-50/50" role="main">
+            <div className="max-w-[1400px] mx-auto animate-fade-in w-full h-full">
+              <UserProfileContext.Provider value={{ userProfile, setUserProfile }}>
+                {children}
+              </UserProfileContext.Provider>
+            </div>
+          </main>
+          
+        </div>
       </div>
     </div>
   );

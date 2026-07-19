@@ -1,0 +1,802 @@
+[
+  {
+    "id": "seed-001",
+    "title": "AI-Powered Mental Health Chatbot",
+    "description": "A conversational AI chatbot that uses NLP and sentiment analysis to provide mental health support and counseling resources to students. Features include mood tracking, crisis detection, and therapist referral system.",
+    "domain": "Healthcare",
+    "tech_stack": [
+      "Python",
+      "TensorFlow",
+      "React",
+      "Node.js",
+      "MongoDB"
+    ],
+    "hackathon_name": "HealthHack 2024",
+    "year": 2024,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-002",
+    "title": "Smart Waste Management System",
+    "description": "IoT-based waste management platform using sensors in bins to monitor fill levels, optimize collection routes, and reduce operational costs for municipalities.",
+    "domain": "IoT",
+    "tech_stack": [
+      "Arduino",
+      "Python",
+      "React",
+      "Firebase",
+      "Google Maps API"
+    ],
+    "hackathon_name": "GreenTech Summit",
+    "year": 2024,
+    "outcome": "Runner-up"
+  },
+  {
+    "id": "seed-003",
+    "title": "Blockchain-based Academic Credential Verification",
+    "description": "Decentralized platform for verifying academic degrees and certificates using blockchain technology. Eliminates credential fraud and simplifies verification for employers.",
+    "domain": "Blockchain",
+    "tech_stack": [
+      "Solidity",
+      "Ethereum",
+      "React",
+      "Node.js",
+      "IPFS"
+    ],
+    "hackathon_name": "EdTech Innovation",
+    "year": 2024,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-004",
+    "title": "Real-time Sign Language Translator",
+    "description": "Computer vision application that translates sign language gestures to text and speech in real-time using deep learning models trained on ASL datasets.",
+    "domain": "Computer Vision",
+    "tech_stack": [
+      "Python",
+      "PyTorch",
+      "OpenCV",
+      "MediaPipe",
+      "Flutter"
+    ],
+    "hackathon_name": "Accessibility Hack",
+    "year": 2024,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-005",
+    "title": "Crop Disease Detection Mobile App",
+    "description": "Mobile application for farmers that uses camera-based plant disease detection powered by CNN models. Provides treatment recommendations and connects to agricultural experts.",
+    "domain": "Machine Learning",
+    "tech_stack": [
+      "TensorFlow",
+      "Flutter",
+      "Firebase",
+      "Python",
+      "FastAPI"
+    ],
+    "hackathon_name": "AgriTech Challenge",
+    "year": 2024,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-006",
+    "title": "Personalized Learning Path Generator",
+    "description": "AI-powered e-learning platform that creates personalized study plans based on student performance, learning style, and career goals. Uses adaptive testing and knowledge graph.",
+    "domain": "Education",
+    "tech_stack": [
+      "React",
+      "Node.js",
+      "MongoDB",
+      "Python",
+      "scikit-learn"
+    ],
+    "hackathon_name": "EduHack",
+    "year": 2023,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-007",
+    "title": "Decentralized Voting Platform",
+    "description": "Secure online voting system using blockchain for transparent and tamper-proof elections. Features include voter identity verification, encrypted ballots, and public audit trail.",
+    "domain": "Blockchain",
+    "tech_stack": [
+      "Solidity",
+      "React",
+      "Node.js",
+      "Ethereum",
+      "Zero-Knowledge Proofs"
+    ],
+    "hackathon_name": "CivicTech Hack",
+    "year": 2024,
+    "outcome": "Runner-up"
+  },
+  {
+    "id": "seed-008",
+    "title": "Traffic Flow Prediction System",
+    "description": "Machine learning system that predicts traffic congestion patterns using historical data, weather, and event information. Provides real-time routing recommendations.",
+    "domain": "Data Science",
+    "tech_stack": [
+      "Python",
+      "TensorFlow",
+      "React",
+      "PostgreSQL",
+      "Google Maps API"
+    ],
+    "hackathon_name": "Smart City Hack",
+    "year": 2023,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-009",
+    "title": "Women Safety Mobile App",
+    "description": "Emergency safety app with real-time location sharing, SOS alerts, fake call generator, and safe route suggestions. Includes community safety mapping.",
+    "domain": "Mobile Development",
+    "tech_stack": [
+      "Flutter",
+      "Firebase",
+      "Google Maps",
+      "Node.js",
+      "Twilio"
+    ],
+    "hackathon_name": "SafeHer Hack",
+    "year": 2024,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-010",
+    "title": "AI Resume Screener and Ranker",
+    "description": "NLP-based system that automatically screens resumes, extracts key information, and ranks candidates based on job requirements using semantic matching.",
+    "domain": "NLP",
+    "tech_stack": [
+      "Python",
+      "spaCy",
+      "BERT",
+      "FastAPI",
+      "React"
+    ],
+    "hackathon_name": "HR Tech Summit",
+    "year": 2023,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-011",
+    "title": "Smart Parking Management System",
+    "description": "IoT-based parking solution using ultrasonic sensors to detect available spots, mobile app for reservation, and dynamic pricing based on demand.",
+    "domain": "IoT",
+    "tech_stack": [
+      "Arduino",
+      "React Native",
+      "Node.js",
+      "MongoDB",
+      "MQTT"
+    ],
+    "hackathon_name": "Smart City Hack",
+    "year": 2024,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-012",
+    "title": "Fake News Detection Platform",
+    "description": "AI platform that identifies misinformation and fake news using NLP, fact-checking databases, and credibility scoring of news sources.",
+    "domain": "NLP",
+    "tech_stack": [
+      "Python",
+      "BERT",
+      "React",
+      "Flask",
+      "PostgreSQL"
+    ],
+    "hackathon_name": "Media Hack",
+    "year": 2023,
+    "outcome": "Runner-up"
+  },
+  {
+    "id": "seed-013",
+    "title": "Student Expense Tracker with Budget Prediction",
+    "description": "Mobile app for students to track daily expenses, categorize spending, and get AI-powered budget predictions and savings recommendations.",
+    "domain": "Fintech",
+    "tech_stack": [
+      "React Native",
+      "Node.js",
+      "MongoDB",
+      "Python",
+      "scikit-learn"
+    ],
+    "hackathon_name": "FinHack",
+    "year": 2024,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-014",
+    "title": "Hospital Bed Availability Tracker",
+    "description": "Real-time dashboard showing hospital bed availability, ICU capacity, and oxygen supply levels across city hospitals. Helps patients find available beds during emergencies.",
+    "domain": "Healthcare",
+    "tech_stack": [
+      "React",
+      "Node.js",
+      "PostgreSQL",
+      "WebSocket",
+      "Google Maps API"
+    ],
+    "hackathon_name": "HealthHack 2023",
+    "year": 2023,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-015",
+    "title": "AR-based Interior Design Visualizer",
+    "description": "Augmented reality app that lets users visualize furniture and decor in their rooms before purchase. Features include 3D model placement, color matching, and e-commerce integration.",
+    "domain": "Mobile Development",
+    "tech_stack": [
+      "ARCore",
+      "Unity",
+      "Flutter",
+      "Firebase",
+      "Stripe API"
+    ],
+    "hackathon_name": "CreativeTech",
+    "year": 2024,
+    "outcome": "Runner-up"
+  },
+  {
+    "id": "seed-016",
+    "title": "Automated Code Review Tool",
+    "description": "AI-powered code review platform that detects bugs, security vulnerabilities, and code quality issues. Provides actionable fix suggestions using LLM-based analysis.",
+    "domain": "Machine Learning",
+    "tech_stack": [
+      "Python",
+      "GPT API",
+      "React",
+      "Node.js",
+      "PostgreSQL"
+    ],
+    "hackathon_name": "DevTools Hack",
+    "year": 2024,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-017",
+    "title": "Carbon Footprint Calculator",
+    "description": "Web application that calculates individual and organizational carbon footprint based on daily activities, transportation, diet, and energy usage. Suggests reduction strategies.",
+    "domain": "Sustainability",
+    "tech_stack": [
+      "React",
+      "Node.js",
+      "MongoDB",
+      "Chart.js",
+      "OpenWeatherMap API"
+    ],
+    "hackathon_name": "GreenTech Summit",
+    "year": 2023,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-018",
+    "title": "Peer-to-Peer Study Group Matching",
+    "description": "Platform that matches students for study groups based on courses, learning goals, availability, and complementary strengths using collaborative filtering.",
+    "domain": "Education",
+    "tech_stack": [
+      "React",
+      "Django",
+      "PostgreSQL",
+      "Python",
+      "Redis"
+    ],
+    "hackathon_name": "EduHack",
+    "year": 2024,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-019",
+    "title": "Food Donation and Distribution Network",
+    "description": "Platform connecting restaurants and events with surplus food to food banks and shelters. Features route optimization for pickup and delivery, expiry tracking.",
+    "domain": "Social Good",
+    "tech_stack": [
+      "React Native",
+      "Node.js",
+      "MongoDB",
+      "Google Maps",
+      "Twilio"
+    ],
+    "hackathon_name": "Impact Hack",
+    "year": 2024,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-020",
+    "title": "Earthquake Early Warning System",
+    "description": "IoT sensor network for detecting seismic activity and sending early warnings to residents via mobile push notifications. Uses machine learning for pattern recognition.",
+    "domain": "IoT",
+    "tech_stack": [
+      "Raspberry Pi",
+      "Python",
+      "TensorFlow",
+      "Firebase",
+      "React Native"
+    ],
+    "hackathon_name": "DisasterTech",
+    "year": 2023,
+    "outcome": "Runner-up"
+  },
+  {
+    "id": "seed-021",
+    "title": "Online Exam Proctoring System",
+    "description": "AI-based exam proctoring that detects cheating through face recognition, eye tracking, audio analysis, and screen monitoring during online examinations.",
+    "domain": "Computer Vision",
+    "tech_stack": [
+      "Python",
+      "OpenCV",
+      "TensorFlow",
+      "React",
+      "WebRTC"
+    ],
+    "hackathon_name": "EduHack",
+    "year": 2023,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-022",
+    "title": "Smart Energy Monitoring Dashboard",
+    "description": "Real-time energy consumption monitoring for buildings using IoT sensors. Provides analytics, anomaly detection, and automated energy-saving recommendations.",
+    "domain": "IoT",
+    "tech_stack": [
+      "ESP32",
+      "InfluxDB",
+      "Grafana",
+      "Python",
+      "React"
+    ],
+    "hackathon_name": "GreenTech Summit",
+    "year": 2024,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-023",
+    "title": "Medical Image Analysis for Tumor Detection",
+    "description": "Deep learning model for detecting and classifying tumors in medical images (X-ray, MRI, CT scans). Assists radiologists with automated screening.",
+    "domain": "Computer Vision",
+    "tech_stack": [
+      "Python",
+      "PyTorch",
+      "FastAPI",
+      "React",
+      "DICOM"
+    ],
+    "hackathon_name": "HealthHack 2024",
+    "year": 2024,
+    "outcome": "Runner-up"
+  },
+  {
+    "id": "seed-024",
+    "title": "Freelancer Project Management Platform",
+    "description": "All-in-one platform for freelancers to manage projects, track time, generate invoices, communicate with clients, and manage contracts.",
+    "domain": "Web Development",
+    "tech_stack": [
+      "Next.js",
+      "Node.js",
+      "PostgreSQL",
+      "Stripe",
+      "Tailwind CSS"
+    ],
+    "hackathon_name": "ProductHunt Hack",
+    "year": 2024,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-025",
+    "title": "Sentiment Analysis Dashboard for Social Media",
+    "description": "Real-time sentiment analysis tool that monitors brand mentions across social media platforms. Provides trend visualization, alert system, and competitor comparison.",
+    "domain": "NLP",
+    "tech_stack": [
+      "Python",
+      "BERT",
+      "React",
+      "Redis",
+      "Twitter API"
+    ],
+    "hackathon_name": "DataHack",
+    "year": 2023,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-026",
+    "title": "Autonomous Drone for Agricultural Spraying",
+    "description": "Drone-based precision agriculture system that autonomously identifies crop areas needing treatment and performs targeted pesticide spraying.",
+    "domain": "Robotics",
+    "tech_stack": [
+      "Python",
+      "ROS",
+      "OpenCV",
+      "TensorFlow",
+      "React"
+    ],
+    "hackathon_name": "AgriTech Challenge",
+    "year": 2023,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-027",
+    "title": "Recipe Generator from Available Ingredients",
+    "description": "AI-powered cooking assistant that suggests recipes based on available ingredients, dietary preferences, and nutritional goals. Uses image recognition for ingredient identification.",
+    "domain": "Machine Learning",
+    "tech_stack": [
+      "Python",
+      "TensorFlow",
+      "React Native",
+      "Firebase",
+      "Spoonacular API"
+    ],
+    "hackathon_name": "FoodTech Hack",
+    "year": 2024,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-028",
+    "title": "Automatic Attendance System using Face Recognition",
+    "description": "Classroom attendance management system using face recognition to automatically mark student attendance. Includes analytics dashboard for attendance patterns.",
+    "domain": "Computer Vision",
+    "tech_stack": [
+      "Python",
+      "OpenCV",
+      "dlib",
+      "Flask",
+      "PostgreSQL"
+    ],
+    "hackathon_name": "EduHack",
+    "year": 2023,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-029",
+    "title": "NFT Marketplace for Digital Art",
+    "description": "Platform for artists to mint, showcase, and sell digital art as NFTs. Features include auction system, royalty management, and social features for artist community.",
+    "domain": "Blockchain",
+    "tech_stack": [
+      "Solidity",
+      "React",
+      "Next.js",
+      "IPFS",
+      "Ethers.js"
+    ],
+    "hackathon_name": "Web3 Hack",
+    "year": 2023,
+    "outcome": "Runner-up"
+  },
+  {
+    "id": "seed-030",
+    "title": "Personal Finance Advisor Chatbot",
+    "description": "AI chatbot providing personalized financial advice, investment recommendations, and expense analysis based on user financial data and goals.",
+    "domain": "Fintech",
+    "tech_stack": [
+      "Python",
+      "GPT API",
+      "React",
+      "Node.js",
+      "PostgreSQL"
+    ],
+    "hackathon_name": "FinHack",
+    "year": 2024,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-031",
+    "title": "Document Summarization Tool",
+    "description": "NLP tool that automatically generates concise summaries of long documents, research papers, and legal texts using transformer-based models.",
+    "domain": "NLP",
+    "tech_stack": [
+      "Python",
+      "Hugging Face",
+      "FastAPI",
+      "React",
+      "Redis"
+    ],
+    "hackathon_name": "DataHack",
+    "year": 2024,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-032",
+    "title": "Blood Bank Management System",
+    "description": "Web platform for managing blood donation and distribution across hospitals. Features include donor matching, inventory management, and emergency request broadcasting.",
+    "domain": "Healthcare",
+    "tech_stack": [
+      "React",
+      "Node.js",
+      "PostgreSQL",
+      "Twilio",
+      "Google Maps API"
+    ],
+    "hackathon_name": "HealthHack 2023",
+    "year": 2023,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-033",
+    "title": "Smart Irrigation System",
+    "description": "IoT-based automated irrigation system that monitors soil moisture, weather forecasts, and crop requirements to optimize water usage in farming.",
+    "domain": "IoT",
+    "tech_stack": [
+      "Arduino",
+      "ESP32",
+      "Python",
+      "React",
+      "Firebase"
+    ],
+    "hackathon_name": "AgriTech Challenge",
+    "year": 2024,
+    "outcome": "Runner-up"
+  },
+  {
+    "id": "seed-034",
+    "title": "Music Recommendation Engine",
+    "description": "Hybrid recommendation system that combines collaborative filtering and content-based analysis of audio features to suggest personalized playlists.",
+    "domain": "Machine Learning",
+    "tech_stack": [
+      "Python",
+      "Spotify API",
+      "TensorFlow",
+      "React",
+      "MongoDB"
+    ],
+    "hackathon_name": "MusicTech Hack",
+    "year": 2023,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-035",
+    "title": "Virtual Lab Simulation Platform",
+    "description": "Interactive web-based platform for conducting virtual physics, chemistry, and biology experiments. Features 3D simulations, data collection, and lab report generation.",
+    "domain": "Education",
+    "tech_stack": [
+      "Three.js",
+      "React",
+      "Node.js",
+      "MongoDB",
+      "WebGL"
+    ],
+    "hackathon_name": "EduHack",
+    "year": 2024,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-036",
+    "title": "Employee Wellness and Burnout Tracker",
+    "description": "HR analytics platform that tracks employee wellness indicators, predicts burnout risk, and suggests interventions based on work patterns and survey data.",
+    "domain": "Data Science",
+    "tech_stack": [
+      "Python",
+      "scikit-learn",
+      "React",
+      "Node.js",
+      "PostgreSQL"
+    ],
+    "hackathon_name": "HR Tech Summit",
+    "year": 2024,
+    "outcome": "Runner-up"
+  },
+  {
+    "id": "seed-037",
+    "title": "Multi-Language Chat Translation App",
+    "description": "Real-time chat application with automatic translation between 50+ languages using neural machine translation. Supports text, voice, and image translation.",
+    "domain": "NLP",
+    "tech_stack": [
+      "React Native",
+      "Python",
+      "Google Translate API",
+      "WebSocket",
+      "Firebase"
+    ],
+    "hackathon_name": "GlobalConnect Hack",
+    "year": 2024,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-038",
+    "title": "Pothole Detection and Reporting System",
+    "description": "Mobile app that uses accelerometer data and computer vision to detect potholes while driving. Automatically reports issues to municipal authorities with GPS coordinates.",
+    "domain": "Computer Vision",
+    "tech_stack": [
+      "Flutter",
+      "TensorFlow Lite",
+      "Firebase",
+      "Google Maps",
+      "Python"
+    ],
+    "hackathon_name": "Smart City Hack",
+    "year": 2024,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-039",
+    "title": "Supply Chain Transparency Platform",
+    "description": "Blockchain-based supply chain tracking system that provides end-to-end visibility of product journey from manufacturer to consumer. Includes QR code verification.",
+    "domain": "Blockchain",
+    "tech_stack": [
+      "Hyperledger Fabric",
+      "React",
+      "Node.js",
+      "PostgreSQL",
+      "QR API"
+    ],
+    "hackathon_name": "SupplyChain Hack",
+    "year": 2023,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-040",
+    "title": "Elderly Care Monitoring System",
+    "description": "Wearable IoT device with companion app for monitoring elderly vital signs, fall detection, medication reminders, and emergency alerts to family members.",
+    "domain": "IoT",
+    "tech_stack": [
+      "ESP32",
+      "Flutter",
+      "Firebase",
+      "Python",
+      "TensorFlow Lite"
+    ],
+    "hackathon_name": "HealthHack 2024",
+    "year": 2024,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-041",
+    "title": "E-commerce Product Recommendation Engine",
+    "description": "Hybrid recommendation system for e-commerce using collaborative filtering, content-based filtering, and deep learning to suggest products based on browsing and purchase history.",
+    "domain": "Machine Learning",
+    "tech_stack": [
+      "Python",
+      "TensorFlow",
+      "React",
+      "Node.js",
+      "Redis"
+    ],
+    "hackathon_name": "RetailTech Hack",
+    "year": 2023,
+    "outcome": "Runner-up"
+  },
+  {
+    "id": "seed-042",
+    "title": "Disaster Response Coordination Platform",
+    "description": "Platform for coordinating disaster relief efforts including volunteer management, resource allocation, real-time communication, and affected area mapping.",
+    "domain": "Web Development",
+    "tech_stack": [
+      "React",
+      "Node.js",
+      "Socket.io",
+      "MongoDB",
+      "Mapbox"
+    ],
+    "hackathon_name": "DisasterTech",
+    "year": 2024,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-043",
+    "title": "Handwritten Text Digitization Tool",
+    "description": "OCR-based tool specifically trained for handwritten text recognition in regional languages. Converts handwritten notes to editable digital text.",
+    "domain": "Computer Vision",
+    "tech_stack": [
+      "Python",
+      "PyTorch",
+      "Tesseract",
+      "FastAPI",
+      "React"
+    ],
+    "hackathon_name": "LanguageTech",
+    "year": 2024,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-044",
+    "title": "Gym Workout Planner with Pose Estimation",
+    "description": "Fitness app that uses computer vision for real-time exercise pose estimation, form correction, rep counting, and personalized workout plan generation.",
+    "domain": "Computer Vision",
+    "tech_stack": [
+      "MediaPipe",
+      "React Native",
+      "Python",
+      "TensorFlow",
+      "Firebase"
+    ],
+    "hackathon_name": "FitTech Hack",
+    "year": 2024,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-045",
+    "title": "Legal Document Analysis Platform",
+    "description": "NLP-powered platform for analyzing legal contracts, identifying risks, extracting key clauses, and comparing similar contracts using semantic search.",
+    "domain": "NLP",
+    "tech_stack": [
+      "Python",
+      "spaCy",
+      "BERT",
+      "React",
+      "Elasticsearch"
+    ],
+    "hackathon_name": "LegalTech Hack",
+    "year": 2023,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-046",
+    "title": "Campus Event Management Platform",
+    "description": "End-to-end event management system for college campuses. Features include event creation, ticketing, attendance tracking, feedback collection, and analytics.",
+    "domain": "Web Development",
+    "tech_stack": [
+      "Next.js",
+      "Node.js",
+      "PostgreSQL",
+      "Tailwind CSS",
+      "Stripe"
+    ],
+    "hackathon_name": "CampusHack",
+    "year": 2024,
+    "outcome": "Finalist"
+  },
+  {
+    "id": "seed-047",
+    "title": "Air Quality Index Monitoring Network",
+    "description": "Distributed network of IoT air quality sensors providing real-time AQI data, health advisories, and pollution source tracking for urban areas.",
+    "domain": "IoT",
+    "tech_stack": [
+      "Raspberry Pi",
+      "InfluxDB",
+      "Grafana",
+      "React",
+      "Python"
+    ],
+    "hackathon_name": "GreenTech Summit",
+    "year": 2023,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-048",
+    "title": "Online Skill Assessment and Certification",
+    "description": "Platform for creating, taking, and verifying skill assessments with blockchain-verified certificates. Includes adaptive testing and proctoring.",
+    "domain": "Education",
+    "tech_stack": [
+      "React",
+      "Node.js",
+      "MongoDB",
+      "Ethereum",
+      "WebRTC"
+    ],
+    "hackathon_name": "EdTech Innovation",
+    "year": 2024,
+    "outcome": "Runner-up"
+  },
+  {
+    "id": "seed-049",
+    "title": "Predictive Maintenance for Industrial Equipment",
+    "description": "ML-based system for predicting equipment failures using sensor data analysis. Reduces downtime and maintenance costs through early anomaly detection.",
+    "domain": "Data Science",
+    "tech_stack": [
+      "Python",
+      "scikit-learn",
+      "TensorFlow",
+      "InfluxDB",
+      "React"
+    ],
+    "hackathon_name": "IndustryHack",
+    "year": 2023,
+    "outcome": "Winner"
+  },
+  {
+    "id": "seed-050",
+    "title": "Mental Wellness Journal with AI Insights",
+    "description": "Daily journaling app that uses sentiment analysis and NLP to track emotional patterns, provide mood insights, and suggest wellness activities.",
+    "domain": "Healthcare",
+    "tech_stack": [
+      "React Native",
+      "Python",
+      "GPT API",
+      "Firebase",
+      "Chart.js"
+    ],
+    "hackathon_name": "HealthHack 2024",
+    "year": 2024,
+    "outcome": "Finalist"
+  }
+]

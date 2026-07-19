@@ -1,26 +1,60 @@
 const { Topic, Group, GroupMember, User } = require('../models');
 const { parsePagination, paginatedResponse } = require('../utils/pagination');
 const { createAuditLog } = require('../utils/auditLog');
+const axios = require('axios');
+const { Op } = require('sequelize');
 
 const submitTopic = async (req, res, next) => {
   try {
-    const { group_id, title, abstract, domain_tags, technology_tags, file_url } = req.body;
+    const { group_id, topics } = req.body;
     const group = await Group.findByPk(group_id);
     if (!group) return res.status(404).json({ error: 'Group not found.' });
 
-    const existing = await Topic.findOne({ where: { group_id } });
-    if (existing) return res.status(409).json({ error: 'Group already has a topic.' });
+    const existingCount = await Topic.count({ where: { group_id } });
+    if (existingCount > 0) return res.status(409).json({ error: 'Group already has submitted topics.' });
 
-    const topic = await Topic.create({
-      group_id, title, abstract,
-      domain_tags: domain_tags || [],
-      technology_tags: technology_tags || [],
-      file_url, status: 'submitted', submitted_at: new Date(),
-    });
+    if (!Array.isArray(topics) || topics.length === 0 || topics.length > 3) {
+      return res.status(400).json({ error: 'Must submit between 1 and 3 topics.' });
+    }
 
-    await group.update({ topic_id: topic.id });
-    await createAuditLog({ userId: req.user.id, action: 'topic.submitted', entityType: 'topic', entityId: topic.id, ipAddress: req.ip });
-    res.status(201).json({ message: 'Topic submitted.', topic });
+    const createdTopics = [];
+    for (const t of topics) {
+      const topic = await Topic.create({
+        group_id, 
+        title: t.title, 
+        abstract: t.abstract,
+        domain_tags: t.domain_tags || [],
+        technology_tags: t.technology_tags || [],
+        status: 'submitted', 
+        submitted_at: new Date(),
+      });
+
+      // Generate AI Recommendation
+      try {
+        const aiPayload = {
+          title: t.title,
+          problem_statement: t.abstract,
+          description: t.abstract,
+          domain: (t.domain_tags || []).join(', '),
+          tech_stack: t.technology_tags || []
+        };
+        const aiResponse = await axios.post(`${process.env.AI_SERVICE_URL || 'http://localhost:8000'}/api/ai/problem/analyze`, aiPayload);
+        if (aiResponse.data) {
+          await topic.update({ 
+            ai_scores: aiResponse.data.scores, 
+            ai_suggestions: aiResponse.data.ai_suggestions 
+          });
+        }
+      } catch (err) {
+        console.error(`AI Recommendation failed for topic: ${t.title}`, err.message);
+      }
+
+      createdTopics.push(topic);
+    }
+
+    await group.update({ status: 'topics_submitted' });
+    await createAuditLog({ userId: req.user.id, action: 'topics.submitted', entityType: 'group', entityId: group.id, ipAddress: req.ip });
+    res.status(201).json({ message: 'Topics submitted successfully.', topics: createdTopics });
   } catch (error) { next(error); }
 };
 
@@ -45,26 +79,25 @@ const approveTopic = async (req, res, next) => {
   try {
     const topic = await Topic.findByPk(req.params.id);
     if (!topic) return res.status(404).json({ error: 'Topic not found.' });
+    
     await topic.update({ status: 'approved', approved_at: new Date(), approved_by: req.user.id });
 
-    // Automated Mentor Assignment
-    const group = await Group.findByPk(topic.group_id);
-    if (group && !group.mentor_id) {
-      const mentors = await User.findAll({
-        where: { role: 'mentor', department: group.department, is_active: true },
-        include: [{ model: Group, as: 'mentored_groups' }]
-      });
-      
-      if (mentors.length > 0) {
-        mentors.sort((a, b) => (a.mentored_groups?.length || 0) - (b.mentored_groups?.length || 0));
-        const selectedMentor = mentors[0];
-        await group.update({ mentor_id: selectedMentor.id });
-        await createAuditLog({ userId: req.user.id, action: 'group.mentor_assigned', entityType: 'group', entityId: group.id, metadata: { mentor_id: selectedMentor.id }, ipAddress: req.ip });
+    // Reject other topics in the same group
+    await Topic.update({ status: 'rejected' }, {
+      where: {
+        group_id: topic.group_id,
+        id: { [Op.ne]: topic.id }
       }
+    });
+
+    // Set Group status
+    const group = await Group.findByPk(topic.group_id);
+    if (group) {
+      await group.update({ topic_id: topic.id, status: 'project_active' });
     }
 
     await createAuditLog({ userId: req.user.id, action: 'topic.approved', entityType: 'topic', entityId: topic.id, ipAddress: req.ip });
-    res.json({ message: 'Topic approved and mentor assigned if available.', topic });
+    res.json({ message: 'Topic approved.', topic });
   } catch (error) { next(error); }
 };
 

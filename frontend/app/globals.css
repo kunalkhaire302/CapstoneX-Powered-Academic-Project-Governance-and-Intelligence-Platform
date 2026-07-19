@@ -85,7 +85,8 @@ html {
 body {
   font-family: var(--font-body);
   color: var(--color-text-primary);
-  background-color: var(--color-bg-surface);
+  background: linear-gradient(135deg, #0F172A 0%, #172033 50%, #1E293B 100%);
+  background-attachment: fixed;
   line-height: 1.7;
   font-size: 15px;
   overflow-x: hidden;

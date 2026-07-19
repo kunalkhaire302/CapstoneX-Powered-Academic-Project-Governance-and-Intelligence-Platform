@@ -43,6 +43,8 @@ const config: Config = {
         'glow-lg': '0 0 40px rgba(210, 35, 42, 0.18)',
         'inner-glow': 'inset 0 1px 0 rgba(255,255,255,0.1)',
         'elevated': '0 4px 6px -1px rgba(0,0,0,0.06), 0 2px 4px -2px rgba(0,0,0,0.06)',
+        'glass-panel': '0 25px 50px -12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+        'glass-sidebar': '0 8px 32px 0 rgba(31, 38, 135, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
       },
       backgroundImage: {
         'gradient-cardinal': 'linear-gradient(135deg, #D2232A, #B01E24)',

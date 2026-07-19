@@ -25,9 +25,20 @@ const submitLogbook = async (req, res, next) => {
     const logbook = await Logbook.findByPk(req.params.id);
     if (!logbook) return res.status(404).json({ error: 'Logbook not found.' });
     if (logbook.student_id !== req.user.id) return res.status(403).json({ error: 'Not your logbook.' });
-    await logbook.update({ status: 'submitted', submitted_at: new Date() });
-    await createAuditLog({ userId: req.user.id, action: 'logbook.submitted', entityType: 'logbook', entityId: logbook.id, ipAddress: req.ip });
-    res.json({ message: 'Logbook submitted.', logbook });
+    
+    // Deadline validation: check if submitted after Friday 11:59 PM of the current week
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 is Sunday, 5 is Friday, 6 is Saturday
+    let status = 'on_time';
+    
+    // If it is Saturday (6) or Sunday (0), it is considered late for that week's sprint.
+    if (dayOfWeek === 6 || dayOfWeek === 0) {
+      status = 'late';
+    }
+
+    await logbook.update({ status, submitted_at: now });
+    await createAuditLog({ userId: req.user.id, action: `logbook.submitted_${status}`, entityType: 'logbook', entityId: logbook.id, ipAddress: req.ip });
+    res.json({ message: `Logbook submitted (${status}).`, logbook });
   } catch (error) { next(error); }
 };
 
@@ -73,8 +84,8 @@ const addFeedback = async (req, res, next) => {
     const feedback = await LogbookFeedback.create({
       logbook_id: logbook.id, mentor_id: req.user.id, comment, status,
     });
-    if (status === 'approved') await logbook.update({ status: 'approved' });
-    if (status === 'rejected') await logbook.update({ status: 'rejected' });
+    // When mentor provides feedback, mark the submission as graded
+    await logbook.update({ status: 'graded' });
     await createAuditLog({ userId: req.user.id, action: 'logbook.feedback', entityType: 'logbook', entityId: logbook.id, ipAddress: req.ip });
     res.status(201).json({ message: 'Feedback added.', feedback });
   } catch (error) { next(error); }

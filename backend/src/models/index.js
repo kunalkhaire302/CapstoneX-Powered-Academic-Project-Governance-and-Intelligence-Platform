@@ -42,8 +42,8 @@ const Group = sequelize.define('groups', {
   department: { type: DataTypes.STRING(255) },
   batch_year: { type: DataTypes.INTEGER },
   status: {
-    type: DataTypes.ENUM('not_started', 'in_progress', 'submitted', 'evaluated'),
-    defaultValue: 'not_started',
+    type: DataTypes.STRING(50),
+    defaultValue: 'forming',
   },
   max_members: { type: DataTypes.INTEGER, defaultValue: 4 },
 });
@@ -56,6 +56,10 @@ const GroupMember = sequelize.define('group_members', {
     type: DataTypes.ENUM('leader', 'member'),
     defaultValue: 'member',
   },
+  status: {
+    type: DataTypes.STRING(50),
+    defaultValue: 'pending',
+  }
 });
 
 const Topic = sequelize.define('topics', {
@@ -66,9 +70,11 @@ const Topic = sequelize.define('topics', {
   domain_tags: { type: DataTypes.JSONB, defaultValue: [] },
   technology_tags: { type: DataTypes.JSONB, defaultValue: [] },
   file_url: { type: DataTypes.STRING(500) },
+  ai_scores: { type: DataTypes.JSONB, defaultValue: {} },
+  ai_suggestions: { type: DataTypes.JSONB, defaultValue: {} },
   status: {
-    type: DataTypes.ENUM('draft', 'submitted', 'approved', 'revision_requested', 'rejected'),
-    defaultValue: 'draft',
+    type: DataTypes.STRING(50),
+    defaultValue: 'pending',
   },
   rejection_reason: { type: DataTypes.TEXT },
   submitted_at: { type: DataTypes.DATE },
@@ -85,8 +91,8 @@ const Logbook = sequelize.define('logbooks', {
   content: { type: DataTypes.TEXT, allowNull: false },
   file_url: { type: DataTypes.STRING(500) },
   status: {
-    type: DataTypes.ENUM('draft', 'submitted', 'approved', 'rejected'),
-    defaultValue: 'draft',
+    type: DataTypes.STRING(50),
+    defaultValue: 'on_time',
   },
   submitted_at: { type: DataTypes.DATE },
 });
@@ -184,6 +190,73 @@ const Meeting = sequelize.define('meetings', {
 });
 
 // ──────────────────────────────────────────
+// Problem Statement Recommendation Models
+// ──────────────────────────────────────────
+
+const ProblemStatement = sequelize.define('problem_statements', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  group_id: { type: DataTypes.UUID, references: { model: 'groups', key: 'id' } },
+  student_id: { type: DataTypes.UUID, references: { model: 'users', key: 'id' } },
+  title: { type: DataTypes.STRING(500), allowNull: false },
+  problem_statement: { type: DataTypes.TEXT, allowNull: false },
+  description: { type: DataTypes.TEXT },
+  domain: { type: DataTypes.STRING(255) },
+  department: { type: DataTypes.STRING(255) },
+  skills: { type: DataTypes.JSONB, defaultValue: [] },
+  tech_stack: { type: DataTypes.JSONB, defaultValue: [] },
+  team_members: { type: DataTypes.JSONB, defaultValue: [] },
+  hackathon_theme: { type: DataTypes.STRING(255) },
+  expected_users: { type: DataTypes.STRING(500) },
+  target_audience: { type: DataTypes.STRING(500) },
+  expected_impact: { type: DataTypes.TEXT },
+  duration: { type: DataTypes.STRING(100) },
+  status: {
+    type: DataTypes.ENUM('draft', 'analyzed', 'improved', 'submitted'),
+    defaultValue: 'draft',
+  },
+  embedding_vector_id: { type: DataTypes.STRING(100) },
+});
+
+const Recommendation = sequelize.define('recommendations', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  problem_statement_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'problem_statements', key: 'id' } },
+  student_id: { type: DataTypes.UUID, references: { model: 'users', key: 'id' } },
+  scores_json: { type: DataTypes.JSONB, allowNull: false, defaultValue: {} },
+  similar_projects_json: { type: DataTypes.JSONB, defaultValue: [] },
+  ai_suggestions_json: { type: DataTypes.JSONB, defaultValue: {} },
+  sdg_alignment: { type: DataTypes.JSONB, defaultValue: [] },
+  keywords: { type: DataTypes.JSONB, defaultValue: [] },
+  domain_analysis_json: { type: DataTypes.JSONB, defaultValue: {} },
+  warnings_json: { type: DataTypes.JSONB, defaultValue: [] },
+  version: { type: DataTypes.INTEGER, defaultValue: 1 },
+  model_version: { type: DataTypes.STRING(50), defaultValue: '2.0-hybrid-embedding' },
+});
+
+const PreviousProject = sequelize.define('previous_projects', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  title: { type: DataTypes.STRING(500), allowNull: false },
+  description: { type: DataTypes.TEXT },
+  domain: { type: DataTypes.STRING(255) },
+  tech_stack: { type: DataTypes.JSONB, defaultValue: [] },
+  hackathon_name: { type: DataTypes.STRING(255) },
+  year: { type: DataTypes.INTEGER },
+  outcome: { type: DataTypes.STRING(100) },
+  embedding_id: { type: DataTypes.STRING(100) },
+});
+
+const RecommendationHistory = sequelize.define('recommendation_history', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  recommendation_id: { type: DataTypes.UUID, references: { model: 'recommendations', key: 'id' } },
+  problem_statement_id: { type: DataTypes.UUID, references: { model: 'problem_statements', key: 'id' } },
+  student_id: { type: DataTypes.UUID, references: { model: 'users', key: 'id' } },
+  action: {
+    type: DataTypes.ENUM('analyzed', 'improved', 'rescored', 'submitted'),
+    allowNull: false,
+  },
+  scores_snapshot: { type: DataTypes.JSONB, defaultValue: {} },
+});
+
+// ──────────────────────────────────────────
 // Associations
 // ──────────────────────────────────────────
 
@@ -203,8 +276,8 @@ GroupMember.belongsTo(Group, { foreignKey: 'group_id' });
 User.hasMany(GroupMember, { foreignKey: 'student_id', as: 'group_memberships' });
 GroupMember.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
 
-// Group ↔ Topic (one-to-one through group_id)
-Group.hasOne(Topic, { foreignKey: 'group_id', as: 'topic' });
+// Group ↔ Topic (one-to-many through group_id)
+Group.hasMany(Topic, { foreignKey: 'group_id', as: 'topics' });
 Topic.belongsTo(Group, { foreignKey: 'group_id' });
 User.hasMany(Topic, { foreignKey: 'approved_by', as: 'approved_topics' });
 
@@ -252,6 +325,26 @@ Meeting.belongsTo(Group, { foreignKey: 'group_id' });
 User.hasMany(Meeting, { foreignKey: 'mentor_id', as: 'scheduled_meetings' });
 Meeting.belongsTo(User, { foreignKey: 'mentor_id', as: 'mentor_scheduler' });
 
+// ProblemStatement associations
+Group.hasMany(ProblemStatement, { foreignKey: 'group_id' });
+ProblemStatement.belongsTo(Group, { foreignKey: 'group_id' });
+User.hasMany(ProblemStatement, { foreignKey: 'student_id', as: 'problem_statements' });
+ProblemStatement.belongsTo(User, { foreignKey: 'student_id', as: 'submitter' });
+
+// Recommendation associations
+ProblemStatement.hasMany(Recommendation, { foreignKey: 'problem_statement_id', as: 'recommendations' });
+Recommendation.belongsTo(ProblemStatement, { foreignKey: 'problem_statement_id' });
+User.hasMany(Recommendation, { foreignKey: 'student_id', as: 'student_recommendations' });
+Recommendation.belongsTo(User, { foreignKey: 'student_id' });
+
+// RecommendationHistory associations
+Recommendation.hasMany(RecommendationHistory, { foreignKey: 'recommendation_id', as: 'history' });
+RecommendationHistory.belongsTo(Recommendation, { foreignKey: 'recommendation_id' });
+ProblemStatement.hasMany(RecommendationHistory, { foreignKey: 'problem_statement_id' });
+RecommendationHistory.belongsTo(ProblemStatement, { foreignKey: 'problem_statement_id' });
+User.hasMany(RecommendationHistory, { foreignKey: 'student_id' });
+RecommendationHistory.belongsTo(User, { foreignKey: 'student_id' });
+
 module.exports = {
   sequelize,
   Sequelize,
@@ -268,4 +361,8 @@ module.exports = {
   AiReport,
   RiskScore,
   Meeting,
+  ProblemStatement,
+  Recommendation,
+  PreviousProject,
+  RecommendationHistory,
 };
