@@ -1,4 +1,4 @@
-const { AuditLog, User } = require('../models');
+const { AuditLog, User } = {};
 const { parsePagination, paginatedResponse } = require('../utils/pagination');
 const { Op } = require('sequelize');
 

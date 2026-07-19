@@ -1,4 +1,4 @@
-const { AuditLog } = require('../models');
+const { getFirestoreDB } = require('../config/firebase');
 const logger = require('./logger');
 
 /**
@@ -13,13 +13,20 @@ const logger = require('./logger');
  */
 const createAuditLog = async ({ userId, action, entityType, entityId, metadata = {}, ipAddress }) => {
   try {
-    await AuditLog.create({
+    const db = getFirestoreDB();
+    if (!db) {
+      logger.error('Failed to create audit log: Firestore not initialized');
+      return;
+    }
+    
+    await db.collection('audit_logs').add({
       user_id: userId,
       action,
       entity_type: entityType,
       entity_id: entityId,
       metadata_json: metadata,
-      ip_address: ipAddress,
+      ip_address: ipAddress || '',
+      created_at: new Date()
     });
   } catch (error) {
     // Don't throw — audit logging should never break the main flow

@@ -1,4 +1,4 @@
-const { Logbook, LogbookFeedback, User, Group, GroupMember } = require('../models');
+const { Logbook, LogbookFeedback, User, Group, GroupMember } = {};
 const { parsePagination, paginatedResponse } = require('../utils/pagination');
 const { createAuditLog } = require('../utils/auditLog');
 const { uploadToCloudinary } = require('../utils/cloudinary');

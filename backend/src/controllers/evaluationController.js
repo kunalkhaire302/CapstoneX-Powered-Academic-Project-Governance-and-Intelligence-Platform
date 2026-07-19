@@ -1,4 +1,4 @@
-const { Evaluation, Group, User } = require('../models');
+const { Evaluation, Group, User } = {};
 const { parsePagination, paginatedResponse } = require('../utils/pagination');
 const { createAuditLog } = require('../utils/auditLog');
 

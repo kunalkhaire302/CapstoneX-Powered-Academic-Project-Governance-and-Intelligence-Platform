@@ -7,7 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, ArrowRight, ShieldCheck, Cpu, LayoutDashboard, Sparkles, Loader2, Users } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { setAccessToken } from '@/lib/api';
+import { auth } from '@/lib/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,27 +23,21 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Login failed');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // Store user minimal info in localStorage for frontend UX 
+      const minimalUser = { email: userCredential.user.email, role: 'student', id: userCredential.user.uid }; // Default to student unless claims say otherwise
+      localStorage.setItem('user', JSON.stringify(minimalUser));
       
-      // Use in-memory token storage (Phase 1 Security)
-      setAccessToken(data.accessToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
+      // In a real app we would decode the Firebase token for the actual role claim. For now, default to student or demo mapping.
       const redirectMap: Record<string, string> = {
         student: '/student', mentor: '/mentor',
         hod: '/mentor', admin: '/admin', accreditation: '/mentor',
       };
       
-      // Artificial slight delay for UX smooth transition if fetching was too fast
       setTimeout(() => {
-        router.push(redirectMap[data.user.role] || '/student');
+        // If they clicked a demo button, fake the role route
+        const role = selectedDemo ? selectedDemo.toLowerCase() : 'student';
+        router.push(redirectMap[role] || '/student');
       }, 300);
       
     } catch (err: any) {

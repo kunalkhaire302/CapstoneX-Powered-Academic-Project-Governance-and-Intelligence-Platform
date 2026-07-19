@@ -1,5 +1,4 @@
-const { Op } = require('sequelize');
-const { GroupMember, Logbook, Evaluation, Notification } = require('../models');
+const { getFirestoreDB } = require('../config/firebase');
 
 /**
  * Get aggregated dashboard statistics for a student
@@ -7,26 +6,36 @@ const { GroupMember, Logbook, Evaluation, Notification } = require('../models');
 const getStudentDashboard = async (req, res, next) => {
   try {
     const studentId = req.user.id;
+    const db = getFirestoreDB();
 
-    // 1. Groups Joined
-    const groupsCount = await GroupMember.count({
-      where: { student_id: studentId, status: { [Op.not]: 'rejected' } }
-    });
+    // 1. Groups Joined (Assuming 'group_members' collection)
+    const groupMembersSnapshot = await db.collection('group_members')
+      .where('student_id', '==', studentId)
+      .where('status', '!=', 'rejected')
+      .get();
+    const groupsCount = groupMembersSnapshot.size;
 
-    // 2. Logbooks Submitted
-    const logbooksCount = await Logbook.count({
-      where: { student_id: studentId }
-    });
+    // 2. Logbooks Submitted (Assuming 'logbooks' collection)
+    const logbooksSnapshot = await db.collection('logbooks')
+      .where('student_id', '==', studentId)
+      .get();
+    const logbooksCount = logbooksSnapshot.size;
 
-    // 3. Evaluations (Pending vs Completed)
-    const pendingEvaluationsCount = await Evaluation.count({
-      where: { student_id: studentId, total_score: null }
-    });
+    // 3. Evaluations (Assuming 'evaluations' collection)
+    const evaluationsSnapshot = await db.collection('evaluations')
+      .where('student_id', '==', studentId)
+      .get();
+      
+    let pendingEvaluationsCount = 0;
+    let completedEvaluations = [];
     
-    // Calculate overall score (average of completed evaluations)
-    const completedEvaluations = await Evaluation.findAll({
-      where: { student_id: studentId, total_score: { [Op.ne]: null } },
-      attributes: ['total_score', 'max_score']
+    evaluationsSnapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.total_score == null) {
+        pendingEvaluationsCount++;
+      } else {
+        completedEvaluations.push(data);
+      }
     });
     
     let overallScore = 0;
@@ -40,12 +49,22 @@ const getStudentDashboard = async (req, res, next) => {
       overallScore = Math.round((totalEarned / totalMax) * 100);
     }
 
-    // 4. Recent Activity (Notifications)
-    const recentActivity = await Notification.findAll({
-      where: { user_id: studentId },
-      order: [['createdAt', 'DESC']],
-      limit: 5,
-      attributes: ['id', 'title', 'body', 'type', 'createdAt']
+    // 4. Recent Activity (Assuming 'notifications' collection)
+    const notificationsSnapshot = await db.collection('notifications')
+      .where('user_id', '==', studentId)
+      .orderBy('createdAt', 'desc')
+      .limit(5)
+      .get();
+      
+    const recentActivity = [];
+    notificationsSnapshot.forEach(doc => {
+      const data = doc.data();
+      recentActivity.push({
+        id: doc.id,
+        action: data.title,
+        time: data.createdAt ? data.createdAt.toDate() : new Date(),
+        type: data.type,
+      });
     });
 
     res.json({
@@ -55,12 +74,7 @@ const getStudentDashboard = async (req, res, next) => {
         pendingEvaluations: pendingEvaluationsCount,
         overallScore: overallScore,
       },
-      recentActivity: recentActivity.map(n => ({
-        id: n.id,
-        action: n.title,
-        time: n.createdAt,
-        type: n.type,
-      }))
+      recentActivity
     });
 
   } catch (error) {

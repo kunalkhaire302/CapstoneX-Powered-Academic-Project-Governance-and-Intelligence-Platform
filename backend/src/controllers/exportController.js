@@ -1,6 +1,6 @@
 const PdfPrinter = require('pdfmake');
 const XLSX = require('xlsx');
-const { Group, User, Topic, Evaluation, GroupMember } = require('../models');
+const { Group, User, Topic, Evaluation, GroupMember } = {};
 
 const fonts = {
   Roboto: {

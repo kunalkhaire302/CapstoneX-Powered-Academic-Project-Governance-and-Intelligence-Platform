@@ -1,4 +1,4 @@
-const { Notification, User } = require('../models');
+const { Notification, User } = {};
 const { parsePagination, paginatedResponse } = require('../utils/pagination');
 const { Op } = require('sequelize');
 

@@ -1,4 +1,4 @@
-const { sequelize, User, Group, GroupMember, Topic, Logbook, Evaluation, Notification } = require('../models');
+const { sequelize, User, Group, GroupMember, Topic, Logbook, Evaluation, Notification } = {};
 const { Op } = require('sequelize');
 
 const getSystemAnalytics = async (req, res, next) => {

@@ -1,4 +1,4 @@
-const { Group, GroupMember, User, Topic } = require('../models');
+const { Group, GroupMember, User, Topic } = {};
 const { v4: uuidv4 } = require('uuid');
 const { createAuditLog } = require('../utils/auditLog');
 const { parsePagination, paginatedResponse } = require('../utils/pagination');

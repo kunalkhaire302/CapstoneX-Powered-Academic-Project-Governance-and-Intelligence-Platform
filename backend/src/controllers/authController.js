@@ -1,53 +1,42 @@
-const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
-const { User, Institution, PasswordResetToken } = require('../models');
-const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwt');
-const { getFirebaseAuth } = require('../config/firebase');
+const { getFirebaseAuth, getFirestoreDB } = require('../config/firebase');
 const { sendEmail, emailTemplates } = require('../utils/email');
 const { createAuditLog } = require('../utils/auditLog');
 const logger = require('../utils/logger');
 
 /**
- * Register a new user.
- * Supports both Firebase and local auth modes.
+ * Register a new user profile in Firestore.
  */
 const register = async (req, res, next) => {
   try {
-    const { name, email, password, role, department, institution_id, firebase_uid } = req.body;
+    const { name, email, role, department, firebase_uid } = req.body;
 
-    // Check if user already exists
-    const existing = await User.findOne({ where: { email } });
-    if (existing) {
+    if (!firebase_uid) {
+      return res.status(400).json({ error: 'Firebase UID is required.' });
+    }
+
+    const db = getFirestoreDB();
+    if (!db) {
+      return res.status(500).json({ error: 'Firestore is not initialized.' });
+    }
+
+    const userRef = db.collection('users').doc(firebase_uid);
+    const doc = await userRef.get();
+    
+    if (doc.exists) {
       return res.status(409).json({ error: 'An account with this email already exists.' });
     }
 
-    // Hash password for local auth
-    let passwordHash = null;
-    if (password) {
-      passwordHash = await bcrypt.hash(password, 12);
-    }
-
-    const user = await User.create({
+    const userData = {
       name,
       email,
-      password_hash: passwordHash,
-      role: 'student', // Locked down to student only
-      department,
-      institution_id,
+      role: role || 'student',
+      department: department || '',
       firebase_uid,
-    });
+      created_at: new Date(),
+      is_active: true
+    };
 
-    // Generate tokens
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
-
-    // Set refresh token as httpOnly cookie
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    await userRef.set(userData);
 
     // Send welcome email (non-blocking)
     sendEmail({
@@ -57,23 +46,22 @@ const register = async (req, res, next) => {
 
     // Audit log
     await createAuditLog({
-      userId: user.id,
+      userId: firebase_uid,
       action: 'user.registered',
       entityType: 'user',
-      entityId: user.id,
+      entityId: firebase_uid,
       ipAddress: req.ip,
     });
 
     res.status(201).json({
       message: 'Registration successful',
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        department: user.department,
-      },
-      accessToken,
+        id: firebase_uid,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        department: userData.department,
+      }
     });
   } catch (error) {
     next(error);
@@ -81,254 +69,30 @@ const register = async (req, res, next) => {
 };
 
 /**
- * Login with email and password.
- */
-const login = async (req, res, next) => {
-  try {
-    const { email, password, firebase_token } = req.body;
-
-    let user;
-
-    if (firebase_token) {
-      // Firebase auth flow
-      const firebaseAuth = getFirebaseAuth();
-      if (firebaseAuth) {
-        try {
-          const decoded = await firebaseAuth.verifyIdToken(firebase_token);
-          user = await User.findOne({ where: { email: decoded.email } });
-          if (!user) {
-            // Auto-register Firebase users
-            user = await User.create({
-              name: decoded.name || decoded.email.split('@')[0],
-              email: decoded.email,
-              firebase_uid: decoded.uid,
-              avatar_url: decoded.picture,
-              role: 'student',
-            });
-          }
-        } catch (firebaseErr) {
-          return res.status(401).json({ error: 'Invalid Firebase token.' });
-        }
-      } else {
-        return res.status(500).json({ error: 'Firebase not configured.' });
-      }
-    } else {
-      // Local auth flow
-      if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required.' });
-      }
-
-      user = await User.findOne({ where: { email } });
-      if (!user) {
-        return res.status(401).json({ error: 'Invalid email or password.' });
-      }
-
-      if (!user.password_hash) {
-        return res.status(401).json({ error: 'This account uses Google sign-in. Please use Google OAuth.' });
-      }
-
-      const isValidPassword = await bcrypt.compare(password, user.password_hash);
-      if (!isValidPassword) {
-        return res.status(401).json({ error: 'Invalid email or password.' });
-      }
-    }
-
-    if (!user.is_active) {
-      return res.status(403).json({ error: 'Account is deactivated. Contact your administrator.' });
-    }
-
-    // Update last login
-    await user.update({ last_login_at: new Date() });
-
-    // Generate tokens
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    await createAuditLog({
-      userId: user.id,
-      action: 'user.login',
-      entityType: 'user',
-      entityId: user.id,
-      ipAddress: req.ip,
-    });
-
-    res.json({
-      message: 'Login successful',
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        department: user.department,
-        avatar_url: user.avatar_url,
-      },
-      accessToken,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Refresh access token using refresh token from cookie.
- */
-const refreshToken = async (req, res, next) => {
-  try {
-    const token = req.cookies.refreshToken;
-    if (!token) {
-      return res.status(401).json({ error: 'Refresh token not found.' });
-    }
-
-    const decoded = verifyRefreshToken(token);
-    const user = await User.findByPk(decoded.id);
-    if (!user || !user.is_active) {
-      return res.status(401).json({ error: 'Invalid refresh token.' });
-    }
-
-    const newAccessToken = generateAccessToken(user);
-    const newRefreshToken = generateRefreshToken(user);
-
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    res.json({ accessToken: newAccessToken });
-  } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Refresh token expired. Please login again.' });
-    }
-    next(error);
-  }
-};
-
-/**
- * Forgot password — sends reset link via email.
- */
-const forgotPassword = async (req, res, next) => {
-  try {
-    const { email } = req.body;
-    const user = await User.findOne({ where: { email } });
-
-    // Always return success to prevent email enumeration
-    if (!user) {
-      return res.json({ message: 'If an account with this email exists, a reset link has been sent.' });
-    }
-
-    // Generate a secure random token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const tokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
-
-    // Save token in the database (expires in 15 minutes)
-    await PasswordResetToken.create({
-      user_id: user.id,
-      token_hash: tokenHash,
-      expires_at: new Date(Date.now() + 15 * 60 * 1000),
-    });
-
-    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
-
-    await sendEmail({
-      to: email,
-      ...emailTemplates.passwordReset(user.name, resetLink),
-    });
-
-    // Audit log
-    await createAuditLog({
-      userId: user.id,
-      action: 'user.password_reset_requested',
-      entityType: 'user',
-      entityId: user.id,
-    });
-
-    res.json({ message: 'If an account with this email exists, a reset link has been sent.' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Reset password using the crypto token.
- */
-const resetPassword = async (req, res, next) => {
-  try {
-    const { token, newPassword } = req.body;
-    
-    if (!token || !newPassword) {
-      return res.status(400).json({ error: 'Token and new password are required.' });
-    }
-
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-
-    const resetRecord = await PasswordResetToken.findOne({
-      where: {
-        token_hash: tokenHash,
-        used: false,
-      }
-    });
-
-    if (!resetRecord || resetRecord.expires_at < new Date()) {
-      return res.status(400).json({ error: 'Invalid or expired reset token.' });
-    }
-
-    const user = await User.findByPk(resetRecord.user_id);
-    if (!user) {
-      return res.status(400).json({ error: 'Invalid or expired reset token.' });
-    }
-
-    const passwordHash = await bcrypt.hash(newPassword, 12);
-    await user.update({ password_hash: passwordHash });
-
-    // Invalidate the token
-    await resetRecord.update({ used: true });
-
-    // Audit log
-    await createAuditLog({
-      userId: user.id,
-      action: 'user.password_reset_completed',
-      entityType: 'user',
-      entityId: user.id,
-    });
-
-    res.json({ message: 'Password has been successfully reset. You can now login.' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Get current authenticated user's profile.
+ * Get current authenticated user's profile from Firestore.
  */
 const getProfile = async (req, res, next) => {
   try {
-    const user = await User.findByPk(req.user.id, {
-      attributes: { exclude: ['password_hash'] },
-      include: [{ model: Institution, attributes: ['id', 'name'] }],
-    });
-    if (!user) {
+    const db = getFirestoreDB();
+    const userRef = db.collection('users').doc(req.user.id);
+    const userDoc = await userRef.get();
+    
+    if (!userDoc.exists) {
       return res.status(404).json({ error: 'User not found.' });
     }
-    res.json({ user });
+    
+    const userData = userDoc.data();
+    res.json({ user: { id: req.user.id, ...userData } });
   } catch (error) {
     next(error);
   }
 };
 
 /**
- * Logout — clears refresh token cookie.
+ * Logout — frontend handles Firebase logout, backend just acknowledges.
  */
 const logout = async (req, res) => {
-  res.clearCookie('refreshToken');
   res.json({ message: 'Logged out successfully.' });
 };
 
-module.exports = { register, login, refreshToken, forgotPassword, resetPassword, getProfile, logout };
+module.exports = { register, getProfile, logout };
