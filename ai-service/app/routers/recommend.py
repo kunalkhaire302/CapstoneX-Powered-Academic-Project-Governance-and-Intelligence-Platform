@@ -1,3 +1,6 @@
+"""
+Recommendation Router — API endpoints for project recommendations.
+"""
 from fastapi import APIRouter, HTTPException
 from app.models.schemas import RecommendRequest, RecommendResponse
 from app.services.recommendation_service import get_recommendations
@@ -7,11 +10,14 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.post("/recommend", response_model=RecommendResponse)
+@router.post("/recommend")
 async def recommend_projects(request: RecommendRequest):
-    """Generate project domain recommendations based on student profile."""
+    """
+    Generate project recommendations based on student profile.
+    Uses FAISS semantic search with multi-factor ranking.
+    """
     try:
-        result = get_recommendations(
+        result = await get_recommendations(
             student_id=request.student_id,
             skills=request.skills,
             interests=request.interests,
@@ -19,5 +25,5 @@ async def recommend_projects(request: RecommendRequest):
         )
         return result
     except Exception as e:
-        logger.error(f"Recommendation error: {str(e)}")
+        logger.error(f"Recommendation error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Recommendation failed: {str(e)}")

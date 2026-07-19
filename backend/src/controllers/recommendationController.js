@@ -9,7 +9,7 @@ const { createAuditLog } = require('../utils/auditLog');
 const logger = require('../utils/logger');
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
-const AI_INTERNAL_SECRET = process.env.AI_INTERNAL_SECRET || 'dev_internal_secret_key_123';
+const AI_INTERNAL_SECRET = process.env.AI_INTERNAL_SECRET;
 
 const getAiHeaders = () => ({
   headers: {

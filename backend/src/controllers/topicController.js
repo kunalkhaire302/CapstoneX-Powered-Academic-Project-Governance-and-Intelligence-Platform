@@ -51,7 +51,7 @@ const submitTopic = async (req, res, next) => {
           aiPayload,
           {
             headers: {
-              'X-Internal-Token': process.env.AI_INTERNAL_SECRET || 'dev_internal_secret_key_123'
+              'X-Internal-Token': process.env.AI_INTERNAL_SECRET
             },
             timeout: 10000
           }

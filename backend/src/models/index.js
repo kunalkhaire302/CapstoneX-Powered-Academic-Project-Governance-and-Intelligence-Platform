@@ -18,7 +18,7 @@ const User = sequelize.define('users', {
   email: { type: DataTypes.STRING(255), allowNull: false, unique: true, validate: { isEmail: true } },
   password_hash: { type: DataTypes.STRING(255) },
   role: {
-    type: DataTypes.ENUM('student', 'mentor', 'hod', 'admin', 'accreditation'),
+    type: DataTypes.ENUM('student', 'mentor', 'coordinator', 'hod', 'admin', 'accreditation'),
     allowNull: false,
     defaultValue: 'student',
   },
@@ -356,6 +356,155 @@ RecommendationHistory.belongsTo(ProblemStatement, { foreignKey: 'problem_stateme
 User.hasMany(RecommendationHistory, { foreignKey: 'student_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 RecommendationHistory.belongsTo(User, { foreignKey: 'student_id' });
 
+const ModelRegistry = sequelize.define('model_registry', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  model_name: { type: DataTypes.STRING(100), allowNull: false },
+  version: { type: DataTypes.STRING(50), allowNull: false },
+  model_type: { type: DataTypes.STRING(50) },
+  metrics: { type: DataTypes.JSONB, defaultValue: {} },
+  file_path: { type: DataTypes.STRING(500) },
+  is_active: { type: DataTypes.BOOLEAN, defaultValue: false },
+  trained_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+});
+
+const ExperimentLog = sequelize.define('experiment_logs', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  experiment_name: { type: DataTypes.STRING(255), allowNull: false },
+  model_name: { type: DataTypes.STRING(100) },
+  parameters: { type: DataTypes.JSONB, defaultValue: {} },
+  metrics: { type: DataTypes.JSONB, defaultValue: {} },
+  status: { type: DataTypes.STRING(50), defaultValue: 'running' },
+  duration_seconds: { type: DataTypes.FLOAT },
+  dataset_size: { type: DataTypes.INTEGER },
+  run_date: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+});
+
+// ──────────────────────────────────────────
+// AI Platform Extension Models
+// ──────────────────────────────────────────
+
+const PlagiarismReport = sequelize.define('plagiarism_reports', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  group_id: { type: DataTypes.UUID, references: { model: 'groups', key: 'id' } },
+  student_id: { type: DataTypes.UUID, references: { model: 'users', key: 'id' } },
+  document_type: {
+    type: DataTypes.ENUM('problem_statement', 'proposal', 'report', 'logbook', 'thesis'),
+    allowNull: false,
+  },
+  source_text: { type: DataTypes.TEXT, allowNull: false },
+  overall_similarity: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+  risk_level: {
+    type: DataTypes.ENUM('none', 'low', 'medium', 'high', 'critical'),
+    defaultValue: 'none',
+  },
+  matched_projects: { type: DataTypes.JSONB, defaultValue: [] },
+  highlighted_sections: { type: DataTypes.JSONB, defaultValue: [] },
+  recommendations: { type: DataTypes.JSONB, defaultValue: [] },
+  model_version: { type: DataTypes.STRING(50) },
+  analyzed_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+});
+
+const ModelTrainingRun = sequelize.define('model_training_runs', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  model_name: { type: DataTypes.STRING(100), allowNull: false },
+  version: { type: DataTypes.STRING(50), allowNull: false },
+  model_type: { type: DataTypes.STRING(50) },
+  hyperparameters: { type: DataTypes.JSONB, defaultValue: {} },
+  metrics: { type: DataTypes.JSONB, defaultValue: {} },
+  confusion_matrix: { type: DataTypes.JSONB, defaultValue: [] },
+  feature_importances: { type: DataTypes.JSONB, defaultValue: {} },
+  dataset_size: { type: DataTypes.INTEGER },
+  training_duration_seconds: { type: DataTypes.FLOAT },
+  file_path: { type: DataTypes.STRING(500) },
+  status: {
+    type: DataTypes.ENUM('training', 'completed', 'failed', 'promoted', 'rolled_back'),
+    defaultValue: 'training',
+  },
+  is_active: { type: DataTypes.BOOLEAN, defaultValue: false },
+  promoted_at: { type: DataTypes.DATE },
+  trained_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+});
+
+const FeatureStore = sequelize.define('feature_store', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  entity_type: {
+    type: DataTypes.ENUM('group', 'student', 'project'),
+    allowNull: false,
+  },
+  entity_id: { type: DataTypes.UUID, allowNull: false },
+  feature_name: { type: DataTypes.STRING(100), allowNull: false },
+  feature_value: { type: DataTypes.FLOAT },
+  feature_json: { type: DataTypes.JSONB },
+  computed_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+}, {
+  indexes: [
+    { fields: ['entity_type', 'entity_id'] },
+    { fields: ['entity_type', 'entity_id', 'feature_name'], unique: true },
+  ],
+});
+
+const AINotification = sequelize.define('ai_notifications', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  trigger_type: {
+    type: DataTypes.ENUM(
+      'high_risk', 'plagiarism_detected', 'recommendation_updated',
+      'evaluation_completed', 'feedback_received', 'performance_drop',
+      'deadline_approaching', 'model_retrained'
+    ),
+    allowNull: false,
+  },
+  entity_type: { type: DataTypes.STRING(50) },
+  entity_id: { type: DataTypes.UUID },
+  severity: {
+    type: DataTypes.ENUM('info', 'warning', 'critical'),
+    defaultValue: 'info',
+  },
+  payload: { type: DataTypes.JSONB, defaultValue: {} },
+  recipients: { type: DataTypes.JSONB, defaultValue: [] },
+  dispatched: { type: DataTypes.BOOLEAN, defaultValue: false },
+  dispatched_at: { type: DataTypes.DATE },
+});
+
+const ProjectEmbedding = sequelize.define('project_embeddings', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  project_type: {
+    type: DataTypes.ENUM('topic', 'previous_project', 'problem_statement', 'research_paper'),
+    allowNull: false,
+  },
+  project_id: { type: DataTypes.UUID, allowNull: false },
+  faiss_index_id: { type: DataTypes.INTEGER },
+  embedding_model: { type: DataTypes.STRING(100), defaultValue: 'all-MiniLM-L6-v2' },
+  metadata: { type: DataTypes.JSONB, defaultValue: {} },
+  indexed_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+}, {
+  indexes: [
+    { fields: ['project_type', 'project_id'], unique: true },
+  ],
+});
+
+const SemesterSnapshot = sequelize.define('semester_snapshots', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  semester: { type: DataTypes.STRING(50), allowNull: false },
+  academic_year: { type: DataTypes.STRING(20), allowNull: false },
+  snapshot_type: {
+    type: DataTypes.ENUM('projects', 'evaluations', 'risk_scores', 'feedback', 'full'),
+    allowNull: false,
+  },
+  data: { type: DataTypes.JSONB, allowNull: false },
+  record_count: { type: DataTypes.INTEGER },
+  snapshot_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+});
+
+// ──────────────────────────────────────────
+// New Model Associations
+// ──────────────────────────────────────────
+
+// PlagiarismReport associations
+Group.hasMany(PlagiarismReport, { foreignKey: 'group_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+PlagiarismReport.belongsTo(Group, { foreignKey: 'group_id' });
+User.hasMany(PlagiarismReport, { foreignKey: 'student_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+PlagiarismReport.belongsTo(User, { foreignKey: 'student_id' });
+
 module.exports = {
   sequelize,
   Sequelize,
@@ -377,4 +526,13 @@ module.exports = {
   PreviousProject,
   RecommendationHistory,
   PasswordResetToken,
+  ModelRegistry,
+  ExperimentLog,
+  PlagiarismReport,
+  ModelTrainingRun,
+  FeatureStore,
+  AINotification,
+  ProjectEmbedding,
+  SemesterSnapshot,
 };
+

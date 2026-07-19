@@ -7,7 +7,7 @@
  *   router.get('/staff', verifyToken, checkRole('admin', 'coordinator', 'hod'), handler);
  */
 
-const VALID_ROLES = ['student', 'mentor', 'hod', 'admin', 'accreditation'];
+const VALID_ROLES = ['student', 'mentor', 'coordinator', 'hod', 'admin', 'accreditation'];
 
 /**
  * Returns middleware that checks if req.user.role is in the allowed roles list.

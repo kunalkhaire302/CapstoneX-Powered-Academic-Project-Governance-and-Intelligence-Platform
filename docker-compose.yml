@@ -19,6 +19,20 @@ services:
       timeout: 5s
       retries: 5
 
+  # Redis Cache (Optional — AI service degrades gracefully without it)
+  redis:
+    image: redis:7-alpine
+    container_name: capstonex-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
   # PgAdmin
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -49,6 +63,7 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-refresh-secret-change-me}
       FRONTEND_URL: http://localhost:3000
       AI_SERVICE_URL: http://ai-service:8000
+      AI_INTERNAL_SECRET: ${AI_INTERNAL_SECRET:-dev-ai-secret-change-me}
     ports:
       - "5000:5000"
     depends_on:
@@ -67,12 +82,27 @@ services:
     environment:
       BACKEND_URL: http://backend:5000
       FRONTEND_URL: http://localhost:3000
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      DATABASE_URL: postgresql+asyncpg://capstonex:capstonex_pass@postgres:5432/capstonex_db
+      AI_INTERNAL_SECRET: ${AI_INTERNAL_SECRET:-dev-ai-secret-change-me}
+      REDIS_URL: redis://redis:6379/0
+      LLM_PROVIDER: ${LLM_PROVIDER:-fallback}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-all-MiniLM-L6-v2}
+      SHAP_ENABLED: ${SHAP_ENABLED:-true}
+      MODEL_REGISTRY_ENABLED: ${MODEL_REGISTRY_ENABLED:-true}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
       - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - ./ai-service/app:/app/app
       - ./ai-service/data:/app/data
+      - ai_models:/app/app/ml/models
 
   # Frontend (Next.js) — Dev mode
   frontend:
@@ -94,3 +124,5 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
+  ai_models:

@@ -1,128 +1,287 @@
 """
-Module 1: Project Recommendation Engine
-Uses semantic embeddings + cosine similarity to match student profiles to project domains.
+Module 1: Project Recommendation Engine — PRODUCTION VERSION
+Uses FAISS semantic search over the full project corpus instead of hardcoded domains.
+
+Architecture:
+    1. Build student profile embedding from skills/interests/tech
+    2. Search FAISS index for semantically similar projects
+    3. Rank by multi-factor scoring: similarity, novelty, tech overlap,
+       difficulty match, completion rate, department relevance, trends
+    4. Generate explainable recommendations with reasons
+
+Data Sources:
+    - Approved topics (current and past semesters)
+    - Previous year capstone projects
+    - Problem statements in the system
+    - Seed projects (initial dataset)
 """
 import logging
-from typing import List
+from typing import List, Dict, Optional
 import numpy as np
 
 from app.services.embedding_service import generate_embedding
+from app.services.vector_store import search_similar, get_total_projects
+from app.services.student_profiler import (
+    build_profile_embedding,
+    compute_tech_overlap,
+    compute_difficulty_match,
+    compute_novelty_score,
+    build_student_profile_dict,
+)
+from app.ml.feature_engineering import COMPLEX_TECH, TRENDING_TECH
 
 logger = logging.getLogger(__name__)
 
-# Project domain knowledge base with difficulty and risk estimates
-PROJECT_DOMAINS = [
-    {"domain": "Machine Learning & AI", "keywords": "machine learning deep learning neural network tensorflow pytorch prediction classification nlp computer vision ai artificial intelligence", "description": "Build intelligent systems using ML/DL techniques", "difficulty": "Hard", "risk": "High (Data dependency)"},
-    {"domain": "Web Development", "keywords": "web frontend backend react angular vue node express django flask rest api fullstack javascript html css", "description": "Full-stack web application development", "difficulty": "Medium", "risk": "Low (Well-documented)"},
-    {"domain": "Mobile App Development", "keywords": "mobile android ios flutter react native kotlin swift app development", "description": "Cross-platform or native mobile applications", "difficulty": "Medium", "risk": "Medium (Device compatibility)"},
-    {"domain": "Data Science & Analytics", "keywords": "data science analytics visualization pandas numpy matplotlib statistics eda dashboard reporting bigdata", "description": "Data analysis, visualization, and insights", "difficulty": "Medium", "risk": "Medium (Data quality)"},
-    {"domain": "Cybersecurity", "keywords": "security cybersecurity encryption authentication network vulnerability penetration testing firewall blockchain", "description": "Security systems and threat detection", "difficulty": "Hard", "risk": "High (Setup complexity)"},
-    {"domain": "Cloud & DevOps", "keywords": "cloud aws azure gcp docker kubernetes devops ci cd infrastructure deployment microservices serverless", "description": "Cloud infrastructure and deployment automation", "difficulty": "Hard", "risk": "High (Cost and config)"},
-    {"domain": "IoT & Embedded Systems", "keywords": "iot internet of things embedded raspberry pi arduino sensor hardware mqtt edge computing", "description": "Connected devices and embedded systems", "difficulty": "Hard", "risk": "High (Hardware dependency)"},
-    {"domain": "Blockchain & Web3", "keywords": "blockchain ethereum solidity smart contract decentralized web3 crypto defi nft consensus", "description": "Decentralized applications and blockchain technology", "difficulty": "Hard", "risk": "High (Emerging tech)"},
-    {"domain": "Natural Language Processing", "keywords": "nlp natural language processing text mining sentiment analysis chatbot language model transformers bert gpt", "description": "Text processing and language understanding systems", "difficulty": "Medium-Hard", "risk": "Medium (Compute cost)"},
-    {"domain": "Computer Vision", "keywords": "computer vision image processing object detection face recognition opencv cnn segmentation medical imaging", "description": "Image and video analysis systems", "difficulty": "Hard", "risk": "High (Performance tuning)"},
-]
 
-# Generate domain embeddings lazily
-_domain_embeddings = None
-_faiss_index = None
+async def get_recommendations(
+    student_id: str,
+    skills: List[str],
+    interests: List[str],
+    technologies: List[str],
+    department: str = "",
+    cgpa: float = 0.0,
+    top_k: int = 10,
+) -> dict:
+    """
+    Generate project recommendations using FAISS semantic search
+    with multi-factor ranking.
 
-def _get_domain_embeddings():
-    global _domain_embeddings, _faiss_index
-    if _domain_embeddings is None:
-        try:
-            import faiss
-            _domain_embeddings = []
-            for d in PROJECT_DOMAINS:
-                text = f"{d['domain']}. {d['keywords']}"
-                emb = generate_embedding(text)
-                _domain_embeddings.append(emb)
-            
-            emb_matrix = np.array(_domain_embeddings, dtype=np.float32)
-            norms = np.linalg.norm(emb_matrix, axis=1, keepdims=True)
-            norms[norms == 0] = 1
-            emb_matrix = emb_matrix / norms
-            
-            _faiss_index = faiss.IndexFlatIP(emb_matrix.shape[1])
-            _faiss_index.add(emb_matrix)
-        except ImportError:
-            logger.warning("FAISS not found, falling back to numpy")
-            _domain_embeddings = []
-            for d in PROJECT_DOMAINS:
-                text = f"{d['domain']}. {d['keywords']}"
-                emb = generate_embedding(text)
-                _domain_embeddings.append(emb)
-    return _domain_embeddings
+    Args:
+        student_id: Unique student identifier
+        skills: Student's listed skills
+        interests: Student's interests
+        technologies: Preferred technologies
+        department: Student's academic department
+        cgpa: Student's CGPA (optional)
+        top_k: Number of recommendations to return
 
-def get_recommendations(student_id: str, skills: List[str], interests: List[str], technologies: List[str]) -> dict:
-    """Generate top-10 project domain recommendations for a student."""
-    profile_text = " ".join(skills + interests + technologies).lower()
+    Returns:
+        Dict with ranked recommendations, each with explainable reasons
+    """
+    # Try to enrich profile from database
+    db_profile = None
+    try:
+        from app.core.database import get_student_profile
+        db_profile = await get_student_profile(student_id)
+    except Exception as e:
+        logger.debug(f"DB profile lookup skipped: {e}")
 
-    if not profile_text.strip():
+    student_profile = build_student_profile_dict(
+        student_id, skills, interests, technologies, department, db_profile,
+    )
+
+    # Build student embedding
+    student_emb = build_profile_embedding(
+        student_profile["skills"],
+        student_profile["interests"],
+        student_profile.get("technologies", technologies),
+        student_profile["department"],
+        cgpa,
+    )
+
+    total_projects = get_total_projects()
+
+    if total_projects == 0:
+        logger.warning("Vector store is empty — returning empty recommendations")
         return {
-            "recommendations": [
-                {
-                    "domain": d["domain"],
-                    "match_score": round(0.5 + i * 0.02, 2),
-                    "novelty_score": round(np.random.uniform(0.6, 0.9), 2),
-                    "reason": d["description"],
-                    "difficulty": d["difficulty"],
-                    "risk_analysis": d["risk"],
-                }
-                for i, d in enumerate(PROJECT_DOMAINS[:10])
-            ],
-            "model_version": "3.0-faiss",
+            "recommendations": [],
+            "total_projects_searched": 0,
+            "model_version": "4.0-faiss-multifactor",
+            "explanation": "No projects in the index yet. Add projects to get recommendations.",
         }
 
-    student_emb = generate_embedding(profile_text)
-    student_emb = np.array(student_emb, dtype=np.float32).reshape(1, -1)
-    
-    norm = np.linalg.norm(student_emb)
-    if norm > 0:
-        student_emb = student_emb / norm
-        
-    _get_domain_embeddings()
-    
-    similarities = []
-    ranked_indices = []
-    
-    if _faiss_index is not None:
-        scores, indices = _faiss_index.search(student_emb, 10)
-        similarities = scores[0].tolist()
-        ranked_indices = indices[0].tolist()
-    else:
-        # Fallback
-        domain_embs = np.array(_domain_embeddings, dtype=np.float32)
-        norms = np.linalg.norm(domain_embs, axis=1, keepdims=True)
-        norms[norms == 0] = 1
-        domain_embs = domain_embs / norms
-        sims = (domain_embs @ student_emb.T).flatten()
-        ranked_indices = np.argsort(sims)[::-1][:10].tolist()
-        similarities = [float(sims[idx]) for idx in ranked_indices]
+    # Search FAISS for similar projects
+    raw_results = search_similar(student_emb, top_k=top_k * 3)  # Fetch extra for re-ranking
 
-    recommendations = []
-    for rank, (idx, score) in enumerate(zip(ranked_indices, similarities)):
-        domain = PROJECT_DOMAINS[idx]
-        
-        # Novelty score: less popular items or random variation get higher novelty
-        base_novelty = 1.0 - (rank * 0.05)
-        novelty_score = round(min(max(base_novelty + np.random.uniform(-0.1, 0.1), 0.1), 0.99), 2)
-        
-        matching = [s for s in skills + interests if s.lower() in domain["keywords"].lower()]
-        reason = f"{domain['description']}. "
-        if matching:
-            reason += f"Strong semantic match with your skills: {', '.join(matching[:3])}."
-        else:
-            reason += "Aligns with your overall profile semantics."
+    if not raw_results:
+        return {
+            "recommendations": [],
+            "total_projects_searched": total_projects,
+            "model_version": "4.0-faiss-multifactor",
+            "explanation": "No matching projects found for your profile.",
+        }
 
-        recommendations.append({
-            "domain": domain["domain"],
-            "match_score": round(min(score + 0.2, 0.99), 2),
-            "novelty_score": novelty_score,
-            "reason": reason,
-            "difficulty": domain["difficulty"],
-            "risk_analysis": domain["risk"],
+    # Multi-factor re-ranking
+    scored_results = []
+    for project, similarity_pct in raw_results:
+        project_tech = project.get("tech_stack", [])
+        project_domain = project.get("domain", "")
+
+        # Factor 1: Semantic similarity (from FAISS)
+        similarity_score = min(similarity_pct / 100.0, 1.0)
+
+        # Factor 2: Technology overlap
+        tech_overlap = compute_tech_overlap(
+            student_profile.get("technologies", []) + student_profile.get("skills", []),
+            project_tech,
+        )
+
+        # Factor 3: Difficulty match
+        project_desc = project.get("description", "")
+        desc_lower = (project_desc + " " + project_domain).lower()
+        complexity_keywords = sum(1 for t in COMPLEX_TECH if t in desc_lower)
+        difficulty_match = compute_difficulty_match(
+            len(project_tech), complexity_keywords,
+            len(student_profile.get("skills", [])), cgpa,
+        )
+
+        # Factor 4: Department relevance
+        dept_relevance = 0.0
+        student_dept = (student_profile.get("department") or "").lower()
+        if student_dept and student_dept in project_domain.lower():
+            dept_relevance = 1.0
+        elif student_dept:
+            # Check for partial match
+            dept_words = student_dept.split()
+            if any(w in project_domain.lower() for w in dept_words if len(w) > 3):
+                dept_relevance = 0.5
+
+        # Factor 5: Trend alignment
+        trend_count = sum(1 for t in TRENDING_TECH if t in desc_lower)
+        trend_score = min(1.0, trend_count * 0.2)
+
+        # Weighted composite score
+        composite = (
+            similarity_score * 0.35 +
+            tech_overlap * 0.20 +
+            difficulty_match * 0.15 +
+            dept_relevance * 0.10 +
+            trend_score * 0.10 +
+            0.10  # base relevance bonus
+        )
+
+        # Generate explanation
+        reason_parts = []
+        if similarity_score > 0.6:
+            reason_parts.append(f"Strong semantic match with your profile ({similarity_pct:.0f}% similarity)")
+        elif similarity_score > 0.3:
+            reason_parts.append(f"Moderate alignment with your interests ({similarity_pct:.0f}% similarity)")
+
+        if tech_overlap > 0.3:
+            matching_tech = set(t.lower() for t in student_profile.get("technologies", [])) & \
+                           set(t.lower() for t in project_tech)
+            if matching_tech:
+                reason_parts.append(f"Overlapping tech: {', '.join(list(matching_tech)[:3])}")
+
+        if difficulty_match > 0.6:
+            reason_parts.append("Good difficulty match for your skill level")
+
+        if dept_relevance > 0.5:
+            reason_parts.append(f"Relevant to your {student_profile.get('department', '')} department")
+
+        if trend_score > 0.3:
+            reason_parts.append("Uses trending technologies")
+
+        if not reason_parts:
+            reason_parts.append(f"Aligns with your overall profile. {project.get('description', '')[:100]}")
+
+        # Estimate difficulty
+        difficulty = _estimate_difficulty(project_tech, complexity_keywords)
+
+        scored_results.append({
+            "project": project,
+            "composite_score": composite,
+            "similarity_score": similarity_score,
+            "tech_overlap": tech_overlap,
+            "difficulty_match": difficulty_match,
+            "dept_relevance": dept_relevance,
+            "trend_score": trend_score,
+            "reason": ". ".join(reason_parts) + ".",
+            "difficulty": difficulty,
         })
 
-    return {"recommendations": recommendations, "model_version": "3.0-faiss"}
+    # Sort by composite score descending
+    scored_results.sort(key=lambda x: x["composite_score"], reverse=True)
+
+    # Compute novelty scores (now that we have the ranking)
+    similarity_scores_list = [r["similarity_score"] for r in scored_results]
+
+    # Build final recommendations
+    recommendations = []
+    for rank, result in enumerate(scored_results[:top_k]):
+        project = result["project"]
+        novelty = compute_novelty_score(
+            similarity_scores_list[rank:rank+3] if rank < len(similarity_scores_list) else [],
+            popularity_count=rank,
+        )
+
+        recommendations.append({
+            "project_id": project.get("id", ""),
+            "title": project.get("title", "Unknown Project"),
+            "domain": project.get("domain", ""),
+            "description": (project.get("description", ""))[:200],
+            "tech_stack": project.get("tech_stack", []),
+            "match_score": round(min(result["composite_score"], 0.99), 3),
+            "novelty_score": round(novelty, 3),
+            "difficulty": result["difficulty"],
+            "reason": result["reason"],
+            "ranking_factors": {
+                "semantic_similarity": round(result["similarity_score"], 3),
+                "tech_overlap": round(result["tech_overlap"], 3),
+                "difficulty_match": round(result["difficulty_match"], 3),
+                "department_relevance": round(result["dept_relevance"], 3),
+                "trend_alignment": round(result["trend_score"], 3),
+            },
+        })
+
+    return {
+        "recommendations": recommendations,
+        "total_projects_searched": total_projects,
+        "student_profile_used": {
+            "skills_count": len(student_profile.get("skills", [])),
+            "interests_count": len(student_profile.get("interests", [])),
+            "department": student_profile.get("department", ""),
+        },
+        "model_version": "4.0-faiss-multifactor",
+    }
+
+
+def _estimate_difficulty(tech_stack: List[str], complexity_keyword_count: int) -> str:
+    """Estimate project difficulty from tech stack and complexity signals."""
+    tech_lower = [t.lower() for t in (tech_stack or [])]
+    complex_count = sum(1 for t in tech_lower if any(c in t for c in COMPLEX_TECH))
+
+    total_complexity = complex_count + complexity_keyword_count
+    if total_complexity >= 4:
+        return "Hard"
+    elif total_complexity >= 2:
+        return "Medium-Hard"
+    elif total_complexity >= 1 or len(tech_stack or []) >= 4:
+        return "Medium"
+    else:
+        return "Easy-Medium"
+
+
+# ──────────────────────────────────────────
+# Synchronous wrapper for backward compatibility
+# ──────────────────────────────────────────
+
+def get_recommendations_sync(
+    student_id: str,
+    skills: List[str],
+    interests: List[str],
+    technologies: List[str],
+) -> dict:
+    """
+    Synchronous fallback for the recommendation engine.
+    Used when async context is not available.
+    """
+    import asyncio
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop and loop.is_running():
+        # We're inside an async context — create a task
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            result = pool.submit(
+                asyncio.run,
+                get_recommendations(student_id, skills, interests, technologies)
+            ).result()
+            return result
+    else:
+        return asyncio.run(
+            get_recommendations(student_id, skills, interests, technologies)
+        )
