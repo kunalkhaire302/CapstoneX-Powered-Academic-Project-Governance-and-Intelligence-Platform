@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import Modal from './Modal';
 import Input from './Input';
 import Button from './Button';
+import { getAccessToken } from '@/lib/api';
 
 export interface UserProfile {
   name: string;
@@ -47,7 +48,7 @@ export default function SettingsModal({ isOpen, onClose, profile, onSaveProfile 
     setLoading(true);
     
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
       
       if (!token) {
         // Fallback for local UI testing without login

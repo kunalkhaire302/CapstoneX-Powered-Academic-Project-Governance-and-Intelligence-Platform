@@ -244,4 +244,50 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
-module.exports = { listUsers, getUser, updateUser, deleteUser, bulkImport, updateProfile };
+/**
+ * Create a new user (Admin only) with specific roles.
+ */
+const adminCreateUser = async (req, res, next) => {
+  try {
+    const { name, email, password, role, department, institution_id } = req.body;
+    
+    if (!name || !email || !role) {
+      return res.status(400).json({ error: 'Name, email, and role are required.' });
+    }
+
+    const existing = await User.findOne({ where: { email } });
+    if (existing) {
+      return res.status(409).json({ error: 'An account with this email already exists.' });
+    }
+
+    let passwordHash = null;
+    if (password) {
+      passwordHash = await bcrypt.hash(password, 12);
+    } else {
+      passwordHash = await bcrypt.hash('CapstoneX@2024', 12);
+    }
+
+    const user = await User.create({
+      name,
+      email,
+      password_hash: passwordHash,
+      role,
+      department,
+      institution_id: institution_id || req.user.institution_id,
+    });
+
+    await createAuditLog({
+      userId: req.user.id,
+      action: 'user.created_by_admin',
+      entityType: 'user',
+      entityId: user.id,
+      ipAddress: req.ip,
+    });
+
+    res.status(201).json({ message: 'User created successfully', user: { ...user.toJSON(), password_hash: undefined } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { listUsers, getUser, updateUser, deleteUser, bulkImport, updateProfile, adminCreateUser };

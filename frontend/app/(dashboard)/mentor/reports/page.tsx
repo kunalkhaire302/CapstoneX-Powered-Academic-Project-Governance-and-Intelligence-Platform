@@ -12,7 +12,7 @@ export default function CoordinatorReportsPage() {
   ];
 
   return (
-    <DashboardLayout role="coordinator" title="Reports" userName="Dr. Priya Nair">
+    <DashboardLayout role="mentor" title="Reports" userName="Dr. Priya Nair">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {reports.map((r, i) => (
           <Card key={i} className="hover:shadow-elevated transition-shadow cursor-pointer">

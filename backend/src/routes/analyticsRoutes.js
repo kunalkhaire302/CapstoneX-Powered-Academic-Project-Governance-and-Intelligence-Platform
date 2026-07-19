@@ -5,6 +5,6 @@ const { checkRole } = require('../middleware/rbac');
 
 router.use(verifyToken);
 router.get('/system', checkRole('admin'), getSystemAnalytics);
-router.get('/department', checkRole('coordinator', 'hod', 'admin'), getDepartmentAnalytics);
+router.get('/department', checkRole('mentor', 'hod', 'admin'), getDepartmentAnalytics);
 
 module.exports = router;

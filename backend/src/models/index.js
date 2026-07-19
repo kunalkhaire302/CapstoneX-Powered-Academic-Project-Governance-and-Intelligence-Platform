@@ -18,7 +18,7 @@ const User = sequelize.define('users', {
   email: { type: DataTypes.STRING(255), allowNull: false, unique: true, validate: { isEmail: true } },
   password_hash: { type: DataTypes.STRING(255) },
   role: {
-    type: DataTypes.ENUM('student', 'mentor', 'coordinator', 'hod', 'admin', 'accreditation'),
+    type: DataTypes.ENUM('student', 'mentor', 'hod', 'admin', 'accreditation'),
     allowNull: false,
     defaultValue: 'student',
   },
@@ -38,7 +38,6 @@ const Group = sequelize.define('groups', {
   join_code: { type: DataTypes.STRING(10), unique: true },
   topic_id: { type: DataTypes.UUID },
   mentor_id: { type: DataTypes.UUID, references: { model: 'users', key: 'id' } },
-  coordinator_id: { type: DataTypes.UUID, references: { model: 'users', key: 'id' } },
   department: { type: DataTypes.STRING(255) },
   batch_year: { type: DataTypes.INTEGER },
   status: {
@@ -189,6 +188,14 @@ const Meeting = sequelize.define('meetings', {
   },
 });
 
+const PasswordResetToken = sequelize.define('password_reset_tokens', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  user_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'users', key: 'id' } },
+  token_hash: { type: DataTypes.STRING(255), allowNull: false },
+  expires_at: { type: DataTypes.DATE, allowNull: false },
+  used: { type: DataTypes.BOOLEAN, defaultValue: false },
+});
+
 // ──────────────────────────────────────────
 // Problem Statement Recommendation Models
 // ──────────────────────────────────────────
@@ -261,88 +268,92 @@ const RecommendationHistory = sequelize.define('recommendation_history', {
 // ──────────────────────────────────────────
 
 // Institution ↔ Users
-Institution.hasMany(User, { foreignKey: 'institution_id' });
+Institution.hasMany(User, { foreignKey: 'institution_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 User.belongsTo(Institution, { foreignKey: 'institution_id' });
 
+// User ↔ PasswordResetToken
+User.hasMany(PasswordResetToken, { foreignKey: 'user_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+PasswordResetToken.belongsTo(User, { foreignKey: 'user_id' });
+
 // Group ↔ Users (mentor, coordinator)
-User.hasMany(Group, { foreignKey: 'mentor_id', as: 'mentored_groups' });
-User.hasMany(Group, { foreignKey: 'coordinator_id', as: 'coordinated_groups' });
+User.hasMany(Group, { foreignKey: 'mentor_id', as: 'mentored_groups', onDelete: 'SET NULL', onUpdate: 'CASCADE' });
+User.hasMany(Group, { foreignKey: 'coordinator_id', as: 'coordinated_groups', onDelete: 'SET NULL', onUpdate: 'CASCADE' });
 Group.belongsTo(User, { foreignKey: 'mentor_id', as: 'mentor' });
 Group.belongsTo(User, { foreignKey: 'coordinator_id', as: 'coordinator' });
 
 // Group ↔ GroupMembers ↔ Users (many-to-many through group_members)
-Group.hasMany(GroupMember, { foreignKey: 'group_id', as: 'members' });
+Group.hasMany(GroupMember, { foreignKey: 'group_id', as: 'members', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 GroupMember.belongsTo(Group, { foreignKey: 'group_id' });
-User.hasMany(GroupMember, { foreignKey: 'student_id', as: 'group_memberships' });
+User.hasMany(GroupMember, { foreignKey: 'student_id', as: 'group_memberships', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 GroupMember.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
 
 // Group ↔ Topic (one-to-many through group_id)
-Group.hasMany(Topic, { foreignKey: 'group_id', as: 'topics' });
+Group.hasMany(Topic, { foreignKey: 'group_id', as: 'topics', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 Topic.belongsTo(Group, { foreignKey: 'group_id' });
-User.hasMany(Topic, { foreignKey: 'approved_by', as: 'approved_topics' });
+User.hasMany(Topic, { foreignKey: 'approved_by', as: 'approved_topics', onDelete: 'SET NULL', onUpdate: 'CASCADE' });
 
 // Logbook associations
-Group.hasMany(Logbook, { foreignKey: 'group_id' });
+Group.hasMany(Logbook, { foreignKey: 'group_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 Logbook.belongsTo(Group, { foreignKey: 'group_id' });
-User.hasMany(Logbook, { foreignKey: 'student_id', as: 'logbooks' });
+User.hasMany(Logbook, { foreignKey: 'student_id', as: 'logbooks', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 Logbook.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
 
 // Logbook ↔ LogbookFeedback
-Logbook.hasMany(LogbookFeedback, { foreignKey: 'logbook_id', as: 'feedback' });
+Logbook.hasMany(LogbookFeedback, { foreignKey: 'logbook_id', as: 'feedback', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 LogbookFeedback.belongsTo(Logbook, { foreignKey: 'logbook_id' });
-User.hasMany(LogbookFeedback, { foreignKey: 'mentor_id', as: 'given_feedback' });
+User.hasMany(LogbookFeedback, { foreignKey: 'mentor_id', as: 'given_feedback', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 LogbookFeedback.belongsTo(User, { foreignKey: 'mentor_id', as: 'mentor' });
 
 // Evaluation associations
-Group.hasMany(Evaluation, { foreignKey: 'group_id' });
+Group.hasMany(Evaluation, { foreignKey: 'group_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 Evaluation.belongsTo(Group, { foreignKey: 'group_id' });
-User.hasMany(Evaluation, { foreignKey: 'mentor_id', as: 'given_evaluations' });
+User.hasMany(Evaluation, { foreignKey: 'mentor_id', as: 'given_evaluations', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 Evaluation.belongsTo(User, { foreignKey: 'mentor_id', as: 'evaluator' });
-User.hasMany(Evaluation, { foreignKey: 'student_id', as: 'received_evaluations' });
+User.hasMany(Evaluation, { foreignKey: 'student_id', as: 'received_evaluations', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 Evaluation.belongsTo(User, { foreignKey: 'student_id', as: 'evaluated_student' });
 
 // Notification associations
-User.hasMany(Notification, { foreignKey: 'user_id' });
+User.hasMany(Notification, { foreignKey: 'user_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 Notification.belongsTo(User, { foreignKey: 'user_id' });
 
 // AuditLog associations
-User.hasMany(AuditLog, { foreignKey: 'user_id' });
+User.hasMany(AuditLog, { foreignKey: 'user_id', onDelete: 'SET NULL', onUpdate: 'CASCADE' });
 AuditLog.belongsTo(User, { foreignKey: 'user_id' });
 
 // AI Report associations
-Group.hasMany(AiReport, { foreignKey: 'group_id' });
+Group.hasMany(AiReport, { foreignKey: 'group_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 AiReport.belongsTo(Group, { foreignKey: 'group_id' });
-User.hasMany(AiReport, { foreignKey: 'student_id' });
+User.hasMany(AiReport, { foreignKey: 'student_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 AiReport.belongsTo(User, { foreignKey: 'student_id' });
 
 // Risk Score associations
-Group.hasMany(RiskScore, { foreignKey: 'group_id' });
+Group.hasMany(RiskScore, { foreignKey: 'group_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 RiskScore.belongsTo(Group, { foreignKey: 'group_id' });
 
 // Meeting associations
-Group.hasMany(Meeting, { foreignKey: 'group_id' });
+Group.hasMany(Meeting, { foreignKey: 'group_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 Meeting.belongsTo(Group, { foreignKey: 'group_id' });
-User.hasMany(Meeting, { foreignKey: 'mentor_id', as: 'scheduled_meetings' });
+User.hasMany(Meeting, { foreignKey: 'mentor_id', as: 'scheduled_meetings', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 Meeting.belongsTo(User, { foreignKey: 'mentor_id', as: 'mentor_scheduler' });
 
 // ProblemStatement associations
-Group.hasMany(ProblemStatement, { foreignKey: 'group_id' });
+Group.hasMany(ProblemStatement, { foreignKey: 'group_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 ProblemStatement.belongsTo(Group, { foreignKey: 'group_id' });
-User.hasMany(ProblemStatement, { foreignKey: 'student_id', as: 'problem_statements' });
+User.hasMany(ProblemStatement, { foreignKey: 'student_id', as: 'problem_statements', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 ProblemStatement.belongsTo(User, { foreignKey: 'student_id', as: 'submitter' });
 
 // Recommendation associations
-ProblemStatement.hasMany(Recommendation, { foreignKey: 'problem_statement_id', as: 'recommendations' });
+ProblemStatement.hasMany(Recommendation, { foreignKey: 'problem_statement_id', as: 'recommendations', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 Recommendation.belongsTo(ProblemStatement, { foreignKey: 'problem_statement_id' });
-User.hasMany(Recommendation, { foreignKey: 'student_id', as: 'student_recommendations' });
+User.hasMany(Recommendation, { foreignKey: 'student_id', as: 'student_recommendations', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 Recommendation.belongsTo(User, { foreignKey: 'student_id' });
 
 // RecommendationHistory associations
-Recommendation.hasMany(RecommendationHistory, { foreignKey: 'recommendation_id', as: 'history' });
+Recommendation.hasMany(RecommendationHistory, { foreignKey: 'recommendation_id', as: 'history', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 RecommendationHistory.belongsTo(Recommendation, { foreignKey: 'recommendation_id' });
-ProblemStatement.hasMany(RecommendationHistory, { foreignKey: 'problem_statement_id' });
+ProblemStatement.hasMany(RecommendationHistory, { foreignKey: 'problem_statement_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 RecommendationHistory.belongsTo(ProblemStatement, { foreignKey: 'problem_statement_id' });
-User.hasMany(RecommendationHistory, { foreignKey: 'student_id' });
+User.hasMany(RecommendationHistory, { foreignKey: 'student_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 RecommendationHistory.belongsTo(User, { foreignKey: 'student_id' });
 
 module.exports = {
@@ -365,4 +376,5 @@ module.exports = {
   Recommendation,
   PreviousProject,
   RecommendationHistory,
+  PasswordResetToken,
 };

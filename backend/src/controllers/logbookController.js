@@ -1,4 +1,4 @@
-const { Logbook, LogbookFeedback, User, Group } = require('../models');
+const { Logbook, LogbookFeedback, User, Group, GroupMember } = require('../models');
 const { parsePagination, paginatedResponse } = require('../utils/pagination');
 const { createAuditLog } = require('../utils/auditLog');
 const { uploadToCloudinary } = require('../utils/cloudinary');
@@ -6,6 +6,13 @@ const { uploadToCloudinary } = require('../utils/cloudinary');
 const createLogbook = async (req, res, next) => {
   try {
     const { group_id, week_number, title, content, file_url } = req.body;
+
+    // RBAC: Check if student belongs to the group
+    const isMember = await GroupMember.findOne({ where: { group_id, student_id: req.user.id } });
+    if (!isMember) {
+      return res.status(403).json({ error: 'Access denied: You are not a member of this group.' });
+    }
+
     let finalFileUrl = file_url;
 
     if (req.file) {
@@ -70,6 +77,12 @@ const updateLogbook = async (req, res, next) => {
   try {
     const logbook = await Logbook.findByPk(req.params.id);
     if (!logbook) return res.status(404).json({ error: 'Logbook not found.' });
+
+    // RBAC Check
+    if (logbook.student_id !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied: Not your logbook.' });
+    }
+
     const { title, content, file_url } = req.body;
     await logbook.update({ ...(title && { title }), ...(content && { content }), ...(file_url !== undefined && { file_url }) });
     res.json({ message: 'Logbook updated.', logbook });
@@ -80,6 +93,13 @@ const addFeedback = async (req, res, next) => {
   try {
     const logbook = await Logbook.findByPk(req.params.id);
     if (!logbook) return res.status(404).json({ error: 'Logbook not found.' });
+
+    // RBAC Check: Ensure mentor is assigned to the group
+    const group = await Group.findByPk(logbook.group_id);
+    if (group.mentor_id !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied: You are not the mentor for this group.' });
+    }
+
     const { comment, status } = req.body;
     const feedback = await LogbookFeedback.create({
       logbook_id: logbook.id, mentor_id: req.user.id, comment, status,

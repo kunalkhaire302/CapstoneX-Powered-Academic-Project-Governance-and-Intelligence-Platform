@@ -5,6 +5,14 @@ const { createAuditLog } = require('../utils/auditLog');
 const createEvaluation = async (req, res, next) => {
   try {
     const { group_id, student_id, type, rubric_json, total_score, max_score } = req.body;
+
+    // RBAC: Ensure mentor is assigned to the group
+    const group = await Group.findByPk(group_id);
+    if (!group) return res.status(404).json({ error: 'Group not found.' });
+    if (group.mentor_id !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied: You are not the mentor for this group.' });
+    }
+
     const evaluation = await Evaluation.create({
       group_id, mentor_id: req.user.id, student_id, type,
       rubric_json, total_score, max_score: max_score || 100,
@@ -42,6 +50,12 @@ const updateEvaluation = async (req, res, next) => {
   try {
     const evaluation = await Evaluation.findByPk(req.params.id);
     if (!evaluation) return res.status(404).json({ error: 'Evaluation not found.' });
+
+    // RBAC: Check ownership
+    if (evaluation.mentor_id !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied: You can only update your own evaluations.' });
+    }
+
     const { rubric_json, total_score, ai_feedback } = req.body;
     await evaluation.update({
       ...(rubric_json && { rubric_json }), ...(total_score !== undefined && { total_score }),

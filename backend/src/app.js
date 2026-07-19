@@ -28,13 +28,29 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ──────────────────────────────────────────
+// Environment Strictness
+// ──────────────────────────────────────────
+const requiredSecrets = ['JWT_SECRET', 'JWT_REFRESH_SECRET', 'DATABASE_URL', 'OPENAI_KEY'];
+const missingSecrets = requiredSecrets.filter(s => !process.env[s] || process.env[s] === 'fallback_secret');
+if (missingSecrets.length > 0) {
+  logger.error(`FATAL ERROR: Missing or insecure secrets: ${missingSecrets.join(', ')}`);
+  process.exit(1);
+}
+
+const { v4: uuidv4 } = require('uuid');
+const addRequestId = (req, res, next) => {
+  req.id = uuidv4();
+  next();
+};
+
 // ──────────────────────────────────────────
 // Security, Parsing, and Performance Middleware
 // ──────────────────────────────────────────
+app.use(addRequestId);
 app.use(helmet());
 app.use(compression());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', process.env.FRONTEND_URL].filter(Boolean),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -42,7 +58,10 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(morgan('combined', { stream: { write: (msg) => logger.info(msg.trim()) } }));
+morgan.token('id', req => req.id);
+app.use(morgan(':id :method :url :status :res[content-length] - :response-time ms', { 
+  stream: { write: (msg) => logger.info(msg.trim()) } 
+}));
 
 // ──────────────────────────────────────────
 // Rate Limiting

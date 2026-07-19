@@ -37,12 +37,14 @@ export function useCurrentUser() {
   return user;
 }
 
-/** Check if the user is authenticated */
 export function useAuth() {
   const [token, setToken] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setToken(localStorage.getItem('accessToken'));
+      // It's not reactive, but typically useAuth isn't heavily relied on 
+      // compared to interceptors. 
+      const token = api.defaults.headers.common['Authorization'] || null;
+      setToken(token ? (token as string).replace('Bearer ', '') : null);
     }
   }, []);
   return { isAuthenticated: !!token, token };

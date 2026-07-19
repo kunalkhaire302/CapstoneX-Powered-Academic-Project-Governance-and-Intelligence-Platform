@@ -33,8 +33,8 @@ router.post('/problem/draft', checkRole('student'), saveDraft);
 // ──────────────────────────────────────────
 // Recommendation Retrieval
 // ──────────────────────────────────────────
-router.get('/problem/similar/:id', checkRole('student', 'mentor', 'coordinator'), getProblemSimilar);
-router.get('/recommendation/:id', checkRole('student', 'mentor', 'coordinator'), getRecommendation);
+router.get('/problem/similar/:id', checkRole('student', 'mentor'), getProblemSimilar);
+router.get('/recommendation/:id', checkRole('student', 'mentor'), getRecommendation);
 router.get('/student/recommendations', checkRole('student'), getStudentRecommendations);
 
 module.exports = router;

@@ -16,7 +16,6 @@ module.exports = {
     // Users - 10 students, 3 mentors, 2 coordinators, 1 HOD, 1 admin
     const adminId = uuidv4(), hodId = uuidv4();
     const mentorIds = [uuidv4(), uuidv4(), uuidv4()];
-    const coordIds = [uuidv4(), uuidv4()];
     const studentIds = Array.from({ length: 10 }, () => uuidv4());
 
     const users = [
@@ -25,8 +24,7 @@ module.exports = {
       { id: mentorIds[0], name: 'Prof. Anita Sharma', email: 'mentor1@capstonex.com', role: 'mentor', department: 'Computer Science' },
       { id: mentorIds[1], name: 'Prof. Vikram Patel', email: 'mentor2@capstonex.com', role: 'mentor', department: 'Computer Science' },
       { id: mentorIds[2], name: 'Prof. Sneha Gupta', email: 'mentor3@capstonex.com', role: 'mentor', department: 'Information Technology' },
-      { id: coordIds[0], name: 'Dr. Priya Nair', email: 'coord1@capstonex.com', role: 'coordinator', department: 'Computer Science' },
-      { id: coordIds[1], name: 'Dr. Amit Desai', email: 'coord2@capstonex.com', role: 'coordinator', department: 'Information Technology' },
+
       ...studentIds.map((id, i) => ({
         id, name: `Student ${i + 1}`, email: `student${i + 1}@capstonex.com`, role: 'student',
         department: i < 6 ? 'Computer Science' : 'Information Technology',
@@ -42,9 +40,9 @@ module.exports = {
     // Groups
     const groupIds = [uuidv4(), uuidv4(), uuidv4()];
     await queryInterface.bulkInsert('groups', [
-      { id: groupIds[0], name: 'Team Alpha', join_code: 'ALPHA1', mentor_id: mentorIds[0], coordinator_id: coordIds[0], department: 'Computer Science', batch_year: 2024, status: 'in_progress', max_members: 4, created_at: now, updated_at: now },
-      { id: groupIds[1], name: 'Team Beta', join_code: 'BETA02', mentor_id: mentorIds[1], coordinator_id: coordIds[0], department: 'Computer Science', batch_year: 2024, status: 'not_started', max_members: 4, created_at: now, updated_at: now },
-      { id: groupIds[2], name: 'Team Gamma', join_code: 'GAMMA3', mentor_id: mentorIds[2], coordinator_id: coordIds[1], department: 'Information Technology', batch_year: 2024, status: 'submitted', max_members: 3, created_at: now, updated_at: now },
+      { id: groupIds[0], name: 'Team Alpha', join_code: 'ALPHA1', mentor_id: mentorIds[0], department: 'Computer Science', batch_year: 2024, status: 'in_progress', max_members: 4, created_at: now, updated_at: now },
+      { id: groupIds[1], name: 'Team Beta', join_code: 'BETA02', mentor_id: mentorIds[1], department: 'Computer Science', batch_year: 2024, status: 'not_started', max_members: 4, created_at: now, updated_at: now },
+      { id: groupIds[2], name: 'Team Gamma', join_code: 'GAMMA3', mentor_id: mentorIds[2], department: 'Information Technology', batch_year: 2024, status: 'submitted', max_members: 3, created_at: now, updated_at: now },
     ]);
 
     // Group Members

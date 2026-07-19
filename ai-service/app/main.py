@@ -1,12 +1,13 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 load_dotenv()
 
 from app.routers import recommend, risk, feedback, teams, problem_recommend
+from app.dependencies import verify_internal_token
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -29,11 +30,11 @@ app.add_middleware(
 )
 
 # Routers
-app.include_router(recommend.router, prefix="/api/ai", tags=["Recommendations"])
-app.include_router(risk.router, prefix="/api/ai", tags=["Risk Prediction"])
-app.include_router(feedback.router, prefix="/api/ai", tags=["Feedback Generation"])
-app.include_router(teams.router, prefix="/api/ai", tags=["Team Formation"])
-app.include_router(problem_recommend.router, prefix="/api/ai", tags=["Problem Statement Recommendation"])
+app.include_router(recommend.router, prefix="/api/ai", tags=["Recommendations"], dependencies=[Depends(verify_internal_token)])
+app.include_router(risk.router, prefix="/api/ai", tags=["Risk Prediction"], dependencies=[Depends(verify_internal_token)])
+app.include_router(feedback.router, prefix="/api/ai", tags=["Feedback Generation"], dependencies=[Depends(verify_internal_token)])
+app.include_router(teams.router, prefix="/api/ai", tags=["Team Formation"], dependencies=[Depends(verify_internal_token)])
+app.include_router(problem_recommend.router, prefix="/api/ai", tags=["Problem Statement Recommendation"], dependencies=[Depends(verify_internal_token)])
 
 
 @app.get("/api/ai/health")

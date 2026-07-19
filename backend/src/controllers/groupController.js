@@ -10,7 +10,9 @@ const { Op } = require('sequelize');
 const createGroup = async (req, res, next) => {
   try {
     const { name, department, batch_year, max_members } = req.body;
-    const join_code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    // Generate a secure random 8-character join code
+    const crypto = require('crypto');
+    const join_code = crypto.randomBytes(4).toString('hex').toUpperCase();
 
     const group = await Group.create({
       id: uuidv4(),
@@ -116,6 +118,17 @@ const getGroup = async (req, res, next) => {
       ],
     });
     if (!group) return res.status(404).json({ error: 'Group not found' });
+
+    // RBAC Check
+    if (req.user.role === 'student') {
+      const isMember = group.members.some(m => m.student_id === req.user.id);
+      if (!isMember) return res.status(403).json({ error: 'Access denied: You are not a member of this group.' });
+    } else if (req.user.role === 'mentor' && group.mentor_id !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied: You are not assigned to this group.' });
+    } else if (['coordinator', 'hod'].includes(req.user.role) && group.department !== req.user.department) {
+      return res.status(403).json({ error: 'Access denied: Group not in your department.' });
+    }
+
     res.json({ group });
   } catch (error) {
     next(error);

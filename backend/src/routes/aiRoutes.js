@@ -5,9 +5,9 @@ const { checkRole } = require('../middleware/rbac');
 
 router.use(verifyToken);
 router.post('/recommend', checkRole('student'), getRecommendations);
-router.post('/risk-score', checkRole('admin', 'coordinator', 'mentor'), getRiskScore);
+router.post('/risk-score', checkRole('admin', 'mentor'), getRiskScore);
 router.post('/generate-feedback', checkRole('mentor'), generateFeedback);
-router.post('/form-teams', checkRole('admin', 'coordinator'), formTeams);
-router.get('/risk-scores', checkRole('admin', 'coordinator'), listRiskScores);
+router.post('/form-teams', checkRole('admin', 'mentor'), formTeams);
+router.get('/risk-scores', checkRole('admin', 'mentor'), listRiskScores);
 
 module.exports = router;

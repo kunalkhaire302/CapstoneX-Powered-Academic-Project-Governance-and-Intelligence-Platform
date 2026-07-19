@@ -25,13 +25,9 @@ const roleNavItems: Record<string, NavItem[]> = {
     { label: 'Logbook Review', href: '/mentor/logbook-review', icon: <BookIcon /> },
     { label: 'Evaluations', href: '/mentor/evaluations', icon: <CheckIcon /> },
     { label: 'Schedule', href: '/mentor/schedule', icon: <CalendarIcon /> },
-  ],
-  coordinator: [
-    { label: 'Dashboard', href: '/coordinator', icon: <HomeIcon /> },
-    { label: 'Groups', href: '/coordinator/groups', icon: <GroupIcon /> },
-    { label: 'Topics', href: '/coordinator/topics', icon: <FileIcon /> },
-    { label: 'Risk Dashboard', href: '/coordinator/risk', icon: <AlertIcon /> },
-    { label: 'Reports', href: '/coordinator/reports', icon: <ChartIcon /> },
+    { label: 'Topics', href: '/mentor/topics', icon: <FileIcon /> },
+    { label: 'Risk Dashboard', href: '/mentor/risk', icon: <AlertIcon /> },
+    { label: 'Reports', href: '/mentor/reports', icon: <ChartIcon /> },
   ],
   admin: [
     { label: 'Dashboard', href: '/admin', icon: <HomeIcon /> },

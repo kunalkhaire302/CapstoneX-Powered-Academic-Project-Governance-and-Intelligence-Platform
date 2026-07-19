@@ -6,10 +6,10 @@ const multer = require('multer');
 const { validate } = require('../middleware/validator');
 const schemas = require('../utils/schemas');
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+const { secureUpload } = require('../middleware/uploadValidation');
 
 router.use(verifyToken);
-router.post('/', checkRole('student'), upload.single('file'), validate(schemas.createLogbook), createLogbook);
+router.post('/', checkRole('student'), secureUpload('file'), validate(schemas.createLogbook), createLogbook);
 router.get('/', listLogbooks);
 router.put('/:id', checkRole('student'), updateLogbook);
 router.put('/:id/submit', checkRole('student'), submitLogbook);

@@ -7,8 +7,16 @@ const { Op } = require('sequelize');
 const submitTopic = async (req, res, next) => {
   try {
     const { group_id, topics } = req.body;
-    const group = await Group.findByPk(group_id);
+    const group = await Group.findByPk(group_id, {
+      include: [{ model: GroupMember, as: 'members' }]
+    });
     if (!group) return res.status(404).json({ error: 'Group not found.' });
+
+    // RBAC Check: Must be a member of the group to submit topics
+    if (req.user.role === 'student') {
+      const isMember = group.members.some(m => m.student_id === req.user.id);
+      if (!isMember) return res.status(403).json({ error: 'Access denied: You are not a member of this group.' });
+    }
 
     const existingCount = await Topic.count({ where: { group_id } });
     if (existingCount > 0) return res.status(409).json({ error: 'Group already has submitted topics.' });
@@ -38,7 +46,16 @@ const submitTopic = async (req, res, next) => {
           domain: (t.domain_tags || []).join(', '),
           tech_stack: t.technology_tags || []
         };
-        const aiResponse = await axios.post(`${process.env.AI_SERVICE_URL || 'http://localhost:8000'}/api/ai/problem/analyze`, aiPayload);
+        const aiResponse = await axios.post(
+          `${process.env.AI_SERVICE_URL || 'http://localhost:8000'}/api/ai/problem/analyze`, 
+          aiPayload,
+          {
+            headers: {
+              'X-Internal-Token': process.env.AI_INTERNAL_SECRET || 'dev_internal_secret_key_123'
+            },
+            timeout: 10000
+          }
+        );
         if (aiResponse.data) {
           await topic.update({ 
             ai_scores: aiResponse.data.scores, 
@@ -63,9 +80,21 @@ const listTopics = async (req, res, next) => {
     const { page, limit, offset } = parsePagination(req.query);
     const where = {};
     if (req.query.status) where.status = req.query.status;
-    if (req.query.department) {
+    
+    // RBAC Check
+    if (req.user.role === 'student') {
+      const memberships = await GroupMember.findAll({ where: { student_id: req.user.id }, attributes: ['group_id'] });
+      where.group_id = { [Op.in]: memberships.map(m => m.group_id) };
+    } else if (req.user.role === 'mentor') {
+      const mentoredGroups = await Group.findAll({ where: { mentor_id: req.user.id }, attributes: ['id'] });
+      where.group_id = { [Op.in]: mentoredGroups.map(g => g.id) };
+    } else if (['coordinator', 'hod'].includes(req.user.role)) {
+      const departmentGroups = await Group.findAll({ where: { department: req.user.department }, attributes: ['id'] });
+      where.group_id = { [Op.in]: departmentGroups.map(g => g.id) };
+    } else if (req.query.department) {
+      // Admin filter
       const groups = await Group.findAll({ where: { department: req.query.department }, attributes: ['id'] });
-      where.group_id = groups.map(g => g.id);
+      where.group_id = { [Op.in]: groups.map(g => g.id) };
     }
     const { rows, count } = await Topic.findAndCountAll({
       where, include: [{ model: Group, attributes: ['id', 'name', 'department'] }],

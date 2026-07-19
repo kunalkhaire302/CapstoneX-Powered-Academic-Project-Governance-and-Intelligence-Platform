@@ -7,7 +7,7 @@
  *   router.get('/staff', verifyToken, checkRole('admin', 'coordinator', 'hod'), handler);
  */
 
-const VALID_ROLES = ['student', 'mentor', 'coordinator', 'hod', 'admin', 'accreditation'];
+const VALID_ROLES = ['student', 'mentor', 'hod', 'admin', 'accreditation'];
 
 /**
  * Returns middleware that checks if req.user.role is in the allowed roles list.
@@ -68,4 +68,23 @@ const checkOwnerOrRole = (getResourceOwnerId, ...privilegedRoles) => {
   };
 };
 
-module.exports = { checkRole, checkOwnerOrRole, VALID_ROLES };
+const checkDepartment = (allowedDepartment) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required.' });
+    }
+    
+    // Admin can bypass department checks
+    if (req.user.role === 'admin') {
+      return next();
+    }
+    
+    if (req.user.department !== allowedDepartment) {
+      return res.status(403).json({ error: 'Access denied. You do not belong to the required department.' });
+    }
+    
+    next();
+  };
+};
+
+module.exports = { checkRole, checkOwnerOrRole, checkDepartment, VALID_ROLES };

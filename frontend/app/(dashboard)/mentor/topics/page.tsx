@@ -16,7 +16,7 @@ export default function CoordinatorTopicsPage() {
   const statusColors: Record<string, 'success' | 'warning' | 'error'> = { approved: 'success', pending: 'warning', rejected: 'error' };
 
   return (
-    <DashboardLayout role="coordinator" title="Topic Approvals" userName="Dr. Priya Nair">
+    <DashboardLayout role="mentor" title="Topic Approvals" userName="Dr. Priya Nair">
       <Card padding="sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

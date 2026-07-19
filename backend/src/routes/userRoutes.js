@@ -1,17 +1,20 @@
 const router = require('express').Router();
 const multer = require('multer');
-const { listUsers, getUser, updateUser, deleteUser, bulkImport, updateProfile } = require('../controllers/userController');
+const { listUsers, getUser, updateUser, deleteUser, bulkImport, updateProfile, adminCreateUser } = require('../controllers/userController');
+const { getStudentDashboard } = require('../controllers/dashboardController');
 const { verifyToken } = require('../middleware/auth');
 const { checkRole } = require('../middleware/rbac');
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+const { secureUpload } = require('../middleware/uploadValidation');
 
 router.use(verifyToken);
+router.get('/dashboard/student', checkRole('student'), getStudentDashboard);
 router.put('/profile', updateProfile);
-router.get('/', checkRole('admin', 'coordinator', 'hod'), listUsers);
+router.get('/', checkRole('admin', 'mentor', 'hod'), listUsers);
 router.get('/:id', getUser);
+router.post('/admin-create', checkRole('admin'), adminCreateUser);
 router.put('/:id', checkRole('admin'), updateUser);
 router.delete('/:id', checkRole('admin'), deleteUser);
-router.post('/bulk-import', checkRole('admin'), upload.single('file'), bulkImport);
+router.post('/bulk-import', checkRole('admin'), secureUpload('file'), bulkImport);
 
 module.exports = router;

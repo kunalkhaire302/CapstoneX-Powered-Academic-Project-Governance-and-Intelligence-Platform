@@ -15,7 +15,7 @@ export default function CoordinatorRiskPage() {
   const riskColors: Record<string, 'success' | 'warning' | 'error'> = { low: 'success', medium: 'warning', high: 'error' };
 
   return (
-    <DashboardLayout role="coordinator" title="Risk Dashboard" userName="Dr. Priya Nair">
+    <DashboardLayout role="mentor" title="Risk Dashboard" userName="Dr. Priya Nair">
       <div className="space-y-4">
         {groups.map((g, i) => (
           <Card key={i}>

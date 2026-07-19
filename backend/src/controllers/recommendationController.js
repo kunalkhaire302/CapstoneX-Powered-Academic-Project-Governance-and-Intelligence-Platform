@@ -9,6 +9,14 @@ const { createAuditLog } = require('../utils/auditLog');
 const logger = require('../utils/logger');
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+const AI_INTERNAL_SECRET = process.env.AI_INTERNAL_SECRET || 'dev_internal_secret_key_123';
+
+const getAiHeaders = () => ({
+  headers: {
+    'X-Internal-Token': AI_INTERNAL_SECRET,
+    'Content-Type': 'application/json'
+  }
+});
 
 /**
  * POST /api/recommend  or  POST /api/problem/analyze
@@ -25,6 +33,14 @@ const analyzeProblem = async (req, res, next) => {
 
     if (!title || !problem_statement) {
       return res.status(400).json({ error: 'Title and problem statement are required.' });
+    }
+
+    // RBAC: Check if user belongs to group_id
+    if (group_id) {
+      const isMember = await GroupMember.findOne({ where: { group_id, student_id: req.user.id } });
+      if (!isMember) {
+        return res.status(403).json({ error: 'Access denied: You are not a member of this group.' });
+      }
     }
 
     // 1. Save/update ProblemStatement in database
@@ -77,7 +93,7 @@ const analyzeProblem = async (req, res, next) => {
         student_id: req.user.id,
         group_id: group_id || null,
       },
-      { timeout: 30000 }
+      { timeout: 30000, ...getAiHeaders() }
     );
 
     const report = aiResponse.data;
@@ -170,7 +186,7 @@ const getProblemSimilar = async (req, res, next) => {
     // Otherwise, call AI service
     const aiResponse = await axios.get(
       `${AI_SERVICE_URL}/api/ai/problem/similar/${id}`,
-      { timeout: 15000 }
+      { timeout: 15000, ...getAiHeaders() }
     );
 
     res.json(aiResponse.data);
@@ -228,7 +244,7 @@ const improveProblem = async (req, res, next) => {
     const aiResponse = await axios.post(
       `${AI_SERVICE_URL}/api/ai/problem/improve`,
       { title, problem_statement, description, domain, tech_stack, scores, similar_projects },
-      { timeout: 20000 }
+      { timeout: 20000, ...getAiHeaders() }
     );
 
     // Log the improvement request
@@ -310,6 +326,14 @@ const saveDraft = async (req, res, next) => {
 
     if (!title) {
       return res.status(400).json({ error: 'Title is required to save a draft.' });
+    }
+
+    // RBAC: Check if user belongs to group_id
+    if (group_id) {
+      const isMember = await GroupMember.findOne({ where: { group_id, student_id: req.user.id } });
+      if (!isMember) {
+        return res.status(403).json({ error: 'Access denied: You are not a member of this group.' });
+      }
     }
 
     const draftData = {

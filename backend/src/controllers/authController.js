@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
-const { User, Institution } = require('../models');
+const crypto = require('crypto');
+const { User, Institution, PasswordResetToken } = require('../models');
 const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwt');
 const { getFirebaseAuth } = require('../config/firebase');
 const { sendEmail, emailTemplates } = require('../utils/email');
@@ -30,7 +31,7 @@ const register = async (req, res, next) => {
       name,
       email,
       password_hash: passwordHash,
-      role: role || 'student',
+      role: 'student', // Locked down to student only
       department,
       institution_id,
       firebase_uid,
@@ -223,7 +224,17 @@ const forgotPassword = async (req, res, next) => {
       return res.json({ message: 'If an account with this email exists, a reset link has been sent.' });
     }
 
-    const resetToken = generateAccessToken({ id: user.id, email: user.email, role: user.role, name: user.name });
+    // Generate a secure random token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Save token in the database (expires in 15 minutes)
+    await PasswordResetToken.create({
+      user_id: user.id,
+      token_hash: tokenHash,
+      expires_at: new Date(Date.now() + 15 * 60 * 1000),
+    });
+
     const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
 
     await sendEmail({
@@ -231,7 +242,64 @@ const forgotPassword = async (req, res, next) => {
       ...emailTemplates.passwordReset(user.name, resetLink),
     });
 
+    // Audit log
+    await createAuditLog({
+      userId: user.id,
+      action: 'user.password_reset_requested',
+      entityType: 'user',
+      entityId: user.id,
+    });
+
     res.json({ message: 'If an account with this email exists, a reset link has been sent.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Reset password using the crypto token.
+ */
+const resetPassword = async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+    
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token and new password are required.' });
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    const resetRecord = await PasswordResetToken.findOne({
+      where: {
+        token_hash: tokenHash,
+        used: false,
+      }
+    });
+
+    if (!resetRecord || resetRecord.expires_at < new Date()) {
+      return res.status(400).json({ error: 'Invalid or expired reset token.' });
+    }
+
+    const user = await User.findByPk(resetRecord.user_id);
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired reset token.' });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    await user.update({ password_hash: passwordHash });
+
+    // Invalidate the token
+    await resetRecord.update({ used: true });
+
+    // Audit log
+    await createAuditLog({
+      userId: user.id,
+      action: 'user.password_reset_completed',
+      entityType: 'user',
+      entityId: user.id,
+    });
+
+    res.json({ message: 'Password has been successfully reset. You can now login.' });
   } catch (error) {
     next(error);
   }
@@ -263,4 +331,4 @@ const logout = async (req, res) => {
   res.json({ message: 'Logged out successfully.' });
 };
 
-module.exports = { register, login, refreshToken, forgotPassword, getProfile, logout };
+module.exports = { register, login, refreshToken, forgotPassword, resetPassword, getProfile, logout };

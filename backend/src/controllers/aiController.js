@@ -3,13 +3,21 @@ const { AiReport, RiskScore } = require('../models');
 const logger = require('../utils/logger');
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+const AI_INTERNAL_SECRET = process.env.AI_INTERNAL_SECRET || 'dev_internal_secret_key_123';
+
+const getAiHeaders = () => ({
+  headers: {
+    'X-Internal-Token': AI_INTERNAL_SECRET,
+    'Content-Type': 'application/json'
+  }
+});
 
 const getRecommendations = async (req, res, next) => {
   try {
     const { skills, interests, technologies } = req.body;
     const response = await axios.post(`${AI_SERVICE_URL}/api/ai/recommend`, {
       student_id: req.user.id, skills, interests, technologies,
-    }, { timeout: 10000 });
+    }, { timeout: 10000, ...getAiHeaders() });
 
     await AiReport.create({
       student_id: req.user.id, model_name: 'recommendation_engine',
@@ -29,7 +37,7 @@ const getRiskScore = async (req, res, next) => {
     const { group_id, features } = req.body;
     const response = await axios.post(`${AI_SERVICE_URL}/api/ai/risk-score`, {
       group_id, features,
-    }, { timeout: 10000 });
+    }, { timeout: 10000, ...getAiHeaders() });
 
     await RiskScore.create({
       group_id, score: response.data.probability || 0,
@@ -49,7 +57,7 @@ const generateFeedback = async (req, res, next) => {
     const { rubric_scores, summary } = req.body;
     const response = await axios.post(`${AI_SERVICE_URL}/api/ai/generate-feedback`, {
       rubric_scores, summary,
-    }, { timeout: 15000 });
+    }, { timeout: 15000, ...getAiHeaders() });
 
     await AiReport.create({
       model_name: 'feedback_generator', report_type: 'feedback',
@@ -68,7 +76,7 @@ const formTeams = async (req, res, next) => {
     const { students, team_size } = req.body;
     const response = await axios.post(`${AI_SERVICE_URL}/api/ai/form-teams`, {
       students, team_size,
-    }, { timeout: 15000 });
+    }, { timeout: 15000, ...getAiHeaders() });
 
     await AiReport.create({
       model_name: 'team_formation', report_type: 'team_formation',

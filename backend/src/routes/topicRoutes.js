@@ -8,7 +8,7 @@ const schemas = require('../utils/schemas');
 router.use(verifyToken);
 router.post('/', checkRole('student'), validate(schemas.submitTopic), submitTopic);
 router.get('/', listTopics);
-router.put('/:id/approve', checkRole('coordinator', 'hod', 'admin'), approveTopic);
-router.put('/:id/reject', checkRole('coordinator', 'hod', 'admin'), rejectTopic);
+router.put('/:id/approve', checkRole('mentor', 'hod', 'admin'), approveTopic);
+router.put('/:id/reject', checkRole('mentor', 'hod', 'admin'), rejectTopic);
 
 module.exports = router;
