@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, ArrowRight, ShieldCheck, Cpu, LayoutDashboard, Sparkles, Loader2, Users } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ShieldCheck, Cpu, LayoutDashboard, Sparkles, Loader2, Users, Eye, EyeOff } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { auth } from '@/lib/firebase';
@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedDemo, setSelectedDemo] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,13 +171,22 @@ export default function LoginPage() {
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
                 <Input 
                   label="Password" 
-                  type="password" 
+                  type={showPassword ? 'text' : 'password'} 
                   placeholder="••••••••" 
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
                   required 
                   id="login-password" 
                   icon={<Lock className="w-4 h-4" />}
+                  trailingIcon={
+                    <button 
+                      type="button" 
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="p-1 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  }
                   className="bg-slate-50 hover:bg-white focus:bg-white transition-colors"
                 />
               </motion.div>
@@ -221,9 +231,7 @@ export default function LoginPage() {
               <div className="flex flex-wrap gap-2 justify-center">
                 {[
                   { role: 'Student', email: 'student1@capstonex.com' },
-                  { role: 'Mentor', email: 'mentor1@capstonex.com' },
-
-                  { role: 'Admin', email: 'admin@capstonex.com' }
+                  { role: 'Mentor', email: 'mentor1@capstonex.com' }
                 ].map(demo => (
                   <button
                     key={demo.role}

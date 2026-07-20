@@ -7,10 +7,11 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   helperText?: string;
   icon?: ReactNode;
+  trailingIcon?: ReactNode;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, helperText, icon, className = '', id, ...props }, ref) => {
+  ({ label, error, helperText, icon, trailingIcon, className = '', id, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
     const errorId = error ? `${inputId}-error` : undefined;
 
@@ -32,7 +33,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             aria-invalid={error ? 'true' : undefined}
             aria-describedby={errorId}
-            className={`w-full ${icon ? 'pl-10' : 'px-3.5'} pr-3.5 py-2.5 text-sm border rounded-lg transition-all duration-200 bg-white min-h-[44px]
+            className={`w-full ${icon ? 'pl-10' : 'px-3.5'} ${trailingIcon ? 'pr-10' : 'pr-3.5'} py-2.5 text-sm border rounded-lg transition-all duration-200 bg-white min-h-[44px]
               ${error 
                 ? 'border-red-300 ring-2 ring-red-100 focus:ring-red-200 focus:border-red-400' 
                 : 'border-gray-200 hover:border-gray-300 focus:ring-2 focus:ring-cardinal/15 focus:border-cardinal'
@@ -41,6 +42,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               placeholder:text-slate/40 ${className}`}
             {...props}
           />
+          {trailingIcon && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate hover:text-slate-700 transition-colors">
+              {trailingIcon}
+            </div>
+          )}
         </div>
         {error && (
           <p id={errorId} className="text-xs text-red-500 flex items-center gap-1" role="alert">
