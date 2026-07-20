@@ -652,7 +652,7 @@ Licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
 [![GitHub](https://img.shields.io/badge/GitHub-kunalkhaire302-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/kunalkhaire302)
 
 > Add your LinkedIn, portfolio, and email here so recruiters can reach you directly, for example:
-> `[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=flat-square&logo=linkedin&logoColor=white)](https://linkedin.com/in/your-handle)`
+> `[![LinkedIn]([https://img.shields.io/badge/LinkedIn-0A66C2?style=flat-square&logo=linkedin&logoColor=white](https://media.licdn.com/dms/image/v2/D5603AQEOwWhCpRQ1_g/profile-displayphoto-scale_400_400/B56ZpIPkv.I4Ag-/0/1762148635609?e=1785974400&v=beta&t=-auIZfXLP_lHizdfD-hyWICY1oKvvKMcPeD_7AFo7h4))]([https://linkedin.com/in/your-handle](https://www.linkedin.com/in/kunal-khaire/))`
 
 <div align="center">
 
