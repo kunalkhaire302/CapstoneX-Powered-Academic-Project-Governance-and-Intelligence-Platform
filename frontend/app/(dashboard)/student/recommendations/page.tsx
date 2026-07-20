@@ -9,7 +9,7 @@ import ScoreCard, { OverallScoreGauge } from '@/components/ui/ScoreCard';
 import RecommendationRadar from '@/components/ui/RadarChart';
 import SimilarProjectsPanel from '@/components/ui/SimilarProjectsPanel';
 import AISuggestionsPanel from '@/components/ui/AISuggestionsPanel';
-import api, { aiApi } from '@/lib/api';
+import api from '@/lib/api';
 import {
   Brain, Target, Fingerprint, Lightbulb, TrendingUp,
   CheckCircle, Code, Briefcase, Sparkles, Save,
