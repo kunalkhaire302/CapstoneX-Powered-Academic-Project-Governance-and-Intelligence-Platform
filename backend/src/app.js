@@ -113,7 +113,7 @@ const startServer = async () => {
     logger.info('✅ PostgreSQL connected successfully');
     // Sync models in development (creates tables if not exist)
     if (process.env.NODE_ENV === 'development') {
-      await sequelize.sync({ alter: false });
+      await sequelize.sync({ alter: true });
       logger.info('✅ Database models synced');
     }
   } catch (error) {

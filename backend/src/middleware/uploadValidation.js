@@ -7,12 +7,15 @@ const ALLOWED_MIME_TYPES = {
   'application/pdf': ['25504446'],
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['504B0304'], // DOCX
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['504B0304'], // XLSX
-  'text/csv': [] // CSVs are plain text, no reliable magic number
+  'text/csv': [], // CSVs are plain text, no reliable magic number
+  'application/vnd.ms-excel': [], // Often sent by Windows for CSVs
+  'text/x-csv': [],
+  'application/csv': []
 };
 
 // Check magic numbers to prevent malicious executable masquerading as a document
 const checkMagicNumber = (buffer, mimetype) => {
-  if (mimetype === 'text/csv') {
+  if (mimetype === 'text/csv' || mimetype === 'application/vnd.ms-excel' || mimetype.includes('csv')) {
     // Basic check for text content (no null bytes)
     for (let i = 0; i < Math.min(buffer.length, 1024); i++) {
       if (buffer[i] === 0) return false;

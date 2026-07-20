@@ -2,6 +2,7 @@ const { Op } = require('sequelize');
 const { User, Institution, GroupMember, Group } = require('../models');
 const { parsePagination, paginatedResponse, parseSort } = require('../utils/pagination');
 const { createAuditLog } = require('../utils/auditLog');
+const { getFirebaseAuth } = require('../config/firebase');
 const { sendEmail, emailTemplates } = require('../utils/email');
 const bcrypt = require('bcryptjs');
 const { parse } = require('csv-parse/sync');
@@ -76,7 +77,7 @@ const updateUser = async (req, res, next) => {
       return res.status(404).json({ error: 'User not found.' });
     }
 
-    const { name, role, department, institution_id, avatar_url, skills, interests, is_active } = req.body;
+    const { name, role, department, institution_id, avatar_url, skills, interests, is_active, sap_id, roll_no, branch } = req.body;
 
     await user.update({
       ...(name && { name }),
@@ -87,6 +88,9 @@ const updateUser = async (req, res, next) => {
       ...(skills && { skills }),
       ...(interests && { interests }),
       ...(is_active !== undefined && { is_active }),
+      ...(sap_id !== undefined && { sap_id }),
+      ...(roll_no !== undefined && { roll_no }),
+      ...(branch !== undefined && { branch }),
     });
 
     await createAuditLog({
@@ -114,17 +118,17 @@ const deleteUser = async (req, res, next) => {
       return res.status(404).json({ error: 'User not found.' });
     }
 
-    await user.update({ is_active: false });
+    await user.destroy();
 
     await createAuditLog({
       userId: req.user.id,
-      action: 'user.deactivated',
+      action: 'user.deleted',
       entityType: 'user',
       entityId: user.id,
       ipAddress: req.ip,
     });
 
-    res.json({ message: 'User deactivated successfully.' });
+    res.json({ message: 'User deleted successfully.' });
   } catch (error) {
     next(error);
   }
@@ -142,7 +146,7 @@ const bulkImport = async (req, res, next) => {
 
     const csvContent = req.file.buffer.toString('utf-8');
     const records = parse(csvContent, {
-      columns: true,
+      columns: (headers) => headers.map(h => h.trim().toLowerCase().replace(/\s+/g, '_')),
       skip_empty_lines: true,
       trim: true,
     });
@@ -155,29 +159,70 @@ const bulkImport = async (req, res, next) => {
 
     for (const record of records) {
       try {
-        const { name, email, role, department } = record;
+        const name = record.name || record.fullname || record.student_name;
+        const email = record.email || record.email_address;
+        const role = record.role || 'student';
+        const branch = record.branch || record.department;
+        const sap_id = record.sap_id || record.sapid || record.sap_id_number;
+        const roll_no = record.roll_no || record.rollno || record.roll_number;
+        const providedPassword = record.password || 'CapstoneX@2024';
+
         if (!name || !email) {
           results.errors.push({ email: email || 'unknown', reason: 'Missing name or email' });
           results.skipped++;
           continue;
         }
 
-        const existing = await User.findOne({ where: { email } });
-        if (existing) {
-          results.errors.push({ email, reason: 'User already exists' });
+        const existingEmail = await User.findOne({ where: { email } });
+        if (existingEmail) {
+          results.errors.push({ email, reason: 'User with this email already exists' });
           results.skipped++;
           continue;
         }
 
-        // Generate a default password
-        const defaultPassword = await bcrypt.hash('CapstoneX@2024', 12);
+        if (sap_id) {
+          const existingSapId = await User.findOne({ where: { sap_id } });
+          if (existingSapId) {
+            results.errors.push({ email, reason: `User with SAP ID ${sap_id} already exists` });
+            results.skipped++;
+            continue;
+          }
+        }
+
+        // Generate password hash
+        const password_hash = await bcrypt.hash(providedPassword, 12);
+        
+        let firebase_uid = null;
+        const firebaseAuth = getFirebaseAuth();
+        if (firebaseAuth) {
+          try {
+            const fbUser = await firebaseAuth.createUser({
+              email: email,
+              password: providedPassword,
+              displayName: name,
+            });
+            firebase_uid = fbUser.uid;
+          } catch (fbErr) {
+            // If already exists in Firebase, just fetch them
+            if (fbErr.code === 'auth/email-already-exists') {
+              const fbUser = await firebaseAuth.getUserByEmail(email);
+              firebase_uid = fbUser.uid;
+              await firebaseAuth.updateUser(firebase_uid, { password: providedPassword, displayName: name });
+            } else {
+              throw new Error(`Firebase Auth error: ${fbErr.message}`);
+            }
+          }
+        }
 
         await User.create({
           name,
           email,
-          password_hash: defaultPassword,
-          role: role || 'student',
-          department,
+          password_hash,
+          firebase_uid,
+          role,
+          sap_id,
+          roll_no,
+          branch,
           institution_id: req.user.institution_id,
         });
 
@@ -249,31 +294,60 @@ const updateProfile = async (req, res, next) => {
  */
 const adminCreateUser = async (req, res, next) => {
   try {
-    const { name, email, password, role, department, institution_id } = req.body;
+    const { name, email, password, role, department, institution_id, sap_id, roll_no, branch } = req.body;
     
     if (!name || !email || !role) {
       return res.status(400).json({ error: 'Name, email, and role are required.' });
     }
 
-    const existing = await User.findOne({ where: { email } });
-    if (existing) {
+    const existingEmail = await User.findOne({ where: { email } });
+    if (existingEmail) {
       return res.status(409).json({ error: 'An account with this email already exists.' });
     }
 
+    if (sap_id) {
+      const existingSapId = await User.findOne({ where: { sap_id } });
+      if (existingSapId) {
+        return res.status(409).json({ error: 'An account with this SAP ID already exists.' });
+      }
+    }
+
     let passwordHash = null;
-    if (password) {
-      passwordHash = await bcrypt.hash(password, 12);
-    } else {
-      passwordHash = await bcrypt.hash('CapstoneX@2024', 12);
+    let providedPassword = password || 'CapstoneX@2024';
+    passwordHash = await bcrypt.hash(providedPassword, 12);
+
+    let firebase_uid = null;
+    const firebaseAuth = getFirebaseAuth();
+    if (firebaseAuth) {
+      try {
+        const fbUser = await firebaseAuth.createUser({
+          email: email,
+          password: providedPassword,
+          displayName: name,
+        });
+        firebase_uid = fbUser.uid;
+      } catch (fbErr) {
+        if (fbErr.code === 'auth/email-already-exists') {
+          const fbUser = await firebaseAuth.getUserByEmail(email);
+          firebase_uid = fbUser.uid;
+          await firebaseAuth.updateUser(firebase_uid, { password: providedPassword, displayName: name });
+        } else {
+          return res.status(500).json({ error: `Firebase Auth error: ${fbErr.message}` });
+        }
+      }
     }
 
     const user = await User.create({
       name,
       email,
       password_hash: passwordHash,
+      firebase_uid,
       role,
       department,
       institution_id: institution_id || req.user.institution_id,
+      sap_id: role === 'student' ? sap_id : null,
+      roll_no: role === 'student' ? roll_no : null,
+      branch: role === 'student' ? branch : null,
     });
 
     await createAuditLog({

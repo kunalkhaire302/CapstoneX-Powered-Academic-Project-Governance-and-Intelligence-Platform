@@ -35,15 +35,37 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
 
   // Load from localStorage on mount
   useEffect(() => {
+    // 1. Try to get actual logged-in auth user
+    const authUserStr = localStorage.getItem('user');
+    let realName = userName || 'Student 1';
+    let realEmail = 'student1@capstonex.com';
+    let realRole = role || 'Student';
+
+    if (authUserStr) {
+      try {
+        const authUser = JSON.parse(authUserStr);
+        if (authUser.name) realName = authUser.name;
+        if (authUser.email) realEmail = authUser.email;
+        if (authUser.role) realRole = authUser.role;
+      } catch (e) {
+        console.error('Failed to parse auth user');
+      }
+    }
+
+    // 2. Try to get cached profile (bio, etc)
     const saved = localStorage.getItem(`capstonex_user_profile_${role}`);
     if (saved) {
       try {
-        setUserProfile(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setUserProfile({ ...parsed, name: realName, email: realEmail, role: realRole });
+        return;
       } catch (e) {
         console.error('Failed to parse saved profile');
       }
     }
-  }, []);
+
+    setUserProfile({ name: realName, email: realEmail, role: realRole, bio: '' });
+  }, [role, userName]);
 
   // Save to localStorage when it changes
   useEffect(() => {

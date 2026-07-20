@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useState, useRef } from 'react';
+import { auth } from '@/lib/firebase';
+import { signOut } from 'firebase/auth';
 
 interface NavItem {
   label: string;
@@ -28,32 +30,7 @@ const roleNavItems: Record<string, NavItem[]> = {
     { label: 'Risk Dashboard', href: '/mentor/risk', icon: <AlertIcon /> },
     { label: 'Reports', href: '/mentor/reports', icon: <ChartIcon /> },
   ],
-  coordinator: [
-    { label: 'Dashboard', href: '/coordinator', icon: <HomeIcon /> },
-    { label: 'Groups', href: '/coordinator/groups', icon: <GroupIcon /> },
-    { label: 'Topic Approvals', href: '/coordinator/topics', icon: <FileIcon /> },
-    { label: 'Evaluations', href: '/coordinator/evaluations', icon: <CheckIcon /> },
-    { label: 'Risk Overview', href: '/coordinator/risk', icon: <AlertIcon /> },
-    { label: 'AI Analytics', href: '/coordinator/analytics', icon: <SparklesIcon /> },
-    { label: 'Reports', href: '/coordinator/reports', icon: <ChartIcon /> },
-  ],
-  hod: [
-    { label: 'Dashboard', href: '/hod', icon: <HomeIcon /> },
-    { label: 'Departments', href: '/hod/departments', icon: <GroupIcon /> },
-    { label: 'Faculty', href: '/hod/faculty', icon: <GroupIcon /> },
-    { label: 'AI Analytics', href: '/hod/analytics', icon: <SparklesIcon /> },
-    { label: 'Risk Overview', href: '/hod/risk', icon: <AlertIcon /> },
-    { label: 'Accreditation', href: '/hod/accreditation', icon: <FileIcon /> },
-    { label: 'Reports', href: '/hod/reports', icon: <ChartIcon /> },
-  ],
-  accreditation: [
-    { label: 'Dashboard', href: '/accreditation', icon: <HomeIcon /> },
-    { label: 'Compliance', href: '/accreditation/compliance', icon: <CheckIcon /> },
-    { label: 'Department Reports', href: '/accreditation/departments', icon: <GroupIcon /> },
-    { label: 'AI Analytics', href: '/accreditation/analytics', icon: <SparklesIcon /> },
-    { label: 'Export Data', href: '/accreditation/export', icon: <FileIcon /> },
-    { label: 'Reports', href: '/accreditation/reports', icon: <ChartIcon /> },
-  ],
+
   admin: [
     { label: 'Dashboard', href: '/admin', icon: <HomeIcon /> },
     { label: 'Users', href: '/admin/users', icon: <GroupIcon /> },
@@ -108,7 +85,13 @@ export default function Sidebar({ role = 'student', userName = '', userRole = ''
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch(e) {
+      console.error('Logout error', e);
+    }
+    localStorage.removeItem('user');
     router.push('/login');
   };
 
@@ -189,7 +172,7 @@ export default function Sidebar({ role = 'student', userName = '', userRole = ''
           tabIndex={0}
           onClick={() => setUserMenuOpen(!userMenuOpen)}
         >
-          <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center ring-2 ring-white/10 flex-shrink-0 group-hover:ring-white/20 transition-all">
+          <div className="w-10 h-10 rounded-full bg-dark-surface flex items-center justify-center ring-2 ring-white/10 flex-shrink-0 group-hover:ring-white/20 transition-all">
             <span className="text-white font-bold text-sm">{userName?.charAt(0) || 'U'}</span>
           </div>
           <div className="flex-1 min-w-0">
@@ -203,7 +186,7 @@ export default function Sidebar({ role = 'student', userName = '', userRole = ''
 
         {/* Profile Dropdown Menu */}
         {userMenuOpen && (
-          <div className="absolute bottom-[calc(100%-1rem)] left-4 mb-2 w-[calc(100%-2rem)] bg-slate-800 rounded-2xl shadow-xl border border-white/10 p-2 z-50 animate-fade-in">
+          <div className="absolute bottom-[calc(100%-1rem)] left-4 mb-2 w-[calc(100%-2rem)] bg-dark-surface rounded-2xl shadow-xl border border-white/10 p-2 z-50 animate-fade-in">
             <div className="space-y-1">
               <button 
                 onClick={() => { alert('Settings coming soon!'); setUserMenuOpen(false); }}

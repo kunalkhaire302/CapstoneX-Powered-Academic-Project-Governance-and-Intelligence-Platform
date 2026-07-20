@@ -88,7 +88,7 @@ const listTopics = async (req, res, next) => {
     } else if (req.user.role === 'mentor') {
       const mentoredGroups = await Group.findAll({ where: { mentor_id: req.user.id }, attributes: ['id'] });
       where.group_id = { [Op.in]: mentoredGroups.map(g => g.id) };
-    } else if (['coordinator', 'hod'].includes(req.user.role)) {
+    } else if (['coordinator'].includes(req.user.role)) {
       const departmentGroups = await Group.findAll({ where: { department: req.user.department }, attributes: ['id'] });
       where.group_id = { [Op.in]: departmentGroups.map(g => g.id) };
     } else if (req.query.department) {

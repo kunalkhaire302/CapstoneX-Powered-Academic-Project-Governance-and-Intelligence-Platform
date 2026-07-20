@@ -41,7 +41,7 @@ export default function RegisterPage() {
       const minimalUser = { email: userCredential.user.email, role: data.user?.role || 'student', id: userCredential.user.uid };
       localStorage.setItem('user', JSON.stringify(minimalUser));
       
-      window.location.href = `/${minimalUser.role === 'hod' ? 'mentor' : minimalUser.role}`;
+      window.location.href = `/${minimalUser.role}`;
     } catch (err: any) {
       setError(err.message || 'Registration failed');
     } finally { setLoading(false); }
@@ -83,9 +83,6 @@ export default function RegisterPage() {
             <select value={form.role} onChange={e => updateField('role', e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg bg-white hover:border-gray-300 focus:ring-2 focus:ring-cardinal/15 focus:border-cardinal focus:outline-none transition-all" id="register-role">
               <option value="student">Student</option>
               <option value="mentor">Mentor</option>
-
-              <option value="hod">HOD</option>
-              <option value="admin">Admin</option>
             </select>
           </div>
 

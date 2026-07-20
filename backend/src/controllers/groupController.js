@@ -82,7 +82,7 @@ const listGroups = async (req, res, next) => {
       where.id = { [Op.in]: memberships.map(m => m.group_id) };
     } else if (req.user.role === 'mentor') {
       where.mentor_id = req.user.id;
-    } else if (['coordinator', 'hod'].includes(req.user.role)) {
+    } else if (['coordinator'].includes(req.user.role)) {
       where.department = req.user.department;
     }
 
@@ -112,7 +112,7 @@ const getGroup = async (req, res, next) => {
     const group = await Group.findByPk(req.params.id, {
       include: [
         { model: User, as: 'mentor', attributes: ['id', 'name', 'email'] },
-        { model: User, as: 'coordinator', attributes: ['id', 'name', 'email'] },
+
         { model: GroupMember, as: 'members', include: [{ model: User, as: 'student', attributes: ['id', 'name', 'email', 'avatar_url'] }] },
         { model: Topic, as: 'topics' },
       ],
@@ -125,7 +125,7 @@ const getGroup = async (req, res, next) => {
       if (!isMember) return res.status(403).json({ error: 'Access denied: You are not a member of this group.' });
     } else if (req.user.role === 'mentor' && group.mentor_id !== req.user.id) {
       return res.status(403).json({ error: 'Access denied: You are not assigned to this group.' });
-    } else if (['coordinator', 'hod'].includes(req.user.role) && group.department !== req.user.department) {
+    } else if (['coordinator'].includes(req.user.role) && group.department !== req.user.department) {
       return res.status(403).json({ error: 'Access denied: Group not in your department.' });
     }
 

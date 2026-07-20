@@ -19,17 +19,17 @@ router.use(verifyToken);
 // Core student/mentor endpoints
 router.get('/health/detailed', checkDetailedHealth);
 router.post('/recommend', checkRole('student'), getRecommendations);
-router.post('/problem/analyze', checkRole('student', 'mentor', 'coordinator'), analyzeProblemStatement);
-router.post('/plagiarism/check', checkRole('mentor', 'coordinator', 'admin'), checkPlagiarism);
+router.post('/problem/analyze', checkRole('student', 'mentor'), analyzeProblemStatement);
+router.post('/plagiarism/check', checkRole('mentor', 'admin'), checkPlagiarism);
 
 // Mentor/Coordinator/Admin endpoints
-router.post('/risk-score', checkRole('mentor', 'coordinator', 'admin'), getRiskScore);
-router.get('/risk-scores', checkRole('mentor', 'coordinator', 'admin'), listRiskScores);
-router.post('/feedback/analyze', checkRole('mentor', 'coordinator'), analyzeFeedback);
-router.post('/teams/form', checkRole('coordinator', 'admin'), formTeams);
+router.post('/risk-score', checkRole('mentor', 'admin'), getRiskScore);
+router.get('/risk-scores', checkRole('mentor', 'admin'), listRiskScores);
+router.post('/feedback/analyze', checkRole('mentor'), analyzeFeedback);
+router.post('/teams/form', checkRole('admin'), formTeams);
 
 // Reports endpoints
-router.post('/reports/department/pdf', checkRole('hod', 'coordinator', 'admin', 'accreditation'), generateDepartmentReport);
-router.post('/reports/accreditation', checkRole('hod', 'accreditation', 'admin'), generateAccreditationReport);
+router.post('/reports/department/pdf', checkRole('admin'), generateDepartmentReport);
+router.post('/reports/accreditation', checkRole('admin'), generateAccreditationReport);
 
 module.exports = router;

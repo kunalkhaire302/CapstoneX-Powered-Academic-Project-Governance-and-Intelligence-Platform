@@ -13,6 +13,7 @@ import api from '@/lib/api';
 interface User {
   id: string; name: string; email: string; role: string;
   department: string | null; is_active: boolean; created_at: string;
+  sap_id?: string | null; roll_no?: string | null; branch?: string | null;
 }
 
 // ─── Toast ───────────────────────────────────────────────────────────────────
@@ -45,11 +46,8 @@ function SkeletonRow() {
 // ─── Role config ──────────────────────────────────────────────────────────────
 const ROLE_CONFIG: Record<string, { bg: string; text: string; dot: string; badge: 'success' | 'info' | 'warning' | 'error' | 'default' }> = {
   admin:         { bg: 'bg-red-100',    text: 'text-red-700',    dot: 'bg-red-500',    badge: 'error' },
-  hod:           { bg: 'bg-amber-100',  text: 'text-amber-700',  dot: 'bg-amber-500',  badge: 'warning' },
   mentor:        { bg: 'bg-blue-100',   text: 'text-blue-700',   dot: 'bg-blue-500',   badge: 'info' },
-  coordinator:   { bg: 'bg-emerald-100',text: 'text-emerald-700',dot: 'bg-emerald-500',badge: 'success' },
   student:       { bg: 'bg-slate-100',  text: 'text-slate-600',  dot: 'bg-slate-400',  badge: 'default' },
-  accreditation: { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500', badge: 'default' },
 };
 
 const AVATAR_GRADIENTS = [
@@ -57,7 +55,7 @@ const AVATAR_GRADIENTS = [
   'from-violet-500 to-violet-700', 'from-amber-500 to-amber-700', 'from-pink-500 to-pink-700',
 ];
 
-const ALL_ROLES = ['student', 'mentor', 'coordinator', 'hod', 'admin', 'accreditation'];
+const ALL_ROLES = ['student', 'mentor', 'admin'];
 
 export default function AdminUsersPage() {
   const currentUser = useCurrentUser();
@@ -76,7 +74,7 @@ export default function AdminUsersPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  const [form, setForm] = useState({ name: '', email: '', role: 'student', department: '' });
+  const [form, setForm] = useState({ name: '', email: '', role: 'student', department: '', sap_id: '', roll_no: '', branch: '', password: '' });
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => setToast({ message, type });
 
@@ -92,7 +90,6 @@ export default function AdminUsersPage() {
     } catch {
       setUsers([
         { id: '1', name: 'Admin User',        email: 'admin@capstonex.com',   role: 'admin',  department: 'Administration',   is_active: true, created_at: '2026-05-01' },
-        { id: '2', name: 'Dr. Rajesh Kumar',  email: 'hod@capstonex.com',     role: 'hod',    department: 'Computer Science', is_active: true, created_at: '2026-05-01' },
         { id: '3', name: 'Prof. Anita Sharma',email: 'mentor1@capstonex.com', role: 'mentor', department: 'Computer Science', is_active: true, created_at: '2026-05-01' },
         { id: '4', name: 'Student 1',         email: 'student1@capstonex.com',role: 'student',department: 'Computer Science', is_active: true, created_at: '2026-05-01' },
       ]);
@@ -106,14 +103,17 @@ export default function AdminUsersPage() {
 
   const handleEdit = (u: User) => {
     setEditUser(u);
-    setForm({ name: u.name, email: u.email, role: u.role, department: u.department || '' });
+    setForm({ name: u.name, email: u.email, role: u.role, department: u.department || '', sap_id: u.sap_id || '', roll_no: u.roll_no || '', branch: u.branch || '' });
   };
 
   const handleSaveEdit = async () => {
     if (!editUser) return;
     setSaving(true);
     try {
-      await api.put(`/users/${editUser.id}`, { name: form.name, role: form.role, department: form.department });
+      await api.put(`/users/${editUser.id}`, { 
+        name: form.name, role: form.role,
+        sap_id: form.sap_id, roll_no: form.roll_no, branch: form.branch
+      });
       showToast('User updated successfully');
       setEditUser(null);
       fetchUsers();
@@ -127,21 +127,21 @@ export default function AdminUsersPage() {
     setSaving(true);
     try {
       await api.delete(`/users/${deleteUser.id}`);
-      showToast('User deactivated successfully');
+      showToast('User deleted successfully');
       setDeleteUser(null);
       fetchUsers();
     } catch (err: any) {
-      showToast(err.response?.data?.error || 'Failed to deactivate user', 'error');
+      showToast(err.response?.data?.error || 'Failed to delete user', 'error');
     } finally { setSaving(false); }
   };
 
   const handleAddUser = async () => {
     setSaving(true);
     try {
-      await api.post('/auth/register', { ...form, password: 'CapstoneX@2024' });
+      await api.post('/users/admin-create', { ...form, password: form.password || 'CapstoneX@2024' });
       showToast('User created successfully');
       setAddModal(false);
-      setForm({ name: '', email: '', role: 'student', department: '' });
+      setForm({ name: '', email: '', role: 'student', department: '', sap_id: '', roll_no: '', branch: '', password: '' });
       fetchUsers();
     } catch (err: any) {
       showToast(err.response?.data?.error || 'Failed to create user', 'error');
@@ -155,13 +155,27 @@ export default function AdminUsersPage() {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await api.post('/users/bulk-import', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-      showToast(res.data.message || 'Import successful');
+      const { getAccessToken } = await import('@/lib/api');
+      const token = await getAccessToken();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/users/bulk-import`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Import failed');
+      
+      showToast(data.message || 'Import successful');
       setCsvModal(false);
       fetchUsers();
     } catch (err: any) {
-      showToast(err.response?.data?.error || 'Import failed', 'error');
-    } finally { setSaving(false); }
+      showToast(err.message || 'Import failed', 'error');
+    } finally {
+      setSaving(false);
+      e.target.value = ''; // Reset input so the same file can be selected again
+    }
   };
 
   const totalPages = Math.ceil(total / limit);
@@ -188,7 +202,7 @@ export default function AdminUsersPage() {
             className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:text-thunder transition-all">
             <span>📄</span> CSV Import
           </button>
-          <button onClick={() => { setAddModal(true); setForm({ name: '', email: '', role: 'student', department: '' }); }}
+          <button onClick={() => { setAddModal(true); setForm({ name: '', email: '', role: 'student', department: '', sap_id: '', roll_no: '', branch: '' }); }}
             className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-cardinal rounded-xl hover:bg-cardinal-hover transition-all shadow-sm">
             <span>+</span> Add User
           </button>
@@ -251,7 +265,7 @@ export default function AdminUsersPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/60">
-                {['User', 'Email', 'Role', 'Department', 'Status', 'Actions'].map(h => (
+                {['User', 'Email', 'Role', 'Branch', 'Status', 'Actions'].map(h => (
                   <th key={h} className="text-left py-3 px-4 text-xs font-bold text-slate uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
@@ -290,7 +304,7 @@ export default function AdminUsersPage() {
                           {u.role}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-slate text-xs">{u.department || '—'}</td>
+                      <td className="py-3.5 px-4 text-slate text-xs">{u.branch || '—'}</td>
                       <td className="py-3.5 px-4">
                         <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${u.is_active ? 'text-emerald-600' : 'text-gray-400'}`}>
                           <span className={`w-2 h-2 rounded-full ${u.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300'}`} />
@@ -306,9 +320,9 @@ export default function AdminUsersPage() {
                             </svg>
                           </button>
                           <button onClick={() => setDeleteUser(u)}
-                            className="p-1.5 rounded-lg text-slate hover:text-red-600 hover:bg-red-50 transition-colors" title="Deactivate">
+                            className="p-1.5 rounded-lg text-slate hover:text-red-600 hover:bg-red-50 transition-colors" title="Delete">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
                         </div>
@@ -352,7 +366,15 @@ export default function AdminUsersPage() {
                 {ALL_ROLES.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
               </select>
             </div>
-            <Input label="Department" value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} />
+            
+            {form.role === 'student' && (
+              <div className="grid grid-cols-2 gap-4">
+                <Input label="SAP ID" value={form.sap_id} onChange={e => setForm({ ...form, sap_id: e.target.value })} />
+                <Input label="Roll No" value={form.roll_no} onChange={e => setForm({ ...form, roll_no: e.target.value })} />
+                <Input label="Branch" value={form.branch} onChange={e => setForm({ ...form, branch: e.target.value })} />
+              </div>
+            )}
+            
             <div className="flex gap-3 justify-end pt-2">
               <Button variant="secondary" onClick={() => setEditUser(null)}>Cancel</Button>
               <Button onClick={handleSaveEdit} loading={saving}>Save Changes</Button>
@@ -363,19 +385,19 @@ export default function AdminUsersPage() {
 
       {/* ── Delete Modal ─────────────────────────────────────────────── */}
       {deleteUser && (
-        <Modal isOpen title="Deactivate User" onClose={() => setDeleteUser(null)}>
+        <Modal isOpen title="Delete User" onClose={() => setDeleteUser(null)}>
           <div className="p-4 bg-red-50 border border-red-100 rounded-xl mb-4 flex items-start gap-3">
             <span className="text-2xl">⚠️</span>
             <p className="text-sm text-red-700">
-              Are you sure you want to deactivate <strong>{deleteUser.name}</strong> ({deleteUser.email})?
-              They will no longer be able to log in.
+              Are you sure you want to delete <strong>{deleteUser.name}</strong> ({deleteUser.email})?
+              This action is permanent and cannot be undone.
             </p>
           </div>
           <div className="flex gap-3 justify-end">
             <Button variant="secondary" onClick={() => setDeleteUser(null)}>Cancel</Button>
             <button onClick={handleDelete} disabled={saving}
               className="px-4 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors disabled:opacity-50">
-              {saving ? 'Deactivating...' : 'Deactivate'}
+              {saving ? 'Deleting...' : 'Delete'}
             </button>
           </div>
         </Modal>
@@ -393,9 +415,25 @@ export default function AdminUsersPage() {
                 {ALL_ROLES.filter(r => r !== 'accreditation').map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
               </select>
             </div>
-            <Input label="Department" value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} />
+
+            {form.role === 'student' && (
+              <div className="grid grid-cols-2 gap-4">
+                <Input label="SAP ID" value={form.sap_id} onChange={e => setForm({ ...form, sap_id: e.target.value })} />
+                <Input label="Roll No" value={form.roll_no} onChange={e => setForm({ ...form, roll_no: e.target.value })} />
+                <Input label="Branch" value={form.branch} onChange={e => setForm({ ...form, branch: e.target.value })} />
+              </div>
+            )}
+
+            <Input 
+              label="Password (Optional)" 
+              type="password" 
+              placeholder="Leave blank to use default" 
+              value={form.password} 
+              onChange={e => setForm({ ...form, password: e.target.value })} 
+            />
+
             <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-700 flex items-center gap-2">
-              🔑 Default password: <code className="font-mono bg-white px-1.5 py-0.5 rounded border border-amber-200">CapstoneX@2024</code>
+              🔑 Default password if left blank: <code className="font-mono bg-white px-1.5 py-0.5 rounded border border-amber-200">CapstoneX@2024</code>
             </div>
             <div className="flex gap-3 justify-end pt-2">
               <Button variant="secondary" onClick={() => setAddModal(false)}>Cancel</Button>
@@ -411,7 +449,7 @@ export default function AdminUsersPage() {
           <div className="space-y-4">
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
               <p className="text-sm font-medium text-blue-800 mb-2">Required CSV columns:</p>
-              <code className="text-xs bg-white px-2 py-1 rounded border border-blue-100 text-blue-700 font-mono">name, email, role, department</code>
+              <code className="text-xs bg-white px-2 py-1 rounded border border-blue-100 text-blue-700 font-mono">name, email, role, sap_id, roll_no, branch</code>
             </div>
             <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-cardinal/40 hover:bg-cardinal-50/20 transition-all group">
               <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">📂</span>

@@ -10,7 +10,7 @@ const { secureUpload } = require('../middleware/uploadValidation');
 router.use(verifyToken);
 router.get('/dashboard/student', checkRole('student'), getStudentDashboard);
 router.put('/profile', updateProfile);
-router.get('/', checkRole('admin', 'mentor', 'hod'), listUsers);
+router.get('/', checkRole('admin', 'mentor'), listUsers);
 router.get('/:id', getUser);
 router.post('/admin-create', checkRole('admin'), adminCreateUser);
 router.put('/:id', checkRole('admin'), updateUser);

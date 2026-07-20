@@ -55,8 +55,7 @@ export default function AdminDashboardPage() {
           overview: { totalUsers: 17, totalGroups: 3, totalTopics: 2, totalLogbooks: 0, totalEvaluations: 0 },
           usersByRole: [
             { role: 'student', count: '10' }, { role: 'mentor', count: '2' },
-            { role: 'coordinator', count: '1' }, { role: 'hod', count: '1' },
-            { role: 'admin', count: '1' }, { role: 'accreditation', count: '1' },
+            { role: 'admin', count: '1' },
           ],
           groupsByStatus: [
             { status: 'not_started', count: '1' }, { status: 'in_progress', count: '2' },
@@ -74,10 +73,7 @@ export default function AdminDashboardPage() {
   const roleConfig: Record<string, { color: string; bg: string }> = {
     student: { color: 'bg-blue-500', bg: 'bg-blue-50' },
     mentor: { color: 'bg-emerald-500', bg: 'bg-emerald-50' },
-    coordinator: { color: 'bg-amber-500', bg: 'bg-amber-50' },
-    hod: { color: 'bg-violet-500', bg: 'bg-violet-50' },
     admin: { color: 'bg-cardinal', bg: 'bg-cardinal-50' },
-    accreditation: { color: 'bg-gray-400', bg: 'bg-gray-50' },
   };
 
   const statCards = [

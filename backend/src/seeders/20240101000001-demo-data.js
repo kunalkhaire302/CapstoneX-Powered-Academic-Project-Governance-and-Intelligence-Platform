@@ -20,7 +20,7 @@ module.exports = {
 
     const users = [
       { id: adminId, name: 'Admin User', email: 'admin@capstonex.com', role: 'admin', department: 'Administration' },
-      { id: hodId, name: 'Dr. Rajesh Kumar', email: 'hod@capstonex.com', role: 'hod', department: 'Computer Science' },
+      { id: hodId, name: 'Dr. Rajesh Kumar', email: 'hod@capstonex.com', role: department: 'Computer Science' },
       { id: mentorIds[0], name: 'Prof. Anita Sharma', email: 'mentor1@capstonex.com', role: 'mentor', department: 'Computer Science' },
       { id: mentorIds[1], name: 'Prof. Vikram Patel', email: 'mentor2@capstonex.com', role: 'mentor', department: 'Computer Science' },
       { id: mentorIds[2], name: 'Prof. Sneha Gupta', email: 'mentor3@capstonex.com', role: 'mentor', department: 'Information Technology' },

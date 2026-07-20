@@ -37,8 +37,6 @@ const AUDIENCE_OPTIONS = [
   { value: '',              label: 'All Users',     icon: '🌐', count: '17' },
   { value: 'student',       label: 'Students',      icon: '🎓', count: '10' },
   { value: 'mentor',        label: 'Mentors',       icon: '👨‍🏫', count: '2' },
-  { value: 'coordinator',   label: 'Coordinators',  icon: '📋', count: '1' },
-  { value: 'hod',           label: 'HODs',          icon: '🏛️', count: '1' },
 ];
 
 export default function AdminNotificationsPage() {

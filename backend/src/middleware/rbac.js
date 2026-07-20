@@ -4,10 +4,10 @@
  *
  * Usage:
  *   router.get('/admin-only', verifyToken, checkRole('admin'), handler);
- *   router.get('/staff', verifyToken, checkRole('admin', 'coordinator', 'hod'), handler);
+ *   router.get('/staff', verifyToken, checkRole('admin'), handler);
  */
 
-const VALID_ROLES = ['student', 'mentor', 'coordinator', 'hod', 'admin', 'accreditation'];
+const VALID_ROLES = ['student', 'mentor', 'admin'];
 
 /**
  * Returns middleware that checks if req.user.role is in the allowed roles list.

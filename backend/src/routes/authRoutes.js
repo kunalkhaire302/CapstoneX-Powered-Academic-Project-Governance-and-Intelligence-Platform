@@ -13,13 +13,16 @@ const registerSchema = Joi.object({
   department: Joi.string().optional(),
   institution_id: Joi.string().uuid().optional(),
   firebase_uid: Joi.string().optional(),
+  sap_id: Joi.string().optional(),
+  roll_no: Joi.string().optional(),
+  branch: Joi.string().optional(),
 });
 
 const adminRegisterSchema = Joi.object({
   name: Joi.string().min(2).max(255).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(8).optional(),
-  role: Joi.string().valid('mentor', 'hod', 'admin', 'accreditation').required(),
+  role: Joi.string().valid('mentor', 'admin').required(),
   department: Joi.string().optional(),
   institution_id: Joi.string().uuid().optional(),
   firebase_uid: Joi.string().optional(),

@@ -52,10 +52,7 @@ const STATUS_COLORS: Record<string, string> = {
 const ROLE_COLORS: Record<string, string> = {
   student: '#3B82F6',
   mentor: '#10B981',
-  coordinator: '#F59E0B',
-  hod: '#8B5CF6',
   admin: '#D2232A',
-  accreditation: '#94A3B8',
 };
 
 // ─── Custom Tooltip ──────────────────────────────────────────────────────────
@@ -92,8 +89,7 @@ export default function AdminAnalyticsPage() {
           overview: { totalUsers: 17, totalGroups: 3, totalTopics: 2, totalLogbooks: 0, totalEvaluations: 0 },
           usersByRole: [
             { role: 'student', count: '10' }, { role: 'mentor', count: '2' },
-            { role: 'coordinator', count: '1' }, { role: 'hod', count: '1' },
-            { role: 'admin', count: '1' }, { role: 'accreditation', count: '1' },
+            { role: 'admin', count: '1' },
           ],
           groupsByStatus: [
             { status: 'not_started', count: '1' }, { status: 'in_progress', count: '2' },

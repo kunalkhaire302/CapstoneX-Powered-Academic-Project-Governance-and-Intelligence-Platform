@@ -25,19 +25,21 @@ export default function LoginPage() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       // Store user minimal info in localStorage for frontend UX 
-      const minimalUser = { email: userCredential.user.email, role: 'student', id: userCredential.user.uid }; // Default to student unless claims say otherwise
+      const minimalUser = { 
+        email: userCredential.user.email, 
+        role: 'student', 
+        id: userCredential.user.uid,
+        name: userCredential.user.displayName || 'Student'
+      }; // Default to student unless claims say otherwise
       localStorage.setItem('user', JSON.stringify(minimalUser));
       
       // In a real app we would decode the Firebase token for the actual role claim. For now, default to student or demo mapping.
-      const redirectMap: Record<string, string> = {
-        student: '/student', mentor: '/mentor',
-        hod: '/mentor', admin: '/admin', accreditation: '/mentor',
-      };
+      const rolePaths: Record<string, string> = { student: '/student', mentor: '/mentor', admin: '/admin' };
       
       setTimeout(() => {
         // If they clicked a demo button, fake the role route
         const role = selectedDemo ? selectedDemo.toLowerCase() : 'student';
-        router.push(redirectMap[role] || '/student');
+        router.push(rolePaths[role] || '/student');
       }, 300);
       
     } catch (err: any) {
