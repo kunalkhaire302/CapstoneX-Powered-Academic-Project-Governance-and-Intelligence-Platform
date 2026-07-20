@@ -372,12 +372,9 @@ CapstoneX enforces **6-role RBAC** at the API middleware layer — every request
 
 | Role | Demo Email | Password | Key Permissions |
 |---|---|---|---|
-| 👑 **Admin** | admin@capstonex.com | `CapstoneX@2024` | Full system access, user management, configuration |
-| 🏛 **HOD** | hod@capstonex.com | `CapstoneX@2024` | Department-level oversight, reports, approvals |
-| 🧭 **Coordinator** | coord1@capstonex.com | `CapstoneX@2024` | Assign mentors, manage project allocation |
+| 👑 **Admin** | admin@capstonex.com |  | Full system access, user management, configuration |
 | 🧑‍🏫 **Mentor** | mentor1@capstonex.com | `CapstoneX@2024` | Review logbooks, write feedback, track progress |
 | 🎓 **Student** | student1@capstonex.com | `CapstoneX@2024` | Submit logbooks, view projects, collaborate |
-| 📝 **Examiner** | — | — | Evaluate final submissions, assign grades |
 
 > Head to **[capstonex.me](https://www.capstonex.me)** and log in with any account above to explore the live platform from that role's perspective.
 
