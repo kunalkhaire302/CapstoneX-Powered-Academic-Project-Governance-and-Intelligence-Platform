@@ -19,8 +19,14 @@ try {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
   auth = getAuth(app);
 } catch (error) {
-  console.warn('Firebase initialization error (safe to ignore during build):', error);
-  auth = {} as any;
+  if (typeof window !== 'undefined') {
+    console.error('Firebase initialization error on client. Check your environment variables.', error);
+    // Let it throw on the client so we get a clear error instead of a broken auth object
+    throw new Error('Firebase is not configured properly. Please check your environment variables (.env).');
+  } else {
+    console.warn('Firebase initialization error (safe to ignore during build):', error);
+    auth = {} as any;
+  }
 }
 
 export { app, auth };
