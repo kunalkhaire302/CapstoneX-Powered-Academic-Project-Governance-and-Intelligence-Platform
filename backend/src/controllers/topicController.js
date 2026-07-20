@@ -1,4 +1,4 @@
-const { Topic, Group, GroupMember, User } = {};
+const { Topic, Group, GroupMember, User } = require('../models');
 const { parsePagination, paginatedResponse } = require('../utils/pagination');
 const { createAuditLog } = require('../utils/auditLog');
 const axios = require('axios');

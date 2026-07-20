@@ -46,7 +46,11 @@ async def _generate_openai_structured(prompt: str, schema: Dict[str, Any], api_k
     model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     
     try:
-        client = AsyncOpenAI(api_key=api_key)
+        base_url = os.getenv("OPENAI_BASE_URL")
+        client = AsyncOpenAI(
+            api_key=api_key,
+            base_url=base_url if base_url else None
+        )
         
         # Inject instruction to return JSON matching the schema
         system_prompt = (
@@ -82,7 +86,11 @@ async def generate_text(prompt: str, system_prompt: str = "You are a helpful ass
     
     if provider == "openai" and OPENAI_AVAILABLE and api_key:
         try:
-            client = AsyncOpenAI(api_key=api_key)
+            base_url = os.getenv("OPENAI_BASE_URL")
+            client = AsyncOpenAI(
+                api_key=api_key,
+                base_url=base_url if base_url else None
+            )
             model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
             
             response = await client.chat.completions.create(
@@ -98,4 +106,35 @@ async def generate_text(prompt: str, system_prompt: str = "You are a helpful ass
         except Exception as e:
             logger.error(f"OpenAI text generation failed: {e}")
             
+    if provider == "local":
+        try:
+            logger.info("Using local GPT-2 model for text generation...")
+            # Lazy import to save memory if not used
+            from transformers import pipeline
+            # Keep in memory to avoid reloading every time (simple cache)
+            if not hasattr(generate_text, "_pipeline"):
+                generate_text._pipeline = pipeline("text-generation", model="openai-community/gpt2")
+            
+            # GPT-2 works better if we combine the system prompt
+            full_prompt = f"{system_prompt}\nUser: {prompt}\nAssistant:"
+            
+            # Generate
+            results = generate_text._pipeline(
+                full_prompt, 
+                max_new_tokens=150, 
+                num_return_sequences=1,
+                temperature=0.7,
+                pad_token_id=50256 # EOS token id for GPT2
+            )
+            
+            generated_text = results[0]["generated_text"]
+            # Extract just the assistant's reply
+            reply = generated_text.replace(full_prompt, "").strip()
+            return reply if reply else "I understand."
+            
+        except ImportError:
+            logger.error("transformers library is required for local text generation.")
+        except Exception as e:
+            logger.error(f"Local text generation failed: {e}")
+
     return "AI text generation is currently unavailable."

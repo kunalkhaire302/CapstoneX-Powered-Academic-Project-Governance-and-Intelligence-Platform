@@ -123,59 +123,7 @@ export default function Topbar({ title = 'Dashboard', onMenuToggle, userProfile,
           )}
         </div>
 
-        {/* User Menu */}
-        <div className="relative">
-          <button
-            onClick={() => { setUserMenuOpen(!userMenuOpen); setNotifOpen(false); }}
-            className={`flex items-center gap-3 pl-1.5 pr-3 py-1.5 rounded-full transition-all border ${userMenuOpen ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-100 hover:border-gray-200 shadow-sm'}`}
-            id="user-menu"
-            aria-label="User menu"
-            aria-haspopup="true"
-            aria-expanded={userMenuOpen}
-          >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cardinal to-cardinal-600 flex items-center justify-center flex-shrink-0 shadow-sm">
-              <span className="text-white font-bold text-xs" aria-hidden="true">{userProfile.name.charAt(0).toUpperCase()}</span>
-            </div>
-            <svg className={`w-4 h-4 text-slate-400 hidden sm:block transition-transform duration-300 ${userMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-            </svg>
-          </button>
 
-          {/* Profile Dropdown */}
-          {userMenuOpen && (
-            <div className="absolute right-0 mt-3 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50 animate-fade-in">
-              <div className="px-4 py-3 mb-2 border-b border-gray-100/60">
-                <p className="text-sm font-semibold text-slate-900">{userProfile.name}</p>
-                <p className="text-[12px] text-slate-500 truncate mt-0.5">{userProfile.email}</p>
-              </div>
-              <div className="space-y-1">
-                <button 
-                  onClick={() => { setSettingsModalOpen(true); setUserMenuOpen(false); }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-colors"
-                >
-                  <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                  Settings
-                </button>
-                <button 
-                  onClick={() => { alert('Support center coming soon!'); setUserMenuOpen(false); }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-colors"
-                >
-                  <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  Support
-                </button>
-              </div>
-              <div className="mt-2 pt-2 border-t border-gray-100/60">
-                <button 
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-cardinal hover:bg-red-50 rounded-xl transition-colors"
-                >
-                  <svg className="w-4 h-4 text-cardinal/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                  Sign out
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       <SettingsModal 

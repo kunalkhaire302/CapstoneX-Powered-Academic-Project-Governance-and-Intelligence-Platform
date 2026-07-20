@@ -1,22 +1,41 @@
-const { getFirestoreDB, getFirebaseAuth } = require('../config/firebase');
+const { Op } = require('sequelize');
+const { User, Institution, GroupMember, Group } = require('../models');
+const { parsePagination, paginatedResponse, parseSort } = require('../utils/pagination');
 const { createAuditLog } = require('../utils/auditLog');
 const { sendEmail, emailTemplates } = require('../utils/email');
+const bcrypt = require('bcryptjs');
 const { parse } = require('csv-parse/sync');
 
 /**
- * List all users.
+ * List all users with pagination, filtering, and search.
  */
 const listUsers = async (req, res, next) => {
   try {
-    const db = getFirestoreDB();
-    const usersSnapshot = await db.collection('users').get();
-    
-    let users = [];
-    usersSnapshot.forEach(doc => {
-      users.push({ id: doc.id, ...doc.data() });
+    const { page, limit, offset } = parsePagination(req.query);
+    const { search, role, department, is_active } = req.query;
+    const order = parseSort(req.query.sortBy, req.query.order, ['name', 'email', 'role', 'created_at']);
+
+    const where = {};
+    if (search) {
+      where[Op.or] = [
+        { name: { [Op.iLike]: `%${search}%` } },
+        { email: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+    if (role) where.role = role;
+    if (department) where.department = department;
+    if (is_active !== undefined) where.is_active = is_active === 'true';
+
+    const { rows, count } = await User.findAndCountAll({
+      where,
+      attributes: { exclude: ['password_hash'] },
+      include: [{ model: Institution, attributes: ['id', 'name'] }],
+      order,
+      limit,
+      offset,
     });
-    
-    res.json({ data: users, total: users.length, page: 1, limit: users.length });
+
+    res.json(paginatedResponse(rows, count, page, limit));
   } catch (error) {
     next(error);
   }
@@ -27,14 +46,21 @@ const listUsers = async (req, res, next) => {
  */
 const getUser = async (req, res, next) => {
   try {
-    const db = getFirestoreDB();
-    const userDoc = await db.collection('users').doc(req.params.id).get();
-    
-    if (!userDoc.exists) {
+    const user = await User.findByPk(req.params.id, {
+      attributes: { exclude: ['password_hash'] },
+      include: [
+        { model: Institution, attributes: ['id', 'name'] },
+        {
+          model: GroupMember,
+          as: 'group_memberships',
+          include: [{ model: Group, attributes: ['id', 'name', 'status'] }],
+        },
+      ],
+    });
+    if (!user) {
       return res.status(404).json({ error: 'User not found.' });
     }
-    
-    res.json({ user: { id: userDoc.id, ...userDoc.data() } });
+    res.json({ user });
   } catch (error) {
     next(error);
   }
@@ -45,36 +71,34 @@ const getUser = async (req, res, next) => {
  */
 const updateUser = async (req, res, next) => {
   try {
-    const db = getFirestoreDB();
-    const userRef = db.collection('users').doc(req.params.id);
-    const userDoc = await userRef.get();
-    
-    if (!userDoc.exists) {
+    const user = await User.findByPk(req.params.id);
+    if (!user) {
       return res.status(404).json({ error: 'User not found.' });
     }
 
-    const { name, role, department, avatar_url, skills, interests, is_active } = req.body;
-    const updates = {};
-    if (name !== undefined) updates.name = name;
-    if (role !== undefined) updates.role = role;
-    if (department !== undefined) updates.department = department;
-    if (avatar_url !== undefined) updates.avatar_url = avatar_url;
-    if (skills !== undefined) updates.skills = skills;
-    if (interests !== undefined) updates.interests = interests;
-    if (is_active !== undefined) updates.is_active = is_active;
+    const { name, role, department, institution_id, avatar_url, skills, interests, is_active } = req.body;
 
-    await userRef.update(updates);
+    await user.update({
+      ...(name && { name }),
+      ...(role && { role }),
+      ...(department !== undefined && { department }),
+      ...(institution_id && { institution_id }),
+      ...(avatar_url !== undefined && { avatar_url }),
+      ...(skills && { skills }),
+      ...(interests && { interests }),
+      ...(is_active !== undefined && { is_active }),
+    });
 
     await createAuditLog({
       userId: req.user.id,
       action: 'user.updated',
       entityType: 'user',
-      entityId: req.params.id,
+      entityId: user.id,
       metadata: req.body,
       ipAddress: req.ip,
     });
 
-    res.json({ message: 'User updated successfully.' });
+    res.json({ message: 'User updated successfully.', user: { ...user.toJSON(), password_hash: undefined } });
   } catch (error) {
     next(error);
   }
@@ -85,16 +109,18 @@ const updateUser = async (req, res, next) => {
  */
 const deleteUser = async (req, res, next) => {
   try {
-    const db = getFirestoreDB();
-    const userRef = db.collection('users').doc(req.params.id);
-    
-    await userRef.update({ is_active: false });
+    const user = await User.findByPk(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    await user.update({ is_active: false });
 
     await createAuditLog({
       userId: req.user.id,
       action: 'user.deactivated',
       entityType: 'user',
-      entityId: req.params.id,
+      entityId: user.id,
       ipAddress: req.ip,
     });
 
@@ -106,9 +132,81 @@ const deleteUser = async (req, res, next) => {
 
 /**
  * Bulk import users via CSV.
+ * CSV must have columns: name, email, role, department
  */
 const bulkImport = async (req, res, next) => {
-  res.status(501).json({ error: 'Bulk import disabled during Firestore migration.' });
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'CSV file is required.' });
+    }
+
+    const csvContent = req.file.buffer.toString('utf-8');
+    const records = parse(csvContent, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+    });
+
+    if (records.length === 0) {
+      return res.status(400).json({ error: 'CSV file is empty.' });
+    }
+
+    const results = { created: 0, skipped: 0, errors: [] };
+
+    for (const record of records) {
+      try {
+        const { name, email, role, department } = record;
+        if (!name || !email) {
+          results.errors.push({ email: email || 'unknown', reason: 'Missing name or email' });
+          results.skipped++;
+          continue;
+        }
+
+        const existing = await User.findOne({ where: { email } });
+        if (existing) {
+          results.errors.push({ email, reason: 'User already exists' });
+          results.skipped++;
+          continue;
+        }
+
+        // Generate a default password
+        const defaultPassword = await bcrypt.hash('CapstoneX@2024', 12);
+
+        await User.create({
+          name,
+          email,
+          password_hash: defaultPassword,
+          role: role || 'student',
+          department,
+          institution_id: req.user.institution_id,
+        });
+
+        // Send welcome email with credentials notice
+        const emailContent = emailTemplates.welcome(name);
+        await sendEmail({ to: email, ...emailContent });
+
+        results.created++;
+      } catch (err) {
+        results.errors.push({ email: record.email, reason: err.message });
+        results.skipped++;
+      }
+    }
+
+    await createAuditLog({
+      userId: req.user.id,
+      action: 'user.bulk_import',
+      entityType: 'user',
+      metadata: { total: records.length, created: results.created, skipped: results.skipped },
+      ipAddress: req.ip,
+    });
+
+    res.json({
+      message: `Import complete: ${results.created} created, ${results.skipped} skipped.`,
+      results,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -116,59 +214,77 @@ const bulkImport = async (req, res, next) => {
  */
 const updateProfile = async (req, res, next) => {
   try {
-    const db = getFirestoreDB();
-    const userRef = db.collection('users').doc(req.user.id);
-    const userDoc = await userRef.get();
-    
-    if (!userDoc.exists) {
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
       return res.status(404).json({ error: 'User not found.' });
     }
 
     const { name, bio, avatar_url, skills, interests } = req.body;
-    const updates = {};
-    if (name !== undefined) updates.name = name;
-    if (bio !== undefined) updates.bio = bio;
-    if (avatar_url !== undefined) updates.avatar_url = avatar_url;
-    if (skills !== undefined) updates.skills = skills;
-    if (interests !== undefined) updates.interests = interests;
 
-    await userRef.update(updates);
+    await user.update({
+      ...(name !== undefined && { name }),
+      ...(bio !== undefined && { bio }),
+      ...(avatar_url !== undefined && { avatar_url }),
+      ...(skills !== undefined && { skills }),
+      ...(interests !== undefined && { interests }),
+    });
 
-    res.json({ message: 'Profile updated successfully.' });
+    await createAuditLog({
+      userId: req.user.id,
+      action: 'user.profile_updated',
+      entityType: 'user',
+      entityId: user.id,
+      metadata: req.body,
+      ipAddress: req.ip,
+    });
+
+    res.json({ message: 'Profile updated successfully.', user: { ...user.toJSON(), password_hash: undefined } });
   } catch (error) {
     next(error);
   }
 };
 
 /**
- * Create a new user (Admin only).
+ * Create a new user (Admin only) with specific roles.
  */
 const adminCreateUser = async (req, res, next) => {
   try {
-    const { name, email, password, role, department } = req.body;
+    const { name, email, password, role, department, institution_id } = req.body;
     
     if (!name || !email || !role) {
       return res.status(400).json({ error: 'Name, email, and role are required.' });
     }
 
-    const auth = getFirebaseAuth();
-    const userRecord = await auth.createUser({
-      email,
-      password: password || 'CapstoneX@2024',
-      displayName: name,
-    });
+    const existing = await User.findOne({ where: { email } });
+    if (existing) {
+      return res.status(409).json({ error: 'An account with this email already exists.' });
+    }
 
-    const db = getFirestoreDB();
-    await db.collection('users').doc(userRecord.uid).set({
+    let passwordHash = null;
+    if (password) {
+      passwordHash = await bcrypt.hash(password, 12);
+    } else {
+      passwordHash = await bcrypt.hash('CapstoneX@2024', 12);
+    }
+
+    const user = await User.create({
       name,
       email,
+      password_hash: passwordHash,
       role,
-      department: department || '',
-      created_at: new Date(),
-      is_active: true
+      department,
+      institution_id: institution_id || req.user.institution_id,
     });
 
-    res.status(201).json({ message: 'User created successfully', user: { id: userRecord.uid, name, email, role } });
+    await createAuditLog({
+      userId: req.user.id,
+      action: 'user.created_by_admin',
+      entityType: 'user',
+      entityId: user.id,
+      ipAddress: req.ip,
+    });
+
+    res.status(201).json({ message: 'User created successfully', user: { ...user.toJSON(), password_hash: undefined } });
   } catch (error) {
     next(error);
   }

@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { getFirestoreDB } = require('../config/firebase');
+const { AiReport, RiskScore } = require('../models');
 const logger = require('../utils/logger');
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
@@ -19,16 +19,11 @@ const getRecommendations = async (req, res, next) => {
       student_id: req.user.id, skills, interests, technologies,
     }, { timeout: 10000, ...getAiHeaders() });
 
-    const db = getFirestoreDB();
-    await db.collection('ai_reports').add({
-      student_id: req.user.id,
-      model_name: 'recommendation_engine',
-      report_type: 'recommendation',
-      result_json: response.data,
+    await AiReport.create({
+      student_id: req.user.id, model_name: 'recommendation_engine',
+      report_type: 'recommendation', result_json: response.data,
       confidence: response.data.recommendations?.[0]?.match_score || 0,
-      created_at: new Date()
     });
-
     res.json(response.data);
   } catch (error) {
     logger.error('AI Recommendation error:', error.message);
@@ -44,15 +39,11 @@ const getRiskScore = async (req, res, next) => {
       group_id, features,
     }, { timeout: 10000, ...getAiHeaders() });
 
-    const db = getFirestoreDB();
-    await db.collection('risk_scores').add({
-      group_id,
-      score: response.data.probability || 0,
+    await RiskScore.create({
+      group_id, score: response.data.probability || 0,
       label: response.data.risk_label || 'low',
       features_json: features,
-      predicted_at: new Date()
     });
-
     res.json(response.data);
   } catch (error) {
     logger.error('AI Risk Score error:', error.message);
@@ -68,14 +59,10 @@ const analyzeFeedback = async (req, res, next) => {
       text,
     }, { timeout: 15000, ...getAiHeaders() });
 
-    const db = getFirestoreDB();
-    await db.collection('ai_reports').add({
-      model_name: 'feedback_analyzer',
-      report_type: 'feedback',
+    await AiReport.create({
+      model_name: 'feedback_analyzer', report_type: 'feedback',
       result_json: response.data,
-      created_at: new Date()
     });
-
     res.json(response.data);
   } catch (error) {
     logger.error('AI Feedback Analysis error:', error.message);
@@ -91,14 +78,10 @@ const formTeams = async (req, res, next) => {
       students, team_size, constraints
     }, { timeout: 15000, ...getAiHeaders() });
 
-    const db = getFirestoreDB();
-    await db.collection('ai_reports').add({
-      model_name: 'team_formation',
-      report_type: 'team_formation',
+    await AiReport.create({
+      model_name: 'team_formation', report_type: 'team_formation',
       result_json: response.data,
-      created_at: new Date()
     });
-
     res.json(response.data);
   } catch (error) {
     logger.error('AI Team Formation error:', error.message);
@@ -114,16 +97,18 @@ const checkPlagiarism = async (req, res, next) => {
       text, document_type, threshold, exclude_project_id
     }, { timeout: 20000, ...getAiHeaders() });
 
-    const db = getFirestoreDB();
-    await db.collection('plagiarism_reports').add({
-      student_id: req.user.id,
-      document_id: req.body.document_id || null,
-      similarity_score: response.data.overall_similarity || 0,
-      risk_level: response.data.risk_level || 'none',
-      matched_projects: response.data.matched_projects || [],
-      highlighted_sections: response.data.highlighted_sections || [],
-      created_at: new Date()
-    });
+    // Store plagiarism report
+    const { PlagiarismReport } = require('../models');
+    if (PlagiarismReport) {
+      await PlagiarismReport.create({
+        student_id: req.user.id,
+        document_id: req.body.document_id || null,
+        similarity_score: response.data.overall_similarity || 0,
+        risk_level: response.data.risk_level || 'none',
+        matched_projects: response.data.matched_projects || [],
+        highlighted_sections: response.data.highlighted_sections || []
+      });
+    }
 
     res.json(response.data);
   } catch (error) {
@@ -140,15 +125,10 @@ const analyzeProblemStatement = async (req, res, next) => {
       title, description, tech_stack, domain
     }, { timeout: 15000, ...getAiHeaders() });
 
-    const db = getFirestoreDB();
-    await db.collection('ai_reports').add({
-      student_id: req.user.id,
-      model_name: 'problem_analyzer', 
-      report_type: 'problem_statement',
-      result_json: response.data,
-      created_at: new Date()
+    await AiReport.create({
+      student_id: req.user.id, model_name: 'problem_analyzer', 
+      report_type: 'problem_statement', result_json: response.data,
     });
-
     res.json(response.data);
   } catch (error) {
     logger.error('AI Problem Statement Analysis error:', error.message);
@@ -197,20 +177,25 @@ const generateAccreditationReport = async (req, res, next) => {
 
 const listRiskScores = async (req, res, next) => {
   try {
-    const db = getFirestoreDB();
-    const limit = parseInt(req.query.limit, 10) || 50;
-    const snapshot = await db.collection('risk_scores')
-      .orderBy('predicted_at', 'desc')
-      .limit(limit)
-      .get();
-      
-    const scores = [];
-    snapshot.forEach(doc => {
-      scores.push({ id: doc.id, ...doc.data() });
+    const scores = await RiskScore.findAll({
+      order: [['predicted_at', 'DESC']],
+      limit: parseInt(req.query.limit, 10) || 50,
     });
-    
     res.json({ data: scores });
   } catch (error) { next(error); }
+};
+
+const checkDetailedHealth = async (req, res, next) => {
+  try {
+    const response = await axios.get(`${AI_SERVICE_URL}/api/ai/health/detailed`, {
+      headers: { 'x-internal-token': process.env.AI_INTERNAL_SECRET }
+    });
+    res.json(response.data);
+  } catch (error) {
+    logger.error('AI Health Check error:', error.message);
+    if (error.code === 'ECONNREFUSED') return res.status(503).json({ error: 'AI service unavailable.' });
+    res.status(500).json({ error: 'AI service health check failed' });
+  }
 };
 
 module.exports = { 
@@ -222,5 +207,6 @@ module.exports = {
   checkPlagiarism,
   analyzeProblemStatement,
   generateDepartmentReport,
-  generateAccreditationReport
+  generateAccreditationReport,
+  checkDetailedHealth
 };

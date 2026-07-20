@@ -5,10 +5,10 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
+const { sequelize } = require('./models');
 const logger = require('./utils/logger');
 const errorHandler = require('./middleware/errorHandler');
 const rateLimiter = require('./middleware/rateLimiter');
-const { getFirestoreDB, getFirebaseAuth } = require('./config/firebase');
 
 // Route imports
 const authRoutes = require('./routes/authRoutes');
@@ -30,7 +30,7 @@ const PORT = process.env.PORT || 5000;
 // ──────────────────────────────────────────
 // Environment Strictness
 // ──────────────────────────────────────────
-const requiredSecrets = ['JWT_SECRET', 'JWT_REFRESH_SECRET'];
+const requiredSecrets = ['JWT_SECRET', 'JWT_REFRESH_SECRET', 'DATABASE_URL'];
 const missingSecrets = requiredSecrets.filter(s => !process.env[s] || process.env[s] === 'fallback_secret');
 if (missingSecrets.length > 0) {
   logger.error(`FATAL ERROR: Missing or insecure secrets: ${missingSecrets.join(', ')}`);
@@ -73,14 +73,7 @@ app.use('/api', rateLimiter.generalLimiter);
 // Health Check
 // ──────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-  const firebaseAuth = getFirebaseAuth();
-  const db = getFirestoreDB();
-  res.json({ 
-    status: 'healthy', 
-    service: 'capstonex-backend', 
-    firebaseConfigured: !!(firebaseAuth && db),
-    timestamp: new Date().toISOString() 
-  });
+  res.json({ status: 'healthy', service: 'capstonex-backend', timestamp: new Date().toISOString() });
 });
 
 // ──────────────────────────────────────────
@@ -115,6 +108,19 @@ app.use(errorHandler);
 // Start Server
 // ──────────────────────────────────────────
 const startServer = async () => {
+  try {
+    await sequelize.authenticate();
+    logger.info('✅ PostgreSQL connected successfully');
+    // Sync models in development (creates tables if not exist)
+    if (process.env.NODE_ENV === 'development') {
+      await sequelize.sync({ alter: false });
+      logger.info('✅ Database models synced');
+    }
+  } catch (error) {
+    logger.warn('⚠️  PostgreSQL not available — running in degraded mode (no DB)');
+    logger.warn(`   Connection error: ${error.message}`);
+  }
+
   if (process.env.NODE_ENV !== 'test') {
     app.listen(PORT, () => {
       logger.info(`🚀 CapstoneX Backend running on port ${PORT}`);

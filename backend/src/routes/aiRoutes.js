@@ -8,7 +8,8 @@ const {
   checkPlagiarism,
   analyzeProblemStatement,
   generateDepartmentReport,
-  generateAccreditationReport
+  generateAccreditationReport,
+  checkDetailedHealth
 } = require('../controllers/aiController');
 const { verifyToken } = require('../middleware/auth');
 const { checkRole } = require('../middleware/rbac');
@@ -16,6 +17,7 @@ const { checkRole } = require('../middleware/rbac');
 router.use(verifyToken);
 
 // Core student/mentor endpoints
+router.get('/health/detailed', checkDetailedHealth);
 router.post('/recommend', checkRole('student'), getRecommendations);
 router.post('/problem/analyze', checkRole('student', 'mentor', 'coordinator'), analyzeProblemStatement);
 router.post('/plagiarism/check', checkRole('mentor', 'coordinator', 'admin'), checkPlagiarism);

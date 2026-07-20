@@ -47,8 +47,10 @@ class Settings(BaseSettings):
         default="fallback",
         description="'openai' for GPT-4o, 'fallback' for template-based.",
     )
-    OPENAI_API_KEY: Optional[str] = None
-    OPENAI_MODEL: str = "gpt-4o"
+    OPENAI_API_KEY: str = Field(default="", description="API key for OpenAI")
+    OPENAI_MODEL: str = Field(default="gpt-4o-mini", description="Model version")
+    OPENAI_BASE_URL: str = Field(default="", description="Base URL for OpenAI SDK")
+    PORT: int = Field(default=8000, description="Service port")
     OPENAI_FALLBACK_MODEL: str = "gpt-3.5-turbo"
     OPENAI_MAX_TOKENS: int = 2000
     OPENAI_TEMPERATURE: float = 0.7

@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { ReactNode, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { ReactNode, useEffect, useState, useRef } from 'react';
 
 interface NavItem {
   label: string;
@@ -25,7 +25,6 @@ const roleNavItems: Record<string, NavItem[]> = {
     { label: 'Logbook Review', href: '/mentor/logbook-review', icon: <BookIcon /> },
     { label: 'Evaluations', href: '/mentor/evaluations', icon: <CheckIcon /> },
     { label: 'Schedule', href: '/mentor/schedule', icon: <CalendarIcon /> },
-    { label: 'Topics', href: '/mentor/topics', icon: <FileIcon /> },
     { label: 'Risk Dashboard', href: '/mentor/risk', icon: <AlertIcon /> },
     { label: 'Reports', href: '/mentor/reports', icon: <ChartIcon /> },
   ],
@@ -59,6 +58,7 @@ const roleNavItems: Record<string, NavItem[]> = {
     { label: 'Dashboard', href: '/admin', icon: <HomeIcon /> },
     { label: 'Users', href: '/admin/users', icon: <GroupIcon /> },
     { label: 'Audit Log', href: '/admin/audit', icon: <FileIcon /> },
+    { label: 'Topic Approvals', href: '/admin/topics', icon: <FileIcon /> },
     { label: 'Risk Dashboard', href: '/admin/risk', icon: <AlertIcon /> },
     { label: 'Teams AI', href: '/admin/teams', icon: <GroupIcon /> },
     { label: 'AI Analytics', href: '/admin/analytics', icon: <SparklesIcon /> },
@@ -77,6 +77,10 @@ interface SidebarProps {
 
 export default function Sidebar({ role = 'student', userName = '', userRole = '', mobileOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
   const navItems = roleNavItems[role] || roleNavItems.student;
 
   // Close sidebar on route change (mobile)
@@ -92,6 +96,21 @@ export default function Sidebar({ role = 'student', userName = '', userRole = ''
       return () => { document.body.style.overflow = ''; };
     }
   }, [mobileOpen]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    router.push('/login');
+  };
 
   return (
     <aside
@@ -163,8 +182,13 @@ export default function Sidebar({ role = 'student', userName = '', userRole = ''
       </nav>
 
       {/* User Info */}
-      <div className="p-4 mt-auto">
-        <div className="flex items-center gap-3 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer group" role="button" tabIndex={0}>
+      <div className="p-4 mt-auto relative" ref={dropdownRef}>
+        <div 
+          className="flex items-center gap-3 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer group" 
+          role="button" 
+          tabIndex={0}
+          onClick={() => setUserMenuOpen(!userMenuOpen)}
+        >
           <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center ring-2 ring-white/10 flex-shrink-0 group-hover:ring-white/20 transition-all">
             <span className="text-white font-bold text-sm">{userName?.charAt(0) || 'U'}</span>
           </div>
@@ -172,10 +196,41 @@ export default function Sidebar({ role = 'student', userName = '', userRole = ''
             <p className="text-sm font-semibold text-white truncate">{userName || 'User'}</p>
             <p className="text-[11px] text-white/50 capitalize font-medium tracking-wide">{userRole || role}</p>
           </div>
-          <svg className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+          <svg className={`w-4 h-4 text-white/30 group-hover:text-white/60 transition-transform duration-300 flex-shrink-0 ${userMenuOpen ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
           </svg>
         </div>
+
+        {/* Profile Dropdown Menu */}
+        {userMenuOpen && (
+          <div className="absolute bottom-[calc(100%-1rem)] left-4 mb-2 w-[calc(100%-2rem)] bg-slate-800 rounded-2xl shadow-xl border border-white/10 p-2 z-50 animate-fade-in">
+            <div className="space-y-1">
+              <button 
+                onClick={() => { alert('Settings coming soon!'); setUserMenuOpen(false); }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+              >
+                <svg className="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                Settings
+              </button>
+              <button 
+                onClick={() => { alert('Support center coming soon!'); setUserMenuOpen(false); }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+              >
+                <svg className="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Support
+              </button>
+            </div>
+            <div className="mt-2 pt-2 border-t border-white/10">
+              <button 
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-cardinal-400 hover:bg-white/5 rounded-xl transition-colors"
+              >
+                <svg className="w-4 h-4 text-cardinal-400/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                Sign out
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   );

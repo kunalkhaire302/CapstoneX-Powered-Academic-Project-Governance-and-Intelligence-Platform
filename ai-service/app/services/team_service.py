@@ -93,6 +93,7 @@ async def form_teams(
             "team_id": team_idx + 1,
             "members": [
                 {
+                    **s,
                     "student_id": s.get("student_id", s.get("id", f"student_{i}")),
                     "name": s.get("name", f"Student {i+1}"),
                     "skills": s.get("skills", []),

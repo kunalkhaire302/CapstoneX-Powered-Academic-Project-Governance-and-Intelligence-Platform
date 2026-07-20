@@ -7,6 +7,9 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
+  // Ensure Firebase Auth is initialized before checking currentUser on page reload
+  await auth.authStateReady();
+  
   // Always attach the latest Firebase ID token if the user is signed in
   if (auth.currentUser) {
     try {
@@ -32,5 +35,21 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+/**
+ * Returns the current Firebase ID token for the signed-in user, or null.
+ * Used by SettingsModal and other components that need to attach auth headers manually.
+ */
+export async function getAccessToken(): Promise<string | null> {
+  await auth.authStateReady();
+  if (auth.currentUser) {
+    try {
+      return await auth.currentUser.getIdToken();
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
 
 export default api;

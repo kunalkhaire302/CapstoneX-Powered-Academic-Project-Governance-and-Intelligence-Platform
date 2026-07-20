@@ -48,7 +48,7 @@ export default function SettingsModal({ isOpen, onClose, profile, onSaveProfile 
     setLoading(true);
     
     try {
-      const token = getAccessToken();
+      const token = await getAccessToken();
       
       if (!token) {
         // Fallback for local UI testing without login

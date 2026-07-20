@@ -7,6 +7,13 @@ import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import Link from 'next/link';
 
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
 interface Analytics {
   overview: { totalUsers: number; totalGroups: number; totalTopics: number; totalLogbooks: number; totalEvaluations: number };
   usersByRole: { role: string; count: string }[];
@@ -33,7 +40,6 @@ export default function AdminDashboardPage() {
       link.parentNode?.removeChild(link);
     } catch (error) {
       console.error(`Failed to download ${type} report`, error);
-      alert(`Failed to download ${type} report.`);
     } finally {
       setDownloading(null);
     }
@@ -83,14 +89,38 @@ export default function AdminDashboardPage() {
 
   return (
     <DashboardLayout role="admin" title="Admin Dashboard" userName={user?.name || 'Admin User'}>
-      {/* Stat Cards */}
+
+      {/* ── Welcome Header ─────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 p-6 bg-gradient-to-br from-thunder to-dark-surface rounded-2xl text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 80% 50%, #D2232A 0%, transparent 60%)' }} />
+        <div className="relative">
+          <p className="text-sm text-white/60 font-medium">{getGreeting()},</p>
+          <h1 className="text-2xl font-display mt-0.5">{user?.name || 'Admin'}</h1>
+          <p className="text-sm text-white/50 mt-1">Here's what's happening on CapstoneX today.</p>
+        </div>
+        <div className="relative flex items-center gap-3">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/10 rounded-full text-xs font-semibold text-white/80">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            System Online
+          </span>
+          <Link href="/admin/analytics"
+            className="px-4 py-2 text-sm font-semibold bg-cardinal hover:bg-cardinal-hover rounded-xl transition-colors shadow-sm">
+            View Analytics →
+          </Link>
+        </div>
+      </div>
+
+      {/* ── Stat Cards ───────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map((s, i) => (
           <Card key={i} className="animate-fade-in group" style={{ animationDelay: `${i * 0.08}s` } as any}>
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-slate font-medium">{s.label}</p>
-                <p className="text-3xl font-display text-thunder mt-1">{loading ? '...' : s.value}</p>
+                {loading
+                  ? <div className="h-9 w-16 bg-gray-100 rounded-lg animate-pulse mt-1" />
+                  : <p className="text-3xl font-display text-thunder mt-1">{s.value}</p>
+                }
                 <p className="text-xs text-emerald-500 font-medium mt-1.5 flex items-center gap-1">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" /></svg>
                   {s.change}

@@ -5,7 +5,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 
-export default function CoordinatorTopicsPage() {
+export default function AdminTopicsPage() {
   const topics = [
     { id: '1', title: 'AI Performance Prediction Engine', group: 'Team Alpha', domain: 'AI/ML', status: 'approved', date: '2026-05-10' },
     { id: '2', title: 'Smart Campus IoT Monitor', group: 'Team Delta', domain: 'IoT', status: 'approved', date: '2026-05-12' },
@@ -16,7 +16,7 @@ export default function CoordinatorTopicsPage() {
   const statusColors: Record<string, 'success' | 'warning' | 'error'> = { approved: 'success', pending: 'warning', rejected: 'error' };
 
   return (
-    <DashboardLayout role="mentor" title="Topic Approvals" userName="Dr. Priya Nair">
+    <DashboardLayout role="admin" title="Topic Approvals" userName="Admin User">
       <Card padding="sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
