@@ -14,19 +14,15 @@ const firebaseConfig = {
 // Initialize Firebase safely (prevents Vercel build errors if env vars are missing during SSG)
 let app: any;
 let auth: any;
+let isFirebaseConfigured = true;
 
 try {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
   auth = getAuth(app);
 } catch (error) {
-  if (typeof window !== 'undefined') {
-    console.error('Firebase initialization error on client. Check your environment variables.', error);
-    // Let it throw on the client so we get a clear error instead of a broken auth object
-    throw new Error('Firebase is not configured properly. Please check your environment variables (.env).');
-  } else {
-    console.warn('Firebase initialization error (safe to ignore during build):', error);
-    auth = {} as any;
-  }
+  isFirebaseConfigured = false;
+  console.warn('Firebase initialization error (missing env variables):', error);
+  auth = {} as any; // Mock auth to prevent top-level destructuring crashes
 }
 
-export { app, auth };
+export { app, auth, isFirebaseConfigured };
