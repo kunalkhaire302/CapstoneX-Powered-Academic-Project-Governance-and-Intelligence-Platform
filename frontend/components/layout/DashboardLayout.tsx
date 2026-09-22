@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, createContext, useContext } from 'react';
+import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import { UserProfile } from '../ui/SettingsModal';
+import AppLoader from '../ui/AppLoader';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -25,6 +27,8 @@ export const useUserProfile = () => {
 
 export default function DashboardLayout({ children, role = 'student', title = 'Dashboard', userName = '' }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isEntering, setIsEntering] = useState(true);
+  const pathname = usePathname();
   
   const [userProfile, setUserProfile] = useState<UserProfile>({
     name: userName || 'Student 1',
@@ -72,10 +76,17 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
     localStorage.setItem(`capstonex_user_profile_${role}`, JSON.stringify(userProfile));
   }, [userProfile, role]);
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => setIsEntering(false), 520);
+    return () => window.clearTimeout(timer);
+  }, [pathname]);
+
   return (
-    <div className="min-h-screen w-full overflow-hidden bg-transparent flex">
-      {/* Dynamic Background Orb */}
-      <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-cardinal/20 blur-[120px] rounded-full pointer-events-none mix-blend-screen animate-pulse-glow z-0" aria-hidden="true" />
+    <div className="app-atmosphere surface-noise min-h-screen w-full overflow-hidden flex">
+      {isEntering && <AppLoader compact label={`Opening ${title}`} />}
+
+      <div className="fixed -left-40 -top-48 h-[34rem] w-[34rem] rounded-full bg-cardinal/15 blur-[120px] pointer-events-none z-0" aria-hidden="true" />
+      <div className="fixed -bottom-64 right-[-8rem] h-[36rem] w-[36rem] rounded-full bg-blue-500/10 blur-[140px] pointer-events-none z-0" aria-hidden="true" />
       
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -96,8 +107,8 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
       />
 
       {/* Main App-in-App Canvas */}
-      <div className="flex-1 flex flex-col min-h-screen lg:pl-[280px] p-2 sm:p-4 lg:py-4 lg:pr-4 transition-all duration-300 z-10 w-full max-w-[100vw]">
-        <div className="flex-1 flex flex-col bg-white rounded-2xl sm:rounded-[32px] shadow-glass-panel border border-white/60 overflow-hidden relative isolate">
+      <div className="flex-1 flex flex-col min-h-screen lg:pl-[284px] p-2 sm:p-3 lg:py-3 lg:pr-3 transition-all duration-300 z-10 w-full max-w-[100vw]">
+        <div className="workspace-canvas flex-1 flex flex-col rounded-[22px] sm:rounded-[28px] border border-white/70 overflow-hidden relative isolate">
           
           <Topbar 
             title={title} 
@@ -106,8 +117,8 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
             setUserProfile={setUserProfile}
           />
 
-          <main id="main-content" className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 w-full bg-slate-50/50" role="main">
-            <div className="max-w-[1400px] mx-auto animate-fade-in w-full h-full">
+          <main id="main-content" className="dashboard-grid flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 xl:p-10 w-full" role="main">
+            <div key={pathname} className="page-reveal max-w-[1460px] mx-auto w-full min-h-full">
               <UserProfileContext.Provider value={{ userProfile, setUserProfile }}>
                 {children}
               </UserProfileContext.Provider>

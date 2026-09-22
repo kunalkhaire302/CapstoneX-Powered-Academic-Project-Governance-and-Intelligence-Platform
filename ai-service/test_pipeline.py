@@ -19,7 +19,7 @@ from app.services.problem_service import analyze_problem_statement
 from app.services.feedback_service import analyze_feedback
 from app.ml.train_risk import train_model
 
-async def test_all():
+async def run_pipeline_checks():
     print("="*50)
     print("Testing CapstoneX AI Services")
     print("="*50)
@@ -94,5 +94,9 @@ async def test_all():
     print("\nAll AI modules tested successfully without fatal errors.")
 
 
+def test_all():
+    asyncio.run(run_pipeline_checks())
+
+
 if __name__ == "__main__":
-    asyncio.run(test_all())
+    test_all()

@@ -103,7 +103,7 @@ export default function AdminUsersPage() {
 
   const handleEdit = (u: User) => {
     setEditUser(u);
-    setForm({ name: u.name, email: u.email, role: u.role, department: u.department || '', sap_id: u.sap_id || '', roll_no: u.roll_no || '', branch: u.branch || '' });
+    setForm({ name: u.name, email: u.email, role: u.role, department: u.department || '', sap_id: u.sap_id || '', roll_no: u.roll_no || '', branch: u.branch || '', password: '' });
   };
 
   const handleSaveEdit = async () => {
@@ -202,7 +202,7 @@ export default function AdminUsersPage() {
             className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:text-thunder transition-all">
             <span>📄</span> CSV Import
           </button>
-          <button onClick={() => { setAddModal(true); setForm({ name: '', email: '', role: 'student', department: '', sap_id: '', roll_no: '', branch: '' }); }}
+          <button onClick={() => { setAddModal(true); setForm({ name: '', email: '', role: 'student', department: '', sap_id: '', roll_no: '', branch: '', password: '' }); }}
             className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-cardinal rounded-xl hover:bg-cardinal-hover transition-all shadow-sm">
             <span>+</span> Add User
           </button>

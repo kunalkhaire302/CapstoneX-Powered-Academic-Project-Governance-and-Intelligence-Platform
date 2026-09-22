@@ -31,9 +31,9 @@ const config: Config = {
         'dark-surface': '#1E293B',
       },
       fontFamily: {
-        display: ['DM Serif Display', 'Georgia', 'serif'],
-        body: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        display: ['Iowan Old Style', 'Palatino Linotype', 'Georgia', 'serif'],
+        body: ['Capstone Sans', 'Segoe UI', 'sans-serif'],
+        mono: ['Capstone Mono', 'ui-monospace', 'monospace'],
       },
       boxShadow: {
         'card': '0 1px 3px rgba(0,0,0,0.04)',

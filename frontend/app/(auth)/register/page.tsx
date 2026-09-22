@@ -19,6 +19,7 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
     try {
+      if (!auth) throw new Error('Firebase authentication is not configured.');
       // 1. Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
       

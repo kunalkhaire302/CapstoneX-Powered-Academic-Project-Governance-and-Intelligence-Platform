@@ -304,7 +304,7 @@ export default function AdminTeamsPage() {
               <div className="mt-3 pt-3 border-t border-gray-50">
                 <p className="text-[10px] text-slate uppercase tracking-wider mb-1.5 font-semibold">Team Skills</p>
                 <div className="flex flex-wrap gap-1">
-                  {[...new Set(team.members.flatMap(m => m.skills))].map((s, k) => (
+                  {Array.from(new Set(team.members.flatMap(m => m.skills))).map((s, k) => (
                     <span key={k} className={`text-[9px] px-1.5 py-0.5 rounded border font-medium ${SKILL_COLORS[s] || DEFAULT_SKILL}`}>{s}</span>
                   ))}
                 </div>

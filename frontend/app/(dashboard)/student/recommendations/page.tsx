@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -133,30 +133,6 @@ export default function RecommendationsPage() {
       console.error('Analysis error:', err);
       setError(err.response?.data?.error || 'Analysis failed. Please try again.');
 
-      // Fallback: try AI service directly
-      try {
-        const payload = {
-          title: formData.title,
-          problem_statement: formData.problem_statement,
-          description: formData.description,
-          domain: formData.domain,
-          department: formData.department,
-          skills: parseList(formData.skills),
-          tech_stack: parseList(formData.tech_stack),
-          hackathon_theme: formData.hackathon_theme,
-          expected_users: formData.expected_users,
-          target_audience: formData.target_audience,
-          expected_impact: formData.expected_impact,
-          duration: formData.duration,
-          team_members: [],
-        };
-
-        const res = await aiApi.post('/api/ai/problem/analyze', payload);
-        setReport(res.data);
-        setError('');
-      } catch (fallbackErr) {
-        console.error('Fallback analysis also failed:', fallbackErr);
-      }
     } finally {
       setLoading(false);
     }

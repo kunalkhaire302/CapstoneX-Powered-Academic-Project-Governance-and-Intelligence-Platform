@@ -32,7 +32,7 @@ const checkMagicNumber = (buffer, mimetype) => {
 };
 
 const multerFilter = (req, file, cb) => {
-  if (!ALLOWED_MIME_TYPES.hasOwnProperty(file.mimetype)) {
+  if (!Object.prototype.hasOwnProperty.call(ALLOWED_MIME_TYPES, file.mimetype)) {
     return cb(new Error('Invalid file type. Only JPG, PNG, PDF, DOCX, XLSX, and CSV are allowed.'), false);
   }
   cb(null, true);

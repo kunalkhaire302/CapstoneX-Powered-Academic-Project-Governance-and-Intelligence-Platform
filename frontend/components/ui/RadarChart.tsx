@@ -64,7 +64,7 @@ export default function RecommendationRadar({ scores }: RecommendationRadarProps
                 fontFamily: 'Plus Jakarta Sans',
                 boxShadow: '0 4px 6px -1px rgba(0,0,0,0.06)',
               }}
-              formatter={(value: number) => [`${value}/100`, 'Score']}
+              formatter={(value) => [`${value ?? 0}/100`, 'Score']}
             />
             <Radar
               name="Scores"

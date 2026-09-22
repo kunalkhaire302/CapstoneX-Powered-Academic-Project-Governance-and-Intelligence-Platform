@@ -1,12 +1,5 @@
-const PdfPrinter = require('pdfmake');
-const XLSX = require('xlsx');
-const { Group, User, Topic, Evaluation, GroupMember } = require('../models');
-
-const fonts = {
-  Roboto: {
-    normal: 'node_modules/pdfmake/build/vfs_fonts.js',
-  },
-};
+const ExcelJS = require('exceljs');
+const { Group, User, Topic, GroupMember } = require('../models');
 
 const exportGroupsPDF = async (req, res, next) => {
   try {
@@ -72,11 +65,19 @@ const exportGroupsExcel = async (req, res, next) => {
       'Members': g.members ? g.members.map(m => m.student ? m.student.name : '').join(', ') : '',
     }));
 
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, 'Groups');
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'CapstoneX';
+    workbook.created = new Date();
+    const worksheet = workbook.addWorksheet('Groups');
+    worksheet.columns = Object.keys(data[0] || {
+      'Group Name': '', Department: '', 'Batch Year': '', Topic: '',
+      'Topic Status': '', Mentor: '', Status: '', Members: '',
+    }).map(header => ({ header, key: header, width: Math.max(header.length + 2, 16) }));
+    worksheet.addRows(data);
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.views = [{ state: 'frozen', ySplit: 1 }];
 
-    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    const buffer = await workbook.xlsx.writeBuffer();
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename=capstonex_groups.xlsx');
     res.send(buffer);

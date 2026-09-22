@@ -1,4 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@font-face {
+  font-family: 'Capstone Sans';
+  src: url('./fonts/GeistVF.woff') format('woff');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Capstone Mono';
+  src: url('./fonts/GeistMonoVF.woff') format('woff');
+  font-weight: 100 900;
+  font-display: swap;
+}
 
 :root {
   /* Brand */
@@ -30,9 +42,9 @@
   --color-error: #EF4444;
 
   /* Font Families */
-  --font-display: 'DM Serif Display', Georgia, serif;
-  --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-body: 'Capstone Sans', 'Segoe UI', sans-serif;
+  --font-mono: 'Capstone Mono', ui-monospace, monospace;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
@@ -90,6 +102,19 @@ body {
   line-height: 1.7;
   font-size: 15px;
   overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -374,6 +399,75 @@ a:hover {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes orbit {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes orbitReverse {
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes loaderProgress {
+  0% { transform: translateX(-140%); }
+  100% { transform: translateX(280%); }
+}
+
+@keyframes pageReveal {
+  from { opacity: 0; transform: translateY(12px) scale(0.995); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.loader-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(circle at center, black, transparent 70%);
+}
+
+.loader-orbit {
+  animation: orbit 1.8s linear infinite;
+  border-top-color: rgba(255,255,255,.75);
+}
+
+.loader-orbit-reverse {
+  animation: orbitReverse 2.8s linear infinite;
+  border-bottom-color: #D2232A;
+}
+
+.loader-progress { animation: loaderProgress 1.25s ease-in-out infinite; }
+.page-reveal { animation: pageReveal .48s cubic-bezier(.22,1,.36,1) both; }
+
+.app-atmosphere {
+  background:
+    radial-gradient(circle at 8% 12%, rgba(210,35,42,.18), transparent 25%),
+    radial-gradient(circle at 86% 90%, rgba(55,93,145,.12), transparent 30%),
+    #080c17;
+}
+
+.workspace-canvas {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.96), rgba(247,248,251,.98)),
+    #f8fafc;
+  box-shadow: 0 35px 90px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+.dashboard-grid {
+  background-image:
+    linear-gradient(rgba(15,23,42,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15,23,42,.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.surface-noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+}
+
 .animate-fade-in { animation: fadeIn 0.4s ease forwards; }
 .animate-slide-up { animation: slideUp 0.5s ease forwards; }
 .animate-slide-in-left { animation: slideInLeft 0.4s ease forwards; }
@@ -409,6 +503,13 @@ a:hover {
   .animate-float,
   .animate-pulse-glow,
   .animate-shimmer {
+    animation: none !important;
+  }
+
+  .loader-orbit,
+  .loader-orbit-reverse,
+  .loader-progress,
+  .page-reveal {
     animation: none !important;
   }
 }

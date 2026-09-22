@@ -92,7 +92,7 @@ export default function AdminDashboardPage() {
         <div className="relative">
           <p className="text-sm text-white/60 font-medium">{getGreeting()},</p>
           <h1 className="text-2xl font-display mt-0.5">{user?.name || 'Admin'}</h1>
-          <p className="text-sm text-white/50 mt-1">Here's what's happening on CapstoneX today.</p>
+          <p className="text-sm text-white/50 mt-1">Here&apos;s what&apos;s happening on CapstoneX today.</p>
         </div>
         <div className="relative flex items-center gap-3">
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/10 rounded-full text-xs font-semibold text-white/80">

@@ -204,7 +204,7 @@ export default function AdminAnalyticsPage() {
                       {pieData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
                     </Pie>
                     <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #E2E8F0', fontSize: 12, fontFamily: 'Plus Jakarta Sans' }}
-                      formatter={(v: number, n: string) => [v, n]} />
+                      formatter={(value, name) => [value ?? 0, String(name)]} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -229,7 +229,7 @@ export default function AdminAnalyticsPage() {
             ) : (
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={groupData} margin={{ top: 8, right: 8, left: -20, bottom: 8 }} barSize={28} radius={[6, 6, 0, 0]}>
+                  <BarChart data={groupData} margin={{ top: 8, right: 8, left: -20, bottom: 8 }} barSize={28}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                     <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748B' }} />
                     <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} allowDecimals={false} />

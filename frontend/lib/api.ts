@@ -8,6 +8,7 @@ const api = axios.create({
 
 api.interceptors.request.use(async (config) => {
   // Ensure Firebase Auth is initialized before checking currentUser on page reload
+  if (!auth) return config;
   await auth.authStateReady();
   
   // Always attach the latest Firebase ID token if the user is signed in
@@ -41,6 +42,7 @@ api.interceptors.response.use(
  * Used by SettingsModal and other components that need to attach auth headers manually.
  */
 export async function getAccessToken(): Promise<string | null> {
+  if (!auth) return null;
   await auth.authStateReady();
   if (auth.currentUser) {
     try {

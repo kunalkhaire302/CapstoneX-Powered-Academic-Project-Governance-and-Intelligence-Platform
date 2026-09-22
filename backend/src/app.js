@@ -30,8 +30,13 @@ const PORT = process.env.PORT || 5000;
 // ──────────────────────────────────────────
 // Environment Strictness
 // ──────────────────────────────────────────
-const requiredSecrets = ['JWT_SECRET', 'JWT_REFRESH_SECRET', 'DATABASE_URL'];
+const requiredSecrets = ['JWT_SECRET', 'JWT_REFRESH_SECRET'];
 const missingSecrets = requiredSecrets.filter(s => !process.env[s] || process.env[s] === 'fallback_secret');
+const hasDatabaseConfig = Boolean(
+  process.env.DATABASE_URL ||
+  (process.env.DB_HOST && process.env.DB_NAME && process.env.DB_USER && process.env.DB_PASS)
+);
+if (!hasDatabaseConfig) missingSecrets.push('DATABASE_URL or DB_HOST/DB_NAME/DB_USER/DB_PASS');
 if (missingSecrets.length > 0) {
   logger.error(`FATAL ERROR: Missing or insecure secrets: ${missingSecrets.join(', ')}`);
   process.exit(1);
@@ -111,14 +116,15 @@ const startServer = async () => {
   try {
     await sequelize.authenticate();
     logger.info('✅ PostgreSQL connected successfully');
-    // Sync models in development (creates tables if not exist)
-    if (process.env.NODE_ENV === 'development') {
-      await sequelize.sync({ alter: true });
-      logger.info('✅ Database models synced');
+    // Explicit opt-in only. Production and normal development use migrations.
+    if (process.env.DB_SYNC === 'true') {
+      await sequelize.sync();
+      logger.warn('⚠️  DB_SYNC is enabled; use migrations for persistent environments');
     }
   } catch (error) {
-    logger.warn('⚠️  PostgreSQL not available — running in degraded mode (no DB)');
-    logger.warn(`   Connection error: ${error.message}`);
+    logger.error(`PostgreSQL connection failed: ${error.message}`);
+    if (process.env.NODE_ENV === 'production') throw error;
+    logger.warn('Running in degraded mode because NODE_ENV is not production');
   }
 
   if (process.env.NODE_ENV !== 'test') {

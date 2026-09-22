@@ -3,7 +3,7 @@
 import { ButtonHTMLAttributes, forwardRef, ReactNode } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   icon?: ReactNode;
@@ -11,11 +11,12 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', loading, icon, children, className = '', disabled, ...props }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98] select-none';
+    const baseStyles = 'relative overflow-hidden inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98] select-none';
 
     const variants = {
-      primary: 'bg-gradient-to-r from-cardinal to-cardinal-600 text-white hover:from-cardinal-600 hover:to-cardinal-700 focus:ring-cardinal shadow-[0_2px_8px_rgba(210,35,42,0.25)] hover:shadow-[0_4px_16px_rgba(210,35,42,0.35)] hover:-translate-y-[1px]',
-      secondary: 'bg-white text-thunder border border-border hover:bg-surface hover:border-slate/30 focus:ring-cardinal hover:shadow-sm hover:-translate-y-[1px]',
+      primary: 'bg-cardinal text-white hover:bg-cardinal-600 focus:ring-cardinal shadow-[0_8px_22px_rgba(210,35,42,.24)] hover:shadow-[0_12px_28px_rgba(210,35,42,.32)] hover:-translate-y-[1px]',
+      secondary: 'bg-white text-thunder border border-slate-200 hover:bg-slate-50 hover:border-slate-300 focus:ring-cardinal hover:shadow-sm hover:-translate-y-[1px]',
+      outline: 'bg-transparent text-thunder border border-border hover:bg-surface hover:border-slate/30 focus:ring-cardinal',
       danger: 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 focus:ring-red-500 shadow-[0_2px_8px_rgba(239,68,68,0.25)]',
       ghost: 'text-slate hover:bg-surface hover:text-thunder focus:ring-cardinal',
     };

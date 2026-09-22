@@ -1,5 +1,5 @@
-import { initializeApp, getApps } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { FirebaseApp, initializeApp, getApps } from "firebase/app";
+import { Auth, getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -12,17 +12,15 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase safely (prevents Vercel build errors if env vars are missing during SSG)
-let app: any;
-let auth: any;
-let isFirebaseConfigured = true;
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+const isFirebaseConfigured = Boolean(
+  firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId && firebaseConfig.appId
+);
 
-try {
+if (isFirebaseConfigured) {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
   auth = getAuth(app);
-} catch (error) {
-  isFirebaseConfigured = false;
-  console.warn('Firebase initialization error (missing env variables):', error);
-  auth = {} as any; // Mock auth to prevent top-level destructuring crashes
 }
 
 export { app, auth, isFirebaseConfigured };

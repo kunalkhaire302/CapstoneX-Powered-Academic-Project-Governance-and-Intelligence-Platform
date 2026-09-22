@@ -24,7 +24,7 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    if (!isFirebaseConfigured) {
+    if (!isFirebaseConfigured || !auth) {
       setError('Firebase is not configured. Please add NEXT_PUBLIC_FIREBASE_API_KEY to your Vercel Environment Variables and redeploy.');
       setLoading(false);
       return;

@@ -87,7 +87,7 @@ export default function Sidebar({ role = 'student', userName = '', userRole = ''
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      if (auth) await signOut(auth);
     } catch(e) {
       console.error('Logout error', e);
     }
@@ -97,9 +97,9 @@ export default function Sidebar({ role = 'student', userName = '', userRole = ''
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen lg:h-[calc(100vh-2rem)] lg:top-4 lg:left-4 w-[270px] sm:w-[250px] 
-        bg-white/5 backdrop-blur-2xl flex flex-col z-40 
-        lg:rounded-[32px] lg:border lg:border-white/10 lg:shadow-glass-sidebar
+      className={`fixed left-0 top-0 h-screen lg:h-[calc(100vh-1.5rem)] lg:top-3 lg:left-3 w-[276px] sm:w-[258px]
+        bg-[#0b101d]/90 backdrop-blur-2xl flex flex-col z-40 surface-noise
+        lg:rounded-[28px] lg:border lg:border-white/[0.08] lg:shadow-[0_24px_70px_rgba(0,0,0,.35)]
         transition-all duration-500 ease-out lg:translate-x-0
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
       role="navigation"
@@ -117,23 +117,24 @@ export default function Sidebar({ role = 'student', userName = '', userRole = ''
       </button>
 
       {/* Logo */}
-      <div className="px-6 py-8">
+      <div className="px-5 pb-5 pt-7">
         <Link href="/" className="flex items-center gap-3 group" aria-label="CapstoneX — Go to homepage">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-cardinal to-cardinal-600 flex items-center justify-center shadow-glow group-hover:shadow-glow-lg transition-all duration-300 group-hover:scale-105">
+          <div className="relative w-11 h-11 rounded-[14px] bg-cardinal flex items-center justify-center shadow-[0_12px_28px_rgba(210,35,42,.32)] group-hover:-rotate-3 transition-all duration-300">
             <img src="/logo.png" alt="" className="w-6 h-6 object-contain brightness-0 invert" aria-hidden="true" />
+            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 border-[#0b101d] bg-emerald-400" />
           </div>
           <div>
             <span className="font-display text-[22px] text-white tracking-tight block leading-none mb-1">CapstoneX</span>
-            <span className="text-[10px] text-white/50 font-bold uppercase tracking-[0.2em]">Platform</span>
+            <span className="text-[9px] text-white/40 font-bold uppercase tracking-[0.24em]">Governance OS</span>
           </div>
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-2 overflow-y-auto px-4 scrollbar-hide" aria-label="Sidebar navigation">
+      <nav className="flex-1 py-2 overflow-y-auto px-3.5 scrollbar-hide" aria-label="Sidebar navigation">
         <div className="mb-4 px-2 flex items-center gap-2">
           <div className="h-px bg-white/10 flex-1" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30" aria-hidden="true">Menu</span>
+          <span className="text-[9px] font-bold uppercase tracking-[0.24em] text-white/30" aria-hidden="true">Workspace</span>
           <div className="h-px bg-white/10 flex-1" />
         </div>
         <ul className="space-y-1.5 list-none" role="list">
@@ -144,14 +145,14 @@ export default function Sidebar({ role = 'student', userName = '', userRole = ''
                 <Link
                   href={item.href}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`flex items-center gap-3.5 px-3 py-3 rounded-xl text-[13px] font-semibold transition-all duration-300 group relative overflow-hidden ${
+                  className={`flex items-center gap-3.5 px-3.5 py-3 rounded-[13px] text-[13px] font-semibold transition-all duration-300 group relative overflow-hidden ${
                     isActive
-                      ? 'text-white bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]'
-                      : 'text-white/60 hover:text-white hover:bg-white/5'
+                      ? 'text-white bg-white/[0.09] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_20px_rgba(0,0,0,.16)]'
+                      : 'text-white/55 hover:text-white hover:bg-white/[0.045]'
                   }`}
                 >
                   {/* Subtle active pill indicator */}
-                  {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1/2 bg-cardinal-400 rounded-r-full shadow-glow" aria-hidden="true" />}
+                  {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-cardinal-400 rounded-r-full shadow-[0_0_18px_rgba(248,113,113,.65)]" aria-hidden="true" />}
                   
                   <span className={`w-5 h-5 flex-shrink-0 transition-all duration-300 ${isActive ? 'text-cardinal-400 scale-110 drop-shadow-md' : 'text-white/40 group-hover:text-white/80 group-hover:scale-110'}`}>
                     {item.icon}
@@ -165,9 +166,13 @@ export default function Sidebar({ role = 'student', userName = '', userRole = ''
       </nav>
 
       {/* User Info */}
-      <div className="p-4 mt-auto relative" ref={dropdownRef}>
+      <div className="p-3.5 mt-auto relative" ref={dropdownRef}>
+        <div className="mb-3 flex items-center justify-between px-3 text-[9px] font-bold uppercase tracking-[0.18em] text-white/30">
+          <span>System status</span>
+          <span className="flex items-center gap-1.5 text-emerald-300/80"><i className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,.8)]" /> Online</span>
+        </div>
         <div 
-          className="flex items-center gap-3 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer group" 
+          className="flex items-center gap-3 px-3 py-3 rounded-[16px] bg-white/[0.045] border border-white/[0.08] hover:bg-white/[0.08] transition-colors cursor-pointer group"
           role="button" 
           tabIndex={0}
           onClick={() => setUserMenuOpen(!userMenuOpen)}

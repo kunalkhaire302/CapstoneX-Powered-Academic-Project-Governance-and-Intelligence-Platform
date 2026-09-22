@@ -1,5 +1,3 @@
-const fileType = require('file-type');
-
 const ALLOWED_MIME_TYPES = [
   'image/jpeg', 'image/png', 'image/gif', 
   'application/pdf', 
@@ -25,7 +23,8 @@ const validateFile = async (req, res, next) => {
     }
 
     // Check magic numbers
-    const type = await fileType.fromBuffer(req.file.buffer);
+    const { fileTypeFromBuffer } = await import('file-type');
+    const type = await fileTypeFromBuffer(req.file.buffer);
     if (!type || !ALLOWED_MIME_TYPES.includes(type.mime)) {
       return res.status(400).json({ error: 'File signature mismatch or unsupported file type.' });
     }
