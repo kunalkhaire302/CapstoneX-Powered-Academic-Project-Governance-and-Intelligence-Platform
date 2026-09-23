@@ -1,8 +1,15 @@
 import axios from 'axios';
 import { auth } from './firebase';
 
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
+const apiBaseUrl = configuredApiUrl
+  ? (configuredApiUrl.endsWith('/api') ? configuredApiUrl : `${configuredApiUrl}/api`)
+  : 'http://localhost:5000/api';
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
+  // Accept either an origin (https://app.example.com) or an API root (.../api).
+  // This prevents `/groups` and `/topics` from bypassing the backend's `/api` prefix.
+  baseURL: apiBaseUrl,
   headers: { 'Content-Type': 'application/json' },
 });
 
