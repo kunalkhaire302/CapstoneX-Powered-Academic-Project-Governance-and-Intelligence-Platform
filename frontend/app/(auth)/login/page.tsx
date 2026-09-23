@@ -18,29 +18,35 @@ export default function LoginPage() {
   const [selectedDemo, setSelectedDemo] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const completeLogin = async (loginEmail: string, loginPassword: string) => {
     setError('');
     setLoading(true);
 
     try {
-      const { data } = await api.post('/auth/login', { email, password });
+      const { data } = await api.post('/auth/login', { email: loginEmail, password: loginPassword });
       setStoredAccessToken(data.accessToken);
       localStorage.setItem('user', JSON.stringify(data.user));
 
       const rolePaths: Record<string, string> = { student: '/student', mentor: '/mentor', admin: '/admin' };
       router.push(rolePaths[data.user.role] || '/student');
-      
     } catch (err: any) {
       setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleDemoClick = (role: string, demoEmail: string) => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await completeLogin(email, password);
+  };
+
+  const handleDemoClick = async (role: string, demoEmail: string) => {
+    const demoPassword = 'CapstoneX@2024';
     setSelectedDemo(role);
     setEmail(demoEmail);
-    setPassword('CapstoneX@2024');
+    setPassword(demoPassword);
+    await completeLogin(demoEmail, demoPassword);
   };
 
   return (
@@ -226,6 +232,7 @@ export default function LoginPage() {
                     key={demo.role}
                     type="button"
                     onClick={() => handleDemoClick(demo.role, demo.email)}
+                    disabled={loading}
                     className={`px-2.5 py-1 text-[11px] rounded-lg transition-all duration-200 font-medium border flex items-center gap-1.5
                       ${selectedDemo === demo.role 
                         ? 'bg-cardinal-50 border-cardinal-200 text-cardinal-700 shadow-sm ring-1 ring-cardinal-100' 

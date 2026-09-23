@@ -55,8 +55,22 @@ const addRequestId = (req, res, next) => {
 app.use(addRequestId);
 app.use(helmet());
 app.use(compression());
+const allowedOrigins = new Set([
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  process.env.FRONTEND_URL,
+].filter(Boolean));
+
+const isCapstoneXVercelDeployment = (origin) => /^https:\/\/capstone-x-ai-powered-academic-project-governance(?:-[a-z0-9]+)?\.vercel\.app$/.test(origin);
+
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', process.env.FRONTEND_URL].filter(Boolean),
+  origin(origin, callback) {
+    // Requests without an Origin header are server-to-server health checks.
+    if (!origin || allowedOrigins.has(origin) || isCapstoneXVercelDeployment(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Origin is not allowed by CORS.'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
