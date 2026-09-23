@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
+    "db:bootstrap": "node src/scripts/bootstrapDatabase.js",
     "test": "jest --coverage --forceExit --detectOpenHandles",
     "lint": "eslint src/ --ext .js",
     "migrate": "npx sequelize-cli db:migrate",

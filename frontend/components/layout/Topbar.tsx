@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bell, CalendarDays, ChevronDown, LogOut, Menu, Search, Settings, Sparkles, X } from 'lucide-react';
 import SettingsModal, { UserProfile } from '../ui/SettingsModal';
+import api, { setStoredAccessToken } from '@/lib/api';
 
 interface TopbarProps {
   title?: string;
@@ -45,7 +46,10 @@ export default function Topbar({ title = 'Dashboard', onMenuToggle, userProfile,
     return () => window.removeEventListener('keydown', handleShortcut);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try { await api.post('/auth/logout'); } catch { /* Clear the local session regardless. */ }
+    setStoredAccessToken(null);
+    localStorage.removeItem('user');
     router.push('/login');
   };
 

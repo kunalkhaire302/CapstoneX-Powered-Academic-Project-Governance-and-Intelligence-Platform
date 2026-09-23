@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useState, useRef } from 'react';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
+import api, { setStoredAccessToken } from '@/lib/api';
 
 interface NavItem {
   label: string;
@@ -90,10 +91,12 @@ export default function Sidebar({ role = 'student', userName = '', userRole = ''
 
   const handleLogout = async () => {
     try {
+      await api.post('/auth/logout');
       if (auth) await signOut(auth);
     } catch(e) {
       console.error('Logout error', e);
     }
+    setStoredAccessToken(null);
     localStorage.removeItem('user');
     router.push('/login');
   };

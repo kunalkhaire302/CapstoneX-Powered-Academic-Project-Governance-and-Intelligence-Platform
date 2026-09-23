@@ -7,8 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, ArrowRight, ShieldCheck, Cpu, LayoutDashboard, Sparkles, Loader2, Users, Eye, EyeOff } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { auth, isFirebaseConfigured } from '@/lib/firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import api, { setStoredAccessToken } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,34 +23,16 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    if (!isFirebaseConfigured || !auth) {
-      setError('Firebase is not configured. Please add NEXT_PUBLIC_FIREBASE_API_KEY to your Vercel Environment Variables and redeploy.');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      // Store user minimal info in localStorage for frontend UX 
-      const minimalUser = { 
-        email: userCredential.user.email, 
-        role: 'student', 
-        id: userCredential.user.uid,
-        name: userCredential.user.displayName || 'Student'
-      }; // Default to student unless claims say otherwise
-      localStorage.setItem('user', JSON.stringify(minimalUser));
-      
-      // In a real app we would decode the Firebase token for the actual role claim. For now, default to student or demo mapping.
+      const { data } = await api.post('/auth/login', { email, password });
+      setStoredAccessToken(data.accessToken);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
       const rolePaths: Record<string, string> = { student: '/student', mentor: '/mentor', admin: '/admin' };
-      
-      setTimeout(() => {
-        // If they clicked a demo button, fake the role route
-        const role = selectedDemo ? selectedDemo.toLowerCase() : 'student';
-        router.push(rolePaths[role] || '/student');
-      }, 300);
+      router.push(rolePaths[data.user.role] || '/student');
       
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+      setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
       setLoading(false);
     }
   };

@@ -4,8 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { auth } from '@/lib/firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import api, { setStoredAccessToken } from '@/lib/api';
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', role: 'student', department: '' });
@@ -19,32 +18,18 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
     try {
-      if (!auth) throw new Error('Firebase authentication is not configured.');
-      // 1. Create user in Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
-      
-      // 2. Send additional profile data to our backend
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ 
-          name: form.name, 
-          email: form.email, 
-          role: form.role, 
-          department: form.department,
-          firebase_uid: userCredential.user.uid
-        }),
+      const { data } = await api.post('/auth/register', {
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        role: form.role,
+        department: form.department,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Registration failed to save profile');
-      
-      const minimalUser = { email: userCredential.user.email, role: data.user?.role || 'student', id: userCredential.user.uid };
-      localStorage.setItem('user', JSON.stringify(minimalUser));
-      
-      window.location.href = `/${minimalUser.role}`;
+      setStoredAccessToken(data.accessToken);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      window.location.href = `/${data.user.role}`;
     } catch (err: any) {
-      setError(err.message || 'Registration failed');
+      setError(err.response?.data?.error || err.message || 'Registration failed');
     } finally { setLoading(false); }
   };
 
