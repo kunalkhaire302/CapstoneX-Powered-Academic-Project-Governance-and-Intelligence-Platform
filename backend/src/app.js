@@ -23,6 +23,7 @@ const analyticsRoutes = require('./routes/analyticsRoutes');
 const exportRoutes = require('./routes/exportRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
+const agentTeamRoutes = require('./routes/agentTeamRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -95,6 +96,7 @@ app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/agent-team', agentTeamRoutes);
 app.use('/api', recommendationRoutes);
 
 // ──────────────────────────────────────────
@@ -121,6 +123,8 @@ const startServer = async () => {
       await sequelize.sync();
       logger.warn('⚠️  DB_SYNC is enabled; use migrations for persistent environments');
     }
+    const { resumePendingRuns } = require('./services/agentTeamService');
+    await resumePendingRuns();
   } catch (error) {
     logger.error(`PostgreSQL connection failed: ${error.message}`);
     if (process.env.NODE_ENV === 'production') throw error;

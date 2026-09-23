@@ -30,6 +30,7 @@ const createGroup = async (req, res, next) => {
       group_id: group.id,
       student_id: req.user.id,
       role_in_group: 'leader',
+      status: 'accepted',
     });
 
     await createAuditLog({ userId: req.user.id, action: 'group.created', entityType: 'group', entityId: group.id, ipAddress: req.ip });

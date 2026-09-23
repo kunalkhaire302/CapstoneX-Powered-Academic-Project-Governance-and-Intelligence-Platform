@@ -112,6 +112,7 @@ app.add_middleware(
 # ──────────────────────────────────────────
 
 from app.routers import recommend, risk, teams, nlp, reports
+from app.routers import agent_team
 
 # Existing routers
 app.include_router(
@@ -136,6 +137,10 @@ app.include_router(
 )
 app.include_router(
     reports.router, prefix="/api/ai", tags=["Reports Generation"],
+    dependencies=[Depends(verify_internal_token)],
+)
+app.include_router(
+    agent_team.router, prefix="/api/ai", tags=["Agent Team"],
     dependencies=[Depends(verify_internal_token)],
 )
 

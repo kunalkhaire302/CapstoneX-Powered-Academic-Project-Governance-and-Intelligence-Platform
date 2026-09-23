@@ -49,7 +49,9 @@ async def _generate_openai_structured(prompt: str, schema: Dict[str, Any], api_k
         base_url = os.getenv("OPENAI_BASE_URL")
         client = AsyncOpenAI(
             api_key=api_key,
-            base_url=base_url if base_url else None
+            base_url=base_url if base_url else None,
+            timeout=float(os.getenv("OPENAI_TIMEOUT_SECONDS", "45")),
+            max_retries=int(os.getenv("OPENAI_MAX_RETRIES", "2")),
         )
         
         # Inject instruction to return JSON matching the schema
@@ -68,11 +70,18 @@ async def _generate_openai_structured(prompt: str, schema: Dict[str, Any], api_k
             ],
             response_format={"type": "json_object"},
             temperature=0.2,
-            max_tokens=1000,
+            max_tokens=int(os.getenv("OPENAI_AGENT_MAX_TOKENS", "2200")),
         )
         
         content = response.choices[0].message.content
-        return json.loads(content)
+        result = json.loads(content)
+        if response.usage:
+            result["_usage"] = {
+                "input_tokens": response.usage.prompt_tokens or 0,
+                "output_tokens": response.usage.completion_tokens or 0,
+                "total_tokens": response.usage.total_tokens or 0,
+            }
+        return result
         
     except Exception as e:
         logger.error(f"OpenAI API call failed: {e}")

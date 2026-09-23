@@ -47,9 +47,9 @@ module.exports = {
 
     // Group Members
     const members = [
-      ...studentIds.slice(0, 4).map((sid, i) => ({ id: uuidv4(), group_id: groupIds[0], student_id: sid, role_in_group: i === 0 ? 'leader' : 'member', created_at: now, updated_at: now })),
-      ...studentIds.slice(4, 7).map((sid, i) => ({ id: uuidv4(), group_id: groupIds[1], student_id: sid, role_in_group: i === 0 ? 'leader' : 'member', created_at: now, updated_at: now })),
-      ...studentIds.slice(7, 10).map((sid, i) => ({ id: uuidv4(), group_id: groupIds[2], student_id: sid, role_in_group: i === 0 ? 'leader' : 'member', created_at: now, updated_at: now })),
+      ...studentIds.slice(0, 4).map((sid, i) => ({ id: uuidv4(), group_id: groupIds[0], student_id: sid, role_in_group: i === 0 ? 'leader' : 'member', status: 'accepted', created_at: now, updated_at: now })),
+      ...studentIds.slice(4, 7).map((sid, i) => ({ id: uuidv4(), group_id: groupIds[1], student_id: sid, role_in_group: i === 0 ? 'leader' : 'member', status: 'accepted', created_at: now, updated_at: now })),
+      ...studentIds.slice(7, 10).map((sid, i) => ({ id: uuidv4(), group_id: groupIds[2], student_id: sid, role_in_group: i === 0 ? 'leader' : 'member', status: 'accepted', created_at: now, updated_at: now })),
     ];
     await queryInterface.bulkInsert('group_members', members);
 

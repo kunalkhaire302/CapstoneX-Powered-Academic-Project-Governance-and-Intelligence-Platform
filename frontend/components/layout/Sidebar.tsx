@@ -18,6 +18,7 @@ const roleNavItems: Record<string, NavItem[]> = {
     { label: 'My Groups', href: '/student/groups', icon: <GroupIcon /> },
     { label: 'Topics', href: '/student/topics', icon: <FileIcon /> },
     { label: 'AI Recommendations', href: '/student/recommendations', icon: <SparklesIcon /> },
+    { label: 'AI Team', href: '/student/ai-team', icon: <SparklesIcon /> },
     { label: 'Logbook', href: '/student/logbook', icon: <BookIcon /> },
     { label: 'Marks', href: '/student/marks', icon: <ChartIcon /> },
   ],
@@ -29,6 +30,7 @@ const roleNavItems: Record<string, NavItem[]> = {
     { label: 'Schedule', href: '/mentor/schedule', icon: <CalendarIcon /> },
     { label: 'Risk Dashboard', href: '/mentor/risk', icon: <AlertIcon /> },
     { label: 'Reports', href: '/mentor/reports', icon: <ChartIcon /> },
+    { label: 'AI Team', href: '/mentor/ai-team', icon: <SparklesIcon /> },
   ],
 
   admin: [
@@ -39,6 +41,7 @@ const roleNavItems: Record<string, NavItem[]> = {
     { label: 'Risk Dashboard', href: '/admin/risk', icon: <AlertIcon /> },
     { label: 'Teams AI', href: '/admin/teams', icon: <GroupIcon /> },
     { label: 'AI Analytics', href: '/admin/analytics', icon: <SparklesIcon /> },
+    { label: 'AI Team', href: '/admin/ai-team', icon: <SparklesIcon /> },
     { label: 'Model Registry', href: '/admin/models', icon: <ChartIcon /> },
     { label: 'Notifications', href: '/admin/notifications', icon: <BellIcon /> },
   ],

@@ -659,3 +659,23 @@ Licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
 Built with a lot of ☕ and a healthy respect for deadline pressure.
 
 </div>
+# Hierarchical AI Agent Team
+
+CapstoneX includes a governed AI Team workspace for students, mentors, and administrators. A Head Agent coordinates specialist workers for project analysis, technical review, supplied-source research, documentation, progress monitoring, recommendations, communication, and quality auditing.
+
+The workflow is advisory by design. Every run is persisted, project-scoped, evidence-linked, audited, retryable, and held at `awaiting_approval` until the assigned mentor or an administrator records a decision. Grades, rejections, and official feedback are never applied automatically.
+
+Before starting the services, apply the database migration:
+
+```bash
+cd backend
+npm run migrate
+```
+
+Configure the backend and AI service with the same `AI_INTERNAL_SECRET`. Set `LLM_PROVIDER=openai`, `OPENAI_API_KEY`, and `OPENAI_MODEL` to enable model-backed specialists. Without a configured provider, the workflow returns a conservative deterministic fallback, lowers confidence, and requires human review. Optional token-price variables in `.env.example` enable per-run cost estimates.
+
+AI Team routes:
+
+- Student: `/student/ai-team`
+- Mentor: `/mentor/ai-team`
+- Administrator: `/admin/ai-team`

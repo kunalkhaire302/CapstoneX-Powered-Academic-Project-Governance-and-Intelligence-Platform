@@ -499,6 +499,76 @@ const SemesterSnapshot = sequelize.define('semester_snapshots', {
 });
 
 // ──────────────────────────────────────────
+// Hierarchical AI Agent Team Models
+// ──────────────────────────────────────────
+
+const AgentRun = sequelize.define('agent_runs', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  group_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'groups', key: 'id' } },
+  created_by: { type: DataTypes.UUID, allowNull: false, references: { model: 'users', key: 'id' } },
+  workflow: { type: DataTypes.STRING(100), allowNull: false, defaultValue: 'proposal_review' },
+  workflow_version: { type: DataTypes.STRING(20), allowNull: false, defaultValue: '1.0' },
+  objective: { type: DataTypes.TEXT, allowNull: false },
+  context_json: { type: DataTypes.JSONB, allowNull: false, defaultValue: {} },
+  constraints_json: { type: DataTypes.JSONB, allowNull: false, defaultValue: [] },
+  selected_agents: { type: DataTypes.JSONB, allowNull: false, defaultValue: [] },
+  status: { type: DataTypes.STRING(40), allowNull: false, defaultValue: 'queued' },
+  confidence: { type: DataTypes.FLOAT },
+  final_report_json: { type: DataTypes.JSONB },
+  quality_report_json: { type: DataTypes.JSONB },
+  token_usage_json: { type: DataTypes.JSONB, allowNull: false, defaultValue: {} },
+  estimated_cost: { type: DataTypes.DECIMAL(12, 6), allowNull: false, defaultValue: 0 },
+  requires_human_approval: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+  approved_by: { type: DataTypes.UUID, references: { model: 'users', key: 'id' } },
+  approved_at: { type: DataTypes.DATE },
+  started_at: { type: DataTypes.DATE },
+  completed_at: { type: DataTypes.DATE },
+  canceled_at: { type: DataTypes.DATE },
+  error_message: { type: DataTypes.TEXT },
+}, {
+  indexes: [
+    { fields: ['group_id', 'created_at'] },
+    { fields: ['created_by', 'created_at'] },
+    { fields: ['status'] },
+  ],
+});
+
+const AgentTask = sequelize.define('agent_tasks', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  run_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'agent_runs', key: 'id' } },
+  agent_key: { type: DataTypes.STRING(80), allowNull: false },
+  agent_name: { type: DataTypes.STRING(120), allowNull: false },
+  objective: { type: DataTypes.TEXT, allowNull: false },
+  status: { type: DataTypes.STRING(40), allowNull: false, defaultValue: 'queued' },
+  sequence: { type: DataTypes.INTEGER, allowNull: false },
+  attempt: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+  max_attempts: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 2 },
+  confidence: { type: DataTypes.FLOAT },
+  result_json: { type: DataTypes.JSONB },
+  token_usage_json: { type: DataTypes.JSONB, allowNull: false, defaultValue: {} },
+  latency_ms: { type: DataTypes.INTEGER },
+  error_message: { type: DataTypes.TEXT },
+  started_at: { type: DataTypes.DATE },
+  completed_at: { type: DataTypes.DATE },
+}, {
+  indexes: [
+    { fields: ['run_id', 'sequence'] },
+    { fields: ['run_id', 'agent_key'], unique: true },
+    { fields: ['status'] },
+  ],
+});
+
+const AgentApproval = sequelize.define('agent_approvals', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  run_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'agent_runs', key: 'id' } },
+  reviewer_id: { type: DataTypes.UUID, allowNull: false, references: { model: 'users', key: 'id' } },
+  decision: { type: DataTypes.STRING(40), allowNull: false },
+  comment: { type: DataTypes.TEXT },
+}, {
+  indexes: [{ fields: ['run_id', 'created_at'] }],
+});
+
+// ──────────────────────────────────────────
 // New Model Associations
 // ──────────────────────────────────────────
 
@@ -507,6 +577,17 @@ Group.hasMany(PlagiarismReport, { foreignKey: 'group_id', onDelete: 'CASCADE', o
 PlagiarismReport.belongsTo(Group, { foreignKey: 'group_id' });
 User.hasMany(PlagiarismReport, { foreignKey: 'student_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 PlagiarismReport.belongsTo(User, { foreignKey: 'student_id' });
+
+Group.hasMany(AgentRun, { foreignKey: 'group_id', as: 'agent_runs', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+AgentRun.belongsTo(Group, { foreignKey: 'group_id', as: 'group' });
+User.hasMany(AgentRun, { foreignKey: 'created_by', as: 'created_agent_runs', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+AgentRun.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
+AgentRun.belongsTo(User, { foreignKey: 'approved_by', as: 'approver' });
+AgentRun.hasMany(AgentTask, { foreignKey: 'run_id', as: 'tasks', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+AgentTask.belongsTo(AgentRun, { foreignKey: 'run_id', as: 'run' });
+AgentRun.hasMany(AgentApproval, { foreignKey: 'run_id', as: 'approvals', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+AgentApproval.belongsTo(AgentRun, { foreignKey: 'run_id', as: 'run' });
+AgentApproval.belongsTo(User, { foreignKey: 'reviewer_id', as: 'reviewer' });
 
 module.exports = {
   sequelize,
@@ -537,5 +618,8 @@ module.exports = {
   AINotification,
   ProjectEmbedding,
   SemesterSnapshot,
+  AgentRun,
+  AgentTask,
+  AgentApproval,
 };
 
