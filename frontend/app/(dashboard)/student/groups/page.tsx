@@ -5,11 +5,13 @@ import Card from '@/components/ui/Card';
 import { StatusBadge } from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import PageHeader from '@/components/ui/PageHeader';
+import EmptyState from '@/components/ui/EmptyState';
+import { CardSkeleton } from '@/components/ui/Skeleton';
 import { useState, useEffect } from 'react';
 import { useCurrentUser } from '@/lib/hooks';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import { CardSkeleton } from '@/components/ui/Skeleton';
 import { Users, Plus, Hash } from 'lucide-react';
 
 export default function StudentGroupsPage() {
@@ -75,31 +77,34 @@ export default function StudentGroupsPage() {
 
   return (
     <DashboardLayout role="student" title="My Groups" userName={user?.name || 'Student'}>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-        <h2 className="text-xl font-display text-thunder">My Groups</h2>
-        {groups.length === 0 && !loading && (
-          <div className="flex gap-3">
-            <Button variant="secondary" onClick={() => { setShowJoin(!showJoin); setShowCreate(false); }}>
-              <Hash className="w-4 h-4 mr-2" /> Join Group
-            </Button>
-            <Button onClick={() => { setShowCreate(!showCreate); setShowJoin(false); }}>
-              <Plus className="w-4 h-4 mr-2" /> Create Group
-            </Button>
-          </div>
-        )}
-      </div>
+      <PageHeader 
+        title="My Groups" 
+        description="Manage your capstone project team or join an existing group."
+        actions={
+          groups.length === 0 && !loading ? (
+            <>
+              <Button variant="secondary" onClick={() => { setShowJoin(!showJoin); setShowCreate(false); }} icon={<Hash className="w-4 h-4" />}>
+                Join Group
+              </Button>
+              <Button onClick={() => { setShowCreate(!showCreate); setShowJoin(false); }} icon={<Plus className="w-4 h-4" />}>
+                Create Group
+              </Button>
+            </>
+          ) : null
+        }
+      />
 
-      <div className="space-y-4">
+      <div className="space-y-4 mb-6">
         {/* Forms with animation */}
         {showJoin && (
           <div className="animate-slide-up">
-            <Card className="border-cardinal/20 shadow-glow">
-              <h3 className="text-sm font-semibold text-thunder mb-3 flex items-center gap-2">
-                <Hash className="w-4 h-4 text-cardinal" /> Join a Group by Code
+            <Card className="border-cardinal-200 shadow-glow">
+              <h3 className="text-sm font-semibold text-cx-text mb-3 flex items-center gap-2">
+                <Hash className="w-4 h-4 text-cardinal-500" /> Join a Group by Code
               </h3>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Input placeholder="Enter 6- or 8-character code" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} id="join-code" className="flex-1 max-w-sm" />
-                <Button onClick={handleJoinGroup} disabled={submitting}>{submitting ? 'Joining...' : 'Join Group'}</Button>
+                <Button onClick={handleJoinGroup} loading={submitting}>Join Group</Button>
               </div>
             </Card>
           </div>
@@ -107,13 +112,13 @@ export default function StudentGroupsPage() {
 
         {showCreate && (
           <div className="animate-slide-up">
-            <Card className="border-cardinal/20 shadow-glow">
-              <h3 className="text-sm font-semibold text-thunder mb-3 flex items-center gap-2">
-                <Plus className="w-4 h-4 text-cardinal" /> Create a New Group
+            <Card className="border-cardinal-200 shadow-glow">
+              <h3 className="text-sm font-semibold text-cx-text mb-3 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-cardinal-500" /> Create a New Group
               </h3>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Input placeholder="Enter group name (e.g. Innovators)" value={createName} onChange={e => setCreateName(e.target.value)} id="create-name" className="flex-1 max-w-sm" />
-                <Button onClick={handleCreateGroup} disabled={submitting}>{submitting ? 'Creating...' : 'Create Group'}</Button>
+                <Button onClick={handleCreateGroup} loading={submitting}>Create Group</Button>
               </div>
             </Card>
           </div>
@@ -121,49 +126,45 @@ export default function StudentGroupsPage() {
       </div>
 
       {loading ? (
-        <div className="mt-6 space-y-4">
+        <div className="space-y-4">
           <CardSkeleton />
         </div>
       ) : groups.length === 0 ? (
-        <div className="mt-6 animate-fade-in">
-          <Card className="flex flex-col items-center justify-center py-16 text-center border-dashed border-2 bg-surface/50">
-            <div className="w-16 h-16 bg-slate/10 rounded-full flex items-center justify-center mb-4 text-slate">
-              <Users className="w-8 h-8" />
-            </div>
-            <h3 className="text-lg font-semibold text-thunder mb-2">No Groups Yet</h3>
-            <p className="text-slate max-w-md mx-auto mb-6">You are not part of a group yet. Create a new group as leader, or join an existing group with its 6- or 8-character invite code.</p>
-            <div className="flex gap-4">
-              <Button variant="secondary" onClick={() => { setShowJoin(true); setShowCreate(false); }}>Join Existing Group</Button>
-              <Button onClick={() => { setShowCreate(true); setShowJoin(false); }}>Create New Group</Button>
-            </div>
-          </Card>
-        </div>
+        <Card className="border-dashed border-2 bg-cx-bg-subtle shadow-none">
+          <EmptyState 
+            icon={<Users className="w-8 h-8 text-cx-text-muted" />}
+            title="No Groups Yet" 
+            description="You are not part of a group yet. Create a new group as leader, or join an existing group with its 6- or 8-character invite code."
+            action={{ label: "Create New Group", onClick: () => { setShowCreate(true); setShowJoin(false); } }}
+            secondaryAction={{ label: "Join Existing Group", onClick: () => { setShowJoin(true); setShowCreate(false); } }}
+          />
+        </Card>
       ) : (
-        <div className="space-y-4 mt-6 animate-fade-in">
+        <div className="space-y-4 animate-fade-in">
           {groups.map(group => (
-            <Card key={group.id} className="hover:-translate-y-1 transition-transform duration-300">
+            <Card key={group.id} hover>
               <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                 <div>
-                  <h3 className="text-xl font-display text-thunder">{group.name}</h3>
-                  <div className="mt-2 space-y-1">
-                    <p className="text-sm text-slate flex items-center gap-2">
-                      <span className="font-medium text-thunder">Join Code:</span> 
-                      <code className="font-mono bg-cardinal/10 text-cardinal px-2 py-0.5 rounded border border-cardinal/20">{group.join_code}</code>
+                  <h3 className="text-xl font-display font-semibold text-cx-text">{group.name}</h3>
+                  <div className="mt-2 space-y-1.5">
+                    <p className="text-sm text-cx-text-secondary flex items-center gap-2">
+                      <span className="font-medium text-cx-text">Join Code:</span> 
+                      <code className="font-mono bg-cardinal-50 text-cardinal-600 px-2 py-0.5 rounded border border-cardinal-100">{group.join_code}</code>
                     </p>
-                    <p className="text-sm text-slate">
-                      <span className="font-medium text-thunder">Mentor:</span> {group.mentor ? group.mentor.name : 'Unassigned'}
+                    <p className="text-sm text-cx-text-secondary">
+                      <span className="font-medium text-cx-text">Mentor:</span> {group.mentor ? group.mentor.name : 'Unassigned'}
                     </p>
                   </div>
                   
-                  <div className="mt-4">
-                    <p className="text-xs text-slate font-medium mb-2 uppercase tracking-wider">Members ({group.members?.length || 0})</p>
-                    <div className="flex flex-wrap gap-2">
+                  <div className="mt-5">
+                    <p className="text-xs text-cx-text-muted font-medium mb-2.5 uppercase tracking-wider">Members ({group.members?.length || 0})</p>
+                    <div className="flex flex-wrap gap-2.5">
                       {group.members?.map((m: any, i: number) => (
-                        <div key={i} className="flex items-center gap-2 bg-surface border border-border px-2.5 py-1.5 rounded-lg">
-                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cardinal to-cardinal-600 flex items-center justify-center text-[10px] font-bold text-white shadow-sm" title={m.student?.name || 'Student'}>
+                        <div key={i} className="flex items-center gap-2 bg-cx-surface border border-cx-border px-2.5 py-1.5 rounded-lg shadow-sm">
+                          <div className="w-6 h-6 rounded-full bg-cx-bg-muted border border-cx-border flex items-center justify-center text-[10px] font-bold text-cx-text-secondary" title={m.student?.name || 'Student'}>
                             {(m.student?.name || 'S').charAt(0).toUpperCase()}
                           </div>
-                          <span className="text-xs font-medium text-thunder pr-1">{m.student?.name || 'Unknown'}</span>
+                          <span className="text-xs font-medium text-cx-text pr-1">{m.student?.name || 'Unknown'}</span>
                         </div>
                       ))}
                     </div>

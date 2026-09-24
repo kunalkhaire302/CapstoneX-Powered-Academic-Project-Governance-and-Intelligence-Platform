@@ -1,18 +1,22 @@
 'use client';
 
+import { cn } from '@/lib/utils';
+import { ReactNode } from 'react';
+
 interface BadgeProps {
-  variant: 'success' | 'warning' | 'info' | 'error' | 'default';
-  children: React.ReactNode;
+  variant?: 'success' | 'warning' | 'info' | 'error' | 'default' | 'pending';
+  children: ReactNode;
   className?: string;
   dot?: boolean;
 }
 
-const variants = {
-  success: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
-  warning: 'bg-amber-50 text-amber-600 border border-amber-100',
-  info: 'bg-blue-50 text-blue-600 border border-blue-100',
-  error: 'bg-red-50 text-red-600 border border-red-100',
-  default: 'bg-slate-50 text-slate-500 border border-slate-100',
+const variantClasses = {
+  success: 'badge-success',
+  warning: 'badge-warning',
+  info: 'badge-info',
+  error: 'badge-error',
+  pending: 'badge-pending',
+  default: 'badge-default',
 };
 
 const dotColors = {
@@ -20,19 +24,20 @@ const dotColors = {
   warning: 'bg-amber-500',
   info: 'bg-blue-500',
   error: 'bg-red-500',
+  pending: 'bg-violet-500',
   default: 'bg-slate-400',
 };
 
-export default function Badge({ variant, children, className = '', dot = false }: BadgeProps) {
+export default function Badge({ variant = 'default', children, className = '', dot = false }: BadgeProps) {
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${variants[variant]} ${className}`}>
-      {dot && <span className={`w-1.5 h-1.5 rounded-full ${dotColors[variant]}`} />}
+    <span className={cn('badge', variantClasses[variant], className)}>
+      {dot && <span className={cn('w-1.5 h-1.5 rounded-full', dotColors[variant])} />}
       {children}
     </span>
   );
 }
 
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status, className = '' }: { status: string; className?: string }) {
   const statusMap: Record<string, { variant: BadgeProps['variant']; label: string }> = {
     completed: { variant: 'success', label: 'Completed' },
     approved: { variant: 'success', label: 'Approved' },
@@ -47,6 +52,11 @@ export function StatusBadge({ status }: { status: string }) {
     draft: { variant: 'default', label: 'Draft' },
   };
 
-  const config = statusMap[status] || { variant: 'default' as const, label: status };
-  return <Badge variant={config.variant} dot>{config.label}</Badge>;
+  const config = statusMap[status?.toLowerCase()] || { variant: 'default' as const, label: status || 'Unknown' };
+  
+  return (
+    <Badge variant={config.variant} dot className={className}>
+      {config.label}
+    </Badge>
+  );
 }

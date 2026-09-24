@@ -1,6 +1,7 @@
 'use client';
 
 import { ButtonHTMLAttributes, forwardRef, ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
@@ -11,26 +12,34 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', loading, icon, children, className = '', disabled, ...props }, ref) => {
-    const baseStyles = 'relative overflow-hidden inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98] select-none';
-
-    const variants = {
-      primary: 'bg-cardinal text-white hover:bg-cardinal-600 focus:ring-cardinal shadow-[0_8px_22px_rgba(210,35,42,.24)] hover:shadow-[0_12px_28px_rgba(210,35,42,.32)] hover:-translate-y-[1px]',
-      secondary: 'bg-white text-thunder border border-slate-200 hover:bg-slate-50 hover:border-slate-300 focus:ring-cardinal hover:shadow-sm hover:-translate-y-[1px]',
-      outline: 'bg-transparent text-thunder border border-border hover:bg-surface hover:border-slate/30 focus:ring-cardinal',
-      danger: 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 focus:ring-red-500 shadow-[0_2px_8px_rgba(239,68,68,0.25)]',
-      ghost: 'text-slate hover:bg-surface hover:text-thunder focus:ring-cardinal',
+    
+    // Base utility classes handled in globals.css (.btn-primary, etc.)
+    // We just map the variant prop to the corresponding CSS class.
+    
+    const variantClasses = {
+      primary: 'btn-primary',
+      secondary: 'btn-secondary',
+      danger: 'btn-danger',
+      ghost: 'btn-ghost',
+      outline: 'btn-secondary', // mapping outline to secondary for now
     };
 
-    const sizes = {
-      sm: 'text-xs px-3 py-2 gap-1.5 min-h-[36px]',
-      md: 'text-sm px-4 py-2.5 gap-2 min-h-[40px]',
-      lg: 'text-base px-6 py-3 gap-2.5 min-h-[44px]',
+    const sizeClasses = {
+      sm: 'px-3 py-1.5 text-xs min-h-[32px] gap-1.5',
+      md: 'px-4 py-2.5 text-sm min-h-[40px] gap-2',
+      lg: 'px-6 py-3 text-base min-h-[48px] gap-2.5',
     };
 
     return (
       <button
         ref={ref}
-        className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${disabled || loading ? 'opacity-50 cursor-not-allowed !transform-none' : ''} ${className}`}
+        className={cn(
+          'inline-flex items-center justify-center font-semibold rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-cardinal select-none',
+          variantClasses[variant],
+          sizeClasses[size],
+          (disabled || loading) && 'opacity-60 cursor-not-allowed transform-none hover:transform-none shadow-none',
+          className
+        )}
         disabled={disabled || loading}
         aria-busy={loading || undefined}
         {...props}
@@ -41,7 +50,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
         ) : icon ? (
-          <span className="w-4 h-4 flex-shrink-0">{icon}</span>
+          <span className="w-4 h-4 flex-shrink-0 flex items-center justify-center">{icon}</span>
         ) : null}
         {children}
       </button>

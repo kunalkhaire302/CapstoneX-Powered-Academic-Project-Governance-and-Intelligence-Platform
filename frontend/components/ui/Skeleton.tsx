@@ -1,44 +1,50 @@
-'use client';
+import { cn } from '@/lib/utils';
 
-export default function Skeleton({ className = '', width, height }: { className?: string; width?: string; height?: string }) {
+export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`rounded-lg ${className}`}
-      style={{
-        width,
-        height,
-        background: 'linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%)',
-        backgroundSize: '200% 100%',
-        animation: 'shimmer 1.5s ease-in-out infinite',
-      }}
+      className={cn("animate-pulse rounded-md bg-cx-border-subtle", className)}
+      {...props}
     />
   );
 }
 
 export function CardSkeleton() {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-card">
-      <Skeleton className="h-4 w-24 mb-3" />
-      <Skeleton className="h-8 w-16 mb-2" />
-      <Skeleton className="h-3 w-32" />
+    <div className="card w-full h-full p-6 animate-pulse border-transparent bg-cx-surface">
+      <div className="flex items-start justify-between">
+        <div className="space-y-3 w-full">
+          <Skeleton className="h-4 w-1/3" />
+          <Skeleton className="h-8 w-1/2 mt-2" />
+          <div className="pt-4 space-y-2">
+            <Skeleton className="h-3 w-4/5" />
+            <Skeleton className="h-3 w-3/4" />
+            <Skeleton className="h-3 w-5/6" />
+          </div>
+        </div>
+        <Skeleton className="h-12 w-12 rounded-xl flex-shrink-0 ml-4" />
+      </div>
     </div>
   );
 }
 
-export function TableSkeleton({ rows = 5 }: { rows?: number }) {
+export function TableRowSkeleton({ columns = 4 }: { columns?: number }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-      <div className="p-5 border-b border-gray-100">
-        <Skeleton className="h-8 w-64" />
-      </div>
-      {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-gray-50 last:border-0">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-4 w-48" />
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-6 w-16 rounded-full" />
-        </div>
+    <tr className="border-b border-cx-border-subtle">
+      {Array.from({ length: columns }).map((_, i) => (
+        <td key={i} className="py-4 px-4">
+          <Skeleton className="h-4 w-full max-w-[120px]" />
+        </td>
       ))}
+    </tr>
+  );
+}
+
+export function PageHeaderSkeleton() {
+  return (
+    <div className="mb-8 space-y-3 animate-pulse">
+      <Skeleton className="h-8 w-1/3" />
+      <Skeleton className="h-4 w-1/2 max-w-[400px]" />
     </div>
   );
 }

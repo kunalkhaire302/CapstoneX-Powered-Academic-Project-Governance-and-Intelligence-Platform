@@ -102,16 +102,13 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
   if (!isAuthorized) return <AppLoader label="Verifying workspace access" />;
 
   return (
-    <div className="app-atmosphere surface-noise min-h-screen w-full overflow-hidden flex">
+    <div className="min-h-screen w-full overflow-hidden flex bg-cx-bg text-cx-text font-body selection:bg-cardinal-200 selection:text-cardinal-900">
       {isEntering && <AppLoader compact label={`Opening ${title}`} />}
 
-      <div className="fixed -left-40 -top-48 h-[34rem] w-[34rem] rounded-full bg-cardinal/15 blur-[120px] pointer-events-none z-0" aria-hidden="true" />
-      <div className="fixed -bottom-64 right-[-8rem] h-[36rem] w-[36rem] rounded-full bg-blue-500/10 blur-[140px] pointer-events-none z-0" aria-hidden="true" />
-      
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-opacity"
+          className="fixed inset-0 bg-cx-bg-overlay backdrop-blur-sm z-40 lg:hidden transition-opacity"
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         />
@@ -126,27 +123,23 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
         onClose={() => setSidebarOpen(false)}
       />
 
-      {/* Main App-in-App Canvas */}
-      <div className="flex-1 flex flex-col min-h-screen lg:pl-[284px] p-2 sm:p-3 lg:py-3 lg:pr-3 transition-all duration-300 z-10 w-full max-w-[100vw]">
-        <div className="workspace-canvas flex-1 flex flex-col rounded-[22px] sm:rounded-[28px] border border-white/70 overflow-hidden relative isolate">
-          
-          <Topbar 
-            title={title} 
-            role={role}
-            onMenuToggle={() => setSidebarOpen(true)} 
-            userProfile={userProfile}
-            setUserProfile={setUserProfile}
-          />
+      {/* Main App Canvas */}
+      <div className="flex-1 flex flex-col min-h-screen transition-all duration-300 z-10 w-full max-w-[100vw] lg:pl-[280px]">
+        <Topbar 
+          title={title} 
+          role={role}
+          onMenuToggle={() => setSidebarOpen(true)} 
+          userProfile={userProfile}
+          setUserProfile={setUserProfile}
+        />
 
-          <main id="main-content" className="dashboard-grid flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 xl:p-10 w-full" role="main">
-            <div key={pathname} className="page-reveal max-w-[1460px] mx-auto w-full min-h-full">
-              <UserProfileContext.Provider value={{ userProfile, setUserProfile }}>
-                {children}
-              </UserProfileContext.Provider>
-            </div>
-          </main>
-          
-        </div>
+        <main id="main-content" className="flex-1 overflow-y-auto w-full focus:outline-none" role="main" tabIndex={-1}>
+          <div key={pathname} className="page-reveal max-w-7xl mx-auto w-full min-h-full p-4 sm:p-6 lg:p-8 xl:p-10">
+            <UserProfileContext.Provider value={{ userProfile, setUserProfile }}>
+              {children}
+            </UserProfileContext.Provider>
+          </div>
+        </main>
       </div>
     </div>
   );

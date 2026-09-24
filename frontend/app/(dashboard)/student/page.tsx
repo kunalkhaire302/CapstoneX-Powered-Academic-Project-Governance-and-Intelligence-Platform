@@ -20,12 +20,8 @@ function WelcomeBanner() {
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mb-8 bg-gradient-to-br from-[#0F172A] via-[#1e293b] to-[#0F172A] rounded-2xl p-8 text-white relative overflow-hidden shadow-xl"
+      className="mb-8 bg-gradient-dark rounded-2xl p-8 text-white shadow-brand relative overflow-hidden"
     >
-      {/* Abstract Background Elements */}
-      <div className="absolute top-[-50%] right-[-10%] w-96 h-96 bg-cardinal/20 rounded-full blur-[80px] pointer-events-none" />
-      <div className="absolute bottom-[-50%] left-[10%] w-64 h-64 bg-blue-500/20 rounded-full blur-[60px] pointer-events-none" />
-      
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <motion.div 
@@ -34,7 +30,7 @@ function WelcomeBanner() {
             transition={{ delay: 0.2 }}
             className="flex items-center gap-2 mb-2"
           >
-            <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-medium backdrop-blur-sm border border-white/10 flex items-center gap-1.5">
+            <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-medium border border-white/10 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-cardinal-300" />
               Capstone Journey
             </span>
@@ -117,16 +113,16 @@ export default function StudentDashboard() {
           {/* Recent Activity */}
           <Card>
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-display text-thunder flex items-center gap-2">
+              <h3 className="text-lg font-display font-semibold text-cx-text flex items-center gap-2">
                 <Activity className="w-5 h-5 text-indigo-500" />
                 Recent Activity
               </h3>
-              <Link href="/student/notifications" className="text-xs text-cardinal font-medium hover:underline">View All</Link>
+              <Link href="/student/notifications" className="text-xs text-cardinal-600 font-medium hover:underline">View All</Link>
             </div>
             
             {dashboardLoading ? (
               <div className="animate-pulse space-y-4">
-                {[1, 2, 3].map(i => <div key={i} className="h-12 bg-gray-100 rounded-xl" />)}
+                {[1, 2, 3].map(i => <div key={i} className="h-12 bg-cx-bg-muted rounded-xl" />)}
               </div>
             ) : recentActivity.length > 0 ? (
               <div className="space-y-2">
@@ -136,21 +132,21 @@ export default function StudentDashboard() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
                     key={activity.id} 
-                    className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-all cursor-pointer group border border-transparent hover:border-gray-100"
+                    className="flex items-center gap-4 p-3 rounded-xl hover:bg-cx-bg-subtle transition-all cursor-pointer group border border-transparent hover:border-cx-border-subtle"
                   >
                     <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500 group-hover:scale-110 group-hover:bg-indigo-100 transition-all">
                       <Bell className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-thunder truncate">{activity.action}</p>
-                      <p className="text-xs text-slate">{new Date(activity.time).toLocaleDateString()}</p>
+                      <p className="text-sm font-medium text-cx-text truncate">{activity.action}</p>
+                      <p className="text-xs text-cx-text-muted">{new Date(activity.time).toLocaleDateString()}</p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate/40 group-hover:text-thunder transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-cx-text-muted group-hover:text-cx-text transition-colors" />
                   </motion.div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-slate">
+              <div className="text-center py-8 text-cx-text-muted">
                 <p className="text-sm">No recent activity found.</p>
               </div>
             )}
@@ -164,16 +160,16 @@ export default function StudentDashboard() {
           {/* AI Recommendations */}
           <Card>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-display text-thunder flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-cardinal" />
+              <h3 className="text-lg font-display font-semibold text-cx-text flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-cardinal-600" />
                 AI Insights
               </h3>
             </div>
-            <p className="text-xs text-slate mb-5">Project domains matching your profile</p>
+            <p className="text-xs text-cx-text-secondary mb-5">Project domains matching your profile</p>
             
             {recLoading ? (
                <div className="animate-pulse space-y-3">
-                 {[1, 2, 3].map(i => <div key={i} className="h-20 bg-gray-100 rounded-xl" />)}
+                 {[1, 2, 3].map(i => <div key={i} className="h-20 bg-cx-bg-muted rounded-xl" />)}
                </div>
             ) : recommendations.length > 0 ? (
               <div className="space-y-3">
@@ -183,29 +179,29 @@ export default function StudentDashboard() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.1 }}
                     key={i} 
-                    className="p-3.5 rounded-xl border border-gray-100 hover:border-cardinal/30 hover:bg-cardinal-50/50 transition-all cursor-pointer group"
+                    className="p-3.5 rounded-xl border border-cx-border hover:border-cardinal-300 hover:bg-cardinal-50/50 transition-all cursor-pointer group"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-semibold text-thunder truncate mr-2">{rec.domain || rec.title}</p>
+                      <p className="text-sm font-semibold text-cx-text truncate mr-2">{rec.domain || rec.title}</p>
                       <Badge variant="success">{Math.round((rec.score || 0.85) * 100)}%</Badge>
                     </div>
                     {/* Score bar */}
-                    <div className="w-full h-1.5 bg-gray-100 rounded-full mb-2 overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full transition-all duration-700" style={{ width: `${(rec.score || 0.85) * 100}%` }} />
+                    <div className="w-full h-1.5 bg-cx-bg-muted rounded-full mb-2 overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full transition-all duration-700" style={{ width: `${(rec.score || 0.85) * 100}%` }} />
                     </div>
-                    <p className="text-xs text-slate line-clamp-2">{rec.reason || 'Matches your profile.'}</p>
+                    <p className="text-xs text-cx-text-secondary line-clamp-2">{rec.reason || 'Matches your profile.'}</p>
                   </motion.div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-6 text-slate bg-gray-50 rounded-xl">
-                <Sparkles className="w-6 h-6 text-slate/40 mx-auto mb-2" />
+              <div className="text-center py-6 text-cx-text-muted bg-cx-bg-subtle rounded-xl">
+                <Sparkles className="w-6 h-6 text-cx-text-muted mx-auto mb-2 opacity-50" />
                 <p className="text-xs">No AI recommendations yet.<br/>Update your profile to get started.</p>
               </div>
             )}
             
             <Link href="/student/recommendations">
-              <button className="w-full mt-4 text-sm text-cardinal font-semibold hover:text-cardinal-hover transition-colors flex items-center justify-center gap-1 py-2 rounded-lg hover:bg-cardinal-50">
+              <button className="w-full mt-4 text-sm font-semibold text-cardinal-600 hover:text-cardinal-700 transition-colors flex items-center justify-center gap-1 py-2 rounded-lg hover:bg-cardinal-50">
                 Explore Recommendations
                 <ChevronRight className="w-4 h-4" />
               </button>

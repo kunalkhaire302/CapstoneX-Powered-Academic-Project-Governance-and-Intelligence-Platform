@@ -1,30 +1,47 @@
 'use client';
 
 import { HTMLAttributes, ReactNode } from 'react';
+import { cn } from '@/lib/utils';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   className?: string;
   hover?: boolean;
-  padding?: 'sm' | 'md' | 'lg';
+  padding?: 'none' | 'sm' | 'md' | 'lg';
   variant?: 'default' | 'glass' | 'gradient' | 'outlined';
 }
 
-export default function Card({ children, className = '', hover = false, padding = 'md', variant = 'default', ...props }: CardProps) {
-  const paddings = { sm: 'p-4', md: 'p-6', lg: 'p-8' };
+export default function Card({ 
+  children, 
+  className = '', 
+  hover = false, 
+  padding = 'md', 
+  variant = 'default', 
+  ...props 
+}: CardProps) {
+  const paddings = { 
+    none: 'p-0',
+    sm: 'p-4', 
+    md: 'p-6', 
+    lg: 'p-8' 
+  };
 
   const variants = {
-    default: 'bg-white/90 border border-slate-200/70 shadow-[0_1px_2px_rgba(15,23,42,.03),0_8px_30px_rgba(15,23,42,.035)]',
-    glass: 'bg-white/65 backdrop-blur-xl border border-white/80 shadow-[0_18px_45px_rgba(15,23,42,.08)]',
-    gradient: 'bg-gradient-to-br from-white via-white to-slate-50/80 border border-slate-200/70 shadow-[0_12px_35px_rgba(15,23,42,.055)]',
-    outlined: 'bg-white/60 border border-slate-300/80',
+    default: 'card',
+    glass: 'bg-white/65 backdrop-blur-xl border border-white/80 shadow-md rounded-2xl',
+    gradient: 'bg-gradient-surface border border-cx-border rounded-2xl shadow-sm',
+    outlined: 'bg-transparent border border-cx-border rounded-2xl',
   };
 
   return (
     <div
-      className={`rounded-[18px] ${variants[variant]} ${
-        hover ? 'hover:border-slate-300/80 hover:shadow-[0_18px_42px_rgba(15,23,42,.08)] hover:-translate-y-0.5' : ''
-      } transition-[transform,box-shadow,border-color] duration-300 ease-out ${paddings[padding]} ${className}`}
+      className={cn(
+        variants[variant],
+        hover && 'card-interactive',
+        paddings[padding],
+        className
+      )}
       {...props}
     >
       {children}
@@ -39,30 +56,47 @@ interface StatCardProps {
   icon?: ReactNode;
   iconBg?: string;
   delay?: number;
+  className?: string;
 }
 
-export function StatCard({ label, value, trend, icon, iconBg = 'bg-cardinal-50 text-cardinal', delay = 0 }: StatCardProps) {
+export function StatCard({ 
+  label, 
+  value, 
+  trend, 
+  icon, 
+  iconBg = 'bg-cardinal-50 text-cardinal', 
+  delay = 0,
+  className = ''
+}: StatCardProps) {
   return (
-    <Card className="animate-fade-in group" style={{ animationDelay: `${delay * 0.08}s` }}>
+    <Card 
+      className={cn('animate-fade-in group hover:-translate-y-1 transition-transform duration-300', className)} 
+      style={{ animationDelay: `${delay * 0.08}s` }}
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm text-slate font-medium">{label}</p>
-          <p className="mt-2 text-3xl font-display text-thunder animate-count-up">{value}</p>
+          <p className="text-sm font-medium text-cx-text-secondary">{label}</p>
+          <p className="mt-2 text-3xl font-display text-cx-text animate-count-up">{value}</p>
+          
           {trend && (
-            <div className="mt-2 flex items-center gap-1.5">
-              <span className={`inline-flex items-center gap-1 text-xs font-semibold px-1.5 py-0.5 rounded-md ${
-                trend.positive 
-                  ? 'bg-emerald-50 text-emerald-600' 
-                  : 'bg-red-50 text-red-500'
-              }`}>
-                {trend.positive ? '↑' : '↓'} {Math.abs(trend.value)}%
+            <div className="mt-2.5 flex items-center gap-2">
+              <span className={cn(
+                'inline-flex items-center gap-1 text-xs font-semibold px-1.5 py-0.5 rounded-md',
+                trend.positive ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+              )}>
+                {trend.positive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                {Math.abs(trend.value)}%
               </span>
-              <span className="text-xs text-slate">vs last week</span>
+              <span className="text-xs text-cx-text-muted">vs last period</span>
             </div>
           )}
         </div>
+        
         {icon && (
-          <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}>
+          <div className={cn(
+            'w-12 h-12 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110',
+            iconBg
+          )}>
             {icon}
           </div>
         )}

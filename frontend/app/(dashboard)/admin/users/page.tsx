@@ -1,14 +1,21 @@
 'use client';
 
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import Card from '@/components/ui/Card';
+import Card, { StatCard } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import PageHeader from '@/components/ui/PageHeader';
+import DataTable, { ColumnDef } from '@/components/ui/DataTable';
 import { useCurrentUser } from '@/lib/hooks';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
+import toast from 'react-hot-toast';
+import { 
+  Users, Plus, Upload, Trash2, Edit2, Search, 
+  CheckCircle, PauseCircle, Activity, Shield, AlertTriangle
+} from 'lucide-react';
 
 interface User {
   id: string; name: string; email: string; role: string;
@@ -16,44 +23,11 @@ interface User {
   sap_id?: string | null; roll_no?: string | null; branch?: string | null;
 }
 
-// ─── Toast ───────────────────────────────────────────────────────────────────
-function Toast({ message, type, onDismiss }: { message: string; type: 'success' | 'error'; onDismiss: () => void }) {
-  useEffect(() => { const t = setTimeout(onDismiss, 4000); return () => clearTimeout(t); }, [onDismiss]);
-  return (
-    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl border animate-slide-up max-w-sm ${
-      type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'
-    }`}>
-      <span className="text-lg">{type === 'success' ? '✅' : '❌'}</span>
-      <span className="text-sm font-medium">{message}</span>
-      <button onClick={onDismiss} className="ml-2 text-current opacity-50 hover:opacity-100">✕</button>
-    </div>
-  );
-}
-
-// ─── Skeleton rows ────────────────────────────────────────────────────────────
-function SkeletonRow() {
-  return (
-    <tr className="border-b border-gray-50">
-      {[40, 56, 24, 32, 16, 20].map((w, i) => (
-        <td key={i} className="py-3.5 px-4">
-          <div className={`h-4 bg-gray-100 rounded-lg animate-pulse w-${w}`} style={{ width: `${w * 4}px` }} />
-        </td>
-      ))}
-    </tr>
-  );
-}
-
-// ─── Role config ──────────────────────────────────────────────────────────────
 const ROLE_CONFIG: Record<string, { bg: string; text: string; dot: string; badge: 'success' | 'info' | 'warning' | 'error' | 'default' }> = {
-  admin:         { bg: 'bg-red-100',    text: 'text-red-700',    dot: 'bg-red-500',    badge: 'error' },
-  mentor:        { bg: 'bg-blue-100',   text: 'text-blue-700',   dot: 'bg-blue-500',   badge: 'info' },
-  student:       { bg: 'bg-slate-100',  text: 'text-slate-600',  dot: 'bg-slate-400',  badge: 'default' },
+  admin:         { bg: 'bg-red-50',    text: 'text-red-700',    dot: 'bg-red-500',    badge: 'error' },
+  mentor:        { bg: 'bg-blue-50',   text: 'text-blue-700',   dot: 'bg-blue-500',   badge: 'info' },
+  student:       { bg: 'bg-slate-50',  text: 'text-slate-600',  dot: 'bg-slate-400',  badge: 'default' },
 };
-
-const AVATAR_GRADIENTS = [
-  'from-cardinal to-red-700', 'from-blue-500 to-blue-700', 'from-emerald-500 to-emerald-700',
-  'from-violet-500 to-violet-700', 'from-amber-500 to-amber-700', 'from-pink-500 to-pink-700',
-];
 
 const ALL_ROLES = ['student', 'mentor', 'admin'];
 
@@ -72,11 +46,8 @@ export default function AdminUsersPage() {
   const [addModal, setAddModal] = useState(false);
   const [csvModal, setCsvModal] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const [form, setForm] = useState({ name: '', email: '', role: 'student', department: '', sap_id: '', roll_no: '', branch: '', password: '' });
-
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => setToast({ message, type });
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -114,11 +85,11 @@ export default function AdminUsersPage() {
         name: form.name, role: form.role,
         sap_id: form.sap_id, roll_no: form.roll_no, branch: form.branch
       });
-      showToast('User updated successfully');
+      toast.success('User updated successfully');
       setEditUser(null);
       fetchUsers();
     } catch (err: any) {
-      showToast(err.response?.data?.error || 'Failed to update user', 'error');
+      toast.error(err.response?.data?.error || 'Failed to update user');
     } finally { setSaving(false); }
   };
 
@@ -127,11 +98,11 @@ export default function AdminUsersPage() {
     setSaving(true);
     try {
       await api.delete(`/users/${deleteUser.id}`);
-      showToast('User deleted successfully');
+      toast.success('User deleted successfully');
       setDeleteUser(null);
       fetchUsers();
     } catch (err: any) {
-      showToast(err.response?.data?.error || 'Failed to delete user', 'error');
+      toast.error(err.response?.data?.error || 'Failed to delete user');
     } finally { setSaving(false); }
   };
 
@@ -139,12 +110,12 @@ export default function AdminUsersPage() {
     setSaving(true);
     try {
       await api.post('/users/admin-create', { ...form, password: form.password || 'CapstoneX@2024' });
-      showToast('User created successfully');
+      toast.success('User created successfully');
       setAddModal(false);
       setForm({ name: '', email: '', role: 'student', department: '', sap_id: '', roll_no: '', branch: '', password: '' });
       fetchUsers();
     } catch (err: any) {
-      showToast(err.response?.data?.error || 'Failed to create user', 'error');
+      toast.error(err.response?.data?.error || 'Failed to create user');
     } finally { setSaving(false); }
   };
 
@@ -167,11 +138,11 @@ export default function AdminUsersPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Import failed');
       
-      showToast(data.message || 'Import successful');
+      toast.success(data.message || 'Import successful');
       setCsvModal(false);
       fetchUsers();
     } catch (err: any) {
-      showToast(err.message || 'Import failed', 'error');
+      toast.error(err.message || 'Import failed');
     } finally {
       setSaving(false);
       e.target.value = ''; // Reset input so the same file can be selected again
@@ -182,65 +153,103 @@ export default function AdminUsersPage() {
   const activeCount = users.filter(u => u.is_active).length;
   const thisMonth = users.filter(u => new Date(u.created_at).getMonth() === new Date().getMonth()).length;
 
-  const selectClass = "w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-cardinal/20 focus:border-cardinal outline-none transition-all";
+  const selectClass = "w-full px-3.5 py-2.5 text-sm bg-cx-surface border border-cx-border rounded-xl focus:ring-2 focus:ring-cardinal-200 focus:border-cardinal-500 outline-none transition-all hover:border-cx-border-strong text-cx-text";
+
+  const columns: ColumnDef<User>[] = [
+    {
+      header: 'User',
+      className: 'font-semibold text-cx-text',
+      cell: (u) => (
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-cx-bg-muted flex items-center justify-center text-xs font-bold text-cx-text-secondary shadow-sm flex-shrink-0 border border-cx-border">
+            {u.name.charAt(0).toUpperCase()}
+          </div>
+          <span className="font-semibold text-cx-text">{u.name}</span>
+        </div>
+      )
+    },
+    {
+      header: 'Email',
+      className: 'text-cx-text-secondary text-xs',
+      accessorKey: 'email'
+    },
+    {
+      header: 'Role',
+      cell: (u) => {
+        const rc = ROLE_CONFIG[u.role] || ROLE_CONFIG.student;
+        return (
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold capitalize ${rc.bg} ${rc.text} border border-cx-border`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${rc.dot}`} />
+            {u.role}
+          </span>
+        );
+      }
+    },
+    {
+      header: 'Branch',
+      className: 'text-cx-text-secondary text-xs',
+      cell: (u) => u.branch || '—'
+    },
+    {
+      header: 'Status',
+      cell: (u) => (
+        <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${u.is_active ? 'text-emerald-600' : 'text-slate-400'}`}>
+          <span className={`w-2 h-2 rounded-full ${u.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+          {u.is_active ? 'Active' : 'Inactive'}
+        </span>
+      )
+    },
+    {
+      header: 'Actions',
+      cell: (u) => (
+        <div className="flex items-center gap-1">
+          <button onClick={(e) => { e.stopPropagation(); handleEdit(u); }}
+            className="p-1.5 rounded-lg text-cx-text-muted hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit">
+            <Edit2 className="w-4 h-4" />
+          </button>
+          <button onClick={(e) => { e.stopPropagation(); setDeleteUser(u); }}
+            className="p-1.5 rounded-lg text-cx-text-muted hover:text-red-600 hover:bg-red-50 transition-colors" title="Delete">
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      )
+    }
+  ];
 
   return (
     <DashboardLayout role="admin" title="User Management" userName={currentUser?.name || 'Admin'}>
-      {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
-
       {/* ── Page Header ─────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-xl shadow-sm">👥</div>
-          <div>
-            <h2 className="text-2xl font-display text-thunder">User Management</h2>
-            <p className="text-sm text-slate mt-0.5">Create, edit and manage all platform users</p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={() => setCsvModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:text-thunder transition-all">
-            <span>📄</span> CSV Import
-          </button>
-          <button onClick={() => { setAddModal(true); setForm({ name: '', email: '', role: 'student', department: '', sap_id: '', roll_no: '', branch: '', password: '' }); }}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-cardinal rounded-xl hover:bg-cardinal-hover transition-all shadow-sm">
-            <span>+</span> Add User
-          </button>
-        </div>
-      </div>
+      <PageHeader 
+        title="User Management" 
+        description="Create, edit and manage all platform users"
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => setCsvModal(true)} icon={<Upload className="w-4 h-4" />}>
+              CSV Import
+            </Button>
+            <Button onClick={() => { setAddModal(true); setForm({ name: '', email: '', role: 'student', department: '', sap_id: '', roll_no: '', branch: '', password: '' }); }} icon={<Plus className="w-4 h-4" />}>
+              Add User
+            </Button>
+          </>
+        }
+      />
 
       {/* ── KPI Row ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Total Users',    value: total,       icon: '👥', color: 'from-blue-500 to-blue-600' },
-          { label: 'Active',         value: activeCount, icon: '✅', color: 'from-emerald-500 to-emerald-600' },
-          { label: 'Inactive',       value: total - activeCount, icon: '⏸️', color: 'from-gray-400 to-gray-500' },
-          { label: 'Joined This Month', value: thisMonth, icon: '🆕', color: 'from-violet-500 to-violet-600' },
-        ].map((k, i) => (
-          <Card key={i} className="group relative overflow-hidden">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs text-slate font-medium uppercase tracking-wide">{k.label}</p>
-                <p className="text-3xl font-display text-thunder mt-1.5">{loading ? '—' : k.value}</p>
-              </div>
-              <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${k.color} flex items-center justify-center text-xl shadow-sm group-hover:scale-110 transition-transform`}>
-                {k.icon}
-              </div>
-            </div>
-          </Card>
-        ))}
+        <StatCard label="Total Users" value={loading ? '...' : total} icon={<Users className="w-6 h-6" />} iconBg="bg-blue-50 text-blue-600" />
+        <StatCard label="Active" value={loading ? '...' : activeCount} icon={<CheckCircle className="w-6 h-6" />} iconBg="bg-emerald-50 text-emerald-600" />
+        <StatCard label="Inactive" value={loading ? '...' : total - activeCount} icon={<PauseCircle className="w-6 h-6" />} iconBg="bg-slate-100 text-slate-600" />
+        <StatCard label="Joined This Month" value={loading ? '...' : thisMonth} icon={<Activity className="w-6 h-6" />} iconBg="bg-violet-50 text-violet-600" />
       </div>
 
       {/* ── Controls ────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
         {/* Search with icon */}
         <div className="relative flex-1 max-w-md">
-          <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-cx-text-muted" />
           <input type="text" placeholder="Search by name or email..." value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
-            className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-cardinal/20 focus:border-cardinal outline-none transition-all"
+            className="w-full pl-10 pr-4 py-2.5 text-sm bg-cx-surface border border-cx-border rounded-xl focus:ring-2 focus:ring-cardinal-200 focus:border-cardinal-500 outline-none transition-all hover:border-cx-border-strong text-cx-text"
             id="search-users" />
         </div>
 
@@ -250,218 +259,140 @@ export default function AdminUsersPage() {
             <button key={r} onClick={() => { setRoleFilter(r); setPage(1); }}
               className={`px-3.5 py-2 rounded-xl text-xs font-semibold capitalize transition-all border ${
                 roleFilter === r
-                  ? 'bg-thunder text-white border-thunder shadow-sm'
-                  : 'bg-white text-slate border-gray-200 hover:border-gray-300 hover:text-thunder'
+                  ? 'bg-cx-text text-cx-surface border-cx-text shadow-sm'
+                  : 'bg-cx-surface text-cx-text-secondary border-cx-border hover:border-cx-border-strong hover:text-cx-text'
               }`}>
-              {r || 'All'}
+              {r || 'All Roles'}
             </button>
           ))}
         </div>
       </div>
 
       {/* ── Table ───────────────────────────────────────────────────── */}
-      <Card padding="sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/60">
-                {['User', 'Email', 'Role', 'Branch', 'Status', 'Actions'].map(h => (
-                  <th key={h} className="text-left py-3 px-4 text-xs font-bold text-slate uppercase tracking-wider">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
-              ) : users.length === 0 ? (
-                <tr>
-                  <td colSpan={6}>
-                    <div className="py-16 flex flex-col items-center gap-3 text-center">
-                      <span className="text-5xl">🔍</span>
-                      <p className="font-semibold text-thunder">No users found</p>
-                      <p className="text-sm text-slate">Try adjusting your search or role filter</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                users.map((u, idx) => {
-                  const rc = ROLE_CONFIG[u.role] || ROLE_CONFIG.student;
-                  const grad = AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length];
-                  return (
-                    <tr key={u.id} className="border-b border-gray-50 last:border-0 hover:bg-blue-50/20 transition-colors group">
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-xs font-bold text-white shadow-sm flex-shrink-0`}>
-                            {u.name.charAt(0).toUpperCase()}
-                          </div>
-                          <span className="font-semibold text-thunder">{u.name}</span>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4 text-slate text-xs">{u.email}</td>
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold capitalize ${rc.bg} ${rc.text}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${rc.dot}`} />
-                          {u.role}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-slate text-xs">{u.branch || '—'}</td>
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${u.is_active ? 'text-emerald-600' : 'text-gray-400'}`}>
-                          <span className={`w-2 h-2 rounded-full ${u.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300'}`} />
-                          {u.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => handleEdit(u)}
-                            className="p-1.5 rounded-lg text-slate hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
-                            </svg>
-                          </button>
-                          <button onClick={() => setDeleteUser(u)}
-                            className="p-1.5 rounded-lg text-slate hover:text-red-600 hover:bg-red-50 transition-colors" title="Delete">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+      <Card padding="none" className="overflow-hidden">
+        <DataTable 
+          data={users} 
+          columns={columns} 
+          loading={loading}
+          emptyTitle="No users found"
+          emptyDescription="Try adjusting your search or role filter"
+          className="border-none shadow-none rounded-none"
+        />
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3.5 border-t border-gray-100 bg-gray-50/40">
-            <p className="text-xs text-slate">Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of <span className="font-semibold text-thunder">{total}</span> users</p>
-            <div className="flex gap-1">
-              <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}
-                className="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-white transition-colors">← Prev</button>
+        {totalPages > 1 && !loading && users.length > 0 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-cx-border-subtle bg-cx-bg-subtle">
+            <p className="text-xs text-cx-text-secondary">Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of <span className="font-semibold text-cx-text">{total}</span> users</p>
+            <div className="flex gap-1.5">
+              <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Prev</Button>
               {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => (
-                <button key={i} onClick={() => setPage(i + 1)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${page === i + 1 ? 'bg-cardinal text-white shadow-sm' : 'border border-gray-200 hover:bg-white'}`}>
+                <Button key={i} variant={page === i + 1 ? 'primary' : 'secondary'} size="sm" onClick={() => setPage(i + 1)}>
                   {i + 1}
-                </button>
+                </Button>
               ))}
-              <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}
-                className="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-white transition-colors">Next →</button>
+              <Button variant="secondary" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next →</Button>
             </div>
           </div>
         )}
       </Card>
 
       {/* ── Edit Modal ───────────────────────────────────────────────── */}
-      {editUser && (
-        <Modal isOpen title="Edit User" onClose={() => setEditUser(null)}>
-          <div className="space-y-4">
-            <Input label="Full Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-            <div>
-              <label className="block text-sm font-medium text-thunder mb-1.5">Role</label>
-              <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} className={selectClass}>
-                {ALL_ROLES.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
-              </select>
-            </div>
-            
-            {form.role === 'student' && (
-              <div className="grid grid-cols-2 gap-4">
-                <Input label="SAP ID" value={form.sap_id} onChange={e => setForm({ ...form, sap_id: e.target.value })} />
-                <Input label="Roll No" value={form.roll_no} onChange={e => setForm({ ...form, roll_no: e.target.value })} />
-                <Input label="Branch" value={form.branch} onChange={e => setForm({ ...form, branch: e.target.value })} />
-              </div>
-            )}
-            
-            <div className="flex gap-3 justify-end pt-2">
-              <Button variant="secondary" onClick={() => setEditUser(null)}>Cancel</Button>
-              <Button onClick={handleSaveEdit} loading={saving}>Save Changes</Button>
-            </div>
+      <Modal isOpen={!!editUser} title="Edit User" onClose={() => setEditUser(null)}>
+        <div className="space-y-4">
+          <Input label="Full Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+          <div>
+            <label className="block text-sm font-semibold text-cx-text mb-1.5">Role</label>
+            <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} className={selectClass}>
+              {ALL_ROLES.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
+            </select>
           </div>
-        </Modal>
-      )}
+          
+          {form.role === 'student' && (
+            <div className="grid grid-cols-2 gap-4">
+              <Input label="SAP ID" value={form.sap_id} onChange={e => setForm({ ...form, sap_id: e.target.value })} />
+              <Input label="Roll No" value={form.roll_no} onChange={e => setForm({ ...form, roll_no: e.target.value })} />
+              <Input label="Branch" value={form.branch} onChange={e => setForm({ ...form, branch: e.target.value })} />
+            </div>
+          )}
+          
+          <div className="flex gap-3 justify-end pt-4">
+            <Button variant="secondary" onClick={() => setEditUser(null)}>Cancel</Button>
+            <Button onClick={handleSaveEdit} loading={saving}>Save Changes</Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* ── Delete Modal ─────────────────────────────────────────────── */}
-      {deleteUser && (
-        <Modal isOpen title="Delete User" onClose={() => setDeleteUser(null)}>
-          <div className="p-4 bg-red-50 border border-red-100 rounded-xl mb-4 flex items-start gap-3">
-            <span className="text-2xl">⚠️</span>
-            <p className="text-sm text-red-700">
-              Are you sure you want to delete <strong>{deleteUser.name}</strong> ({deleteUser.email})?
-              This action is permanent and cannot be undone.
-            </p>
-          </div>
-          <div className="flex gap-3 justify-end">
-            <Button variant="secondary" onClick={() => setDeleteUser(null)}>Cancel</Button>
-            <button onClick={handleDelete} disabled={saving}
-              className="px-4 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors disabled:opacity-50">
-              {saving ? 'Deleting...' : 'Delete'}
-            </button>
-          </div>
-        </Modal>
-      )}
+      <Modal isOpen={!!deleteUser} title="Delete User" onClose={() => setDeleteUser(null)}>
+        <div className="p-4 bg-red-50 border border-red-100 rounded-xl mb-6 flex items-start gap-3">
+          <AlertTriangle className="w-6 h-6 text-red-500 flex-shrink-0" />
+          <p className="text-sm text-red-700 leading-relaxed">
+            Are you sure you want to delete <strong>{deleteUser?.name}</strong> ({deleteUser?.email})?
+            This action is permanent and cannot be undone.
+          </p>
+        </div>
+        <div className="flex gap-3 justify-end">
+          <Button variant="secondary" onClick={() => setDeleteUser(null)}>Cancel</Button>
+          <Button variant="danger" onClick={handleDelete} loading={saving}>Delete</Button>
+        </div>
+      </Modal>
 
       {/* ── Add User Modal ───────────────────────────────────────────── */}
-      {addModal && (
-        <Modal isOpen title="Add New User" onClose={() => setAddModal(false)}>
-          <div className="space-y-4">
-            <Input label="Full Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
-            <Input label="Email Address" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
-            <div>
-              <label className="block text-sm font-medium text-thunder mb-1.5">Role</label>
-              <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} className={selectClass}>
-                {ALL_ROLES.filter(r => r !== 'accreditation').map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
-              </select>
-            </div>
-
-            {form.role === 'student' && (
-              <div className="grid grid-cols-2 gap-4">
-                <Input label="SAP ID" value={form.sap_id} onChange={e => setForm({ ...form, sap_id: e.target.value })} />
-                <Input label="Roll No" value={form.roll_no} onChange={e => setForm({ ...form, roll_no: e.target.value })} />
-                <Input label="Branch" value={form.branch} onChange={e => setForm({ ...form, branch: e.target.value })} />
-              </div>
-            )}
-
-            <Input 
-              label="Password (Optional)" 
-              type="password" 
-              placeholder="Leave blank to use default" 
-              value={form.password} 
-              onChange={e => setForm({ ...form, password: e.target.value })} 
-            />
-
-            <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-700 flex items-center gap-2">
-              🔑 Default password if left blank: <code className="font-mono bg-white px-1.5 py-0.5 rounded border border-amber-200">CapstoneX@2024</code>
-            </div>
-            <div className="flex gap-3 justify-end pt-2">
-              <Button variant="secondary" onClick={() => setAddModal(false)}>Cancel</Button>
-              <Button onClick={handleAddUser} loading={saving}>Create User</Button>
-            </div>
+      <Modal isOpen={addModal} title="Add New User" onClose={() => setAddModal(false)}>
+        <div className="space-y-4">
+          <Input label="Full Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+          <Input label="Email Address" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
+          <div>
+            <label className="block text-sm font-semibold text-cx-text mb-1.5">Role</label>
+            <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} className={selectClass}>
+              {ALL_ROLES.filter(r => r !== 'accreditation').map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
+            </select>
           </div>
-        </Modal>
-      )}
+
+          {form.role === 'student' && (
+            <div className="grid grid-cols-2 gap-4">
+              <Input label="SAP ID" value={form.sap_id} onChange={e => setForm({ ...form, sap_id: e.target.value })} />
+              <Input label="Roll No" value={form.roll_no} onChange={e => setForm({ ...form, roll_no: e.target.value })} />
+              <Input label="Branch" value={form.branch} onChange={e => setForm({ ...form, branch: e.target.value })} />
+            </div>
+          )}
+
+          <Input 
+            label="Password (Optional)" 
+            type="password" 
+            placeholder="Leave blank to use default" 
+            value={form.password} 
+            onChange={e => setForm({ ...form, password: e.target.value })} 
+          />
+
+          <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-700 flex items-center gap-2">
+            <Shield className="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <span>Default password if left blank: <code className="font-mono bg-white px-1.5 py-0.5 rounded border border-amber-200 text-amber-900 font-semibold">CapstoneX@2024</code></span>
+          </div>
+          <div className="flex gap-3 justify-end pt-4">
+            <Button variant="secondary" onClick={() => setAddModal(false)}>Cancel</Button>
+            <Button onClick={handleAddUser} loading={saving}>Create User</Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* ── CSV Import Modal ─────────────────────────────────────────── */}
-      {csvModal && (
-        <Modal isOpen title="Import Users from CSV" onClose={() => setCsvModal(false)}>
-          <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-              <p className="text-sm font-medium text-blue-800 mb-2">Required CSV columns:</p>
-              <code className="text-xs bg-white px-2 py-1 rounded border border-blue-100 text-blue-700 font-mono">name, email, role, sap_id, roll_no, branch</code>
-            </div>
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-cardinal/40 hover:bg-cardinal-50/20 transition-all group">
-              <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">📂</span>
-              <span className="text-sm font-medium text-slate group-hover:text-cardinal">Click to choose CSV file</span>
-              <input type="file" accept=".csv" onChange={handleCSVImport} className="hidden" />
-            </label>
-            <div className="flex gap-3 justify-end">
-              <Button variant="secondary" onClick={() => setCsvModal(false)}>Cancel</Button>
-            </div>
+      <Modal isOpen={csvModal} title="Import Users from CSV" onClose={() => setCsvModal(false)}>
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+            <p className="text-sm font-semibold text-blue-800 mb-2">Required CSV columns:</p>
+            <code className="text-xs bg-white px-2 py-1 rounded border border-blue-200 text-blue-700 font-mono shadow-sm">name, email, role, sap_id, roll_no, branch</code>
           </div>
-        </Modal>
-      )}
+          <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-cx-border rounded-xl cursor-pointer hover:border-cardinal-300 hover:bg-cardinal-50/50 transition-all group bg-cx-surface">
+            <Upload className="w-8 h-8 mb-3 text-cx-text-muted group-hover:text-cardinal-500 group-hover:scale-110 transition-all" />
+            <span className="text-sm font-medium text-cx-text-secondary group-hover:text-cardinal-600">Click to choose CSV file</span>
+            <input type="file" accept=".csv" onChange={handleCSVImport} className="hidden" />
+          </label>
+          <div className="flex gap-3 justify-end pt-2">
+            <Button variant="secondary" onClick={() => setCsvModal(false)}>Cancel</Button>
+          </div>
+        </div>
+      </Modal>
     </DashboardLayout>
   );
 }

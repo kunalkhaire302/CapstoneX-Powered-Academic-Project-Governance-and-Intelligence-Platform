@@ -11,12 +11,12 @@ export function QuickActions() {
     { label: 'Submit Logbook', icon: <FileText className="w-5 h-5" />, href: '/student/logbook', color: 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100 hover:border-emerald-200' },
     { label: 'Find a Group', icon: <Users className="w-5 h-5" />, href: '/student/groups', color: 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 hover:border-blue-200' },
     { label: 'Explore Topics', icon: <Search className="w-5 h-5" />, href: '/student/topics', color: 'bg-indigo-50 text-indigo-600 border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200' },
-    { label: 'AI Insights', icon: <Target className="w-5 h-5" />, href: '/student/recommendations', color: 'bg-cardinal-50 text-cardinal border-cardinal/20 hover:bg-cardinal/10 hover:border-cardinal/30' }
+    { label: 'AI Insights', icon: <Target className="w-5 h-5" />, href: '/student/recommendations', color: 'bg-cardinal-light text-cardinal-700 border-cardinal-200 hover:bg-cardinal-100 hover:border-cardinal-300' }
   ];
 
   return (
     <Card className="h-full">
-      <h3 className="text-lg font-display text-thunder mb-4">Quick Actions</h3>
+      <h3 className="text-lg font-display text-cx-text font-semibold mb-4">Quick Actions</h3>
       <div className="grid grid-cols-2 gap-3">
         {actions.map((action, i) => (
           <Link key={i} href={action.href}>
@@ -45,12 +45,12 @@ export function UpcomingDeadlines() {
   return (
     <Card className="h-full">
       <div className="flex items-center justify-between mb-5">
-        <h3 className="text-lg font-display text-thunder flex items-center gap-2">
+        <h3 className="text-lg font-display text-cx-text font-semibold flex items-center gap-2">
           <Clock className="w-5 h-5 text-amber-500" />
           Upcoming Deadlines
         </h3>
       </div>
-      <div className="relative border-l-2 border-gray-100 ml-3 space-y-6">
+      <div className="relative border-l-2 border-cx-border-subtle ml-3 space-y-6">
         {deadlines.map((item, i) => (
           <motion.div 
             initial={{ opacity: 0, x: -10 }}
@@ -59,18 +59,18 @@ export function UpcomingDeadlines() {
             key={i} 
             className="relative pl-6"
           >
-            <div className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-4 border-white ${item.urgent ? 'bg-cardinal' : 'bg-gray-300'}`} />
-            <h4 className={`text-sm font-semibold ${item.urgent ? 'text-thunder' : 'text-slate'}`}>{item.title}</h4>
+            <div className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-4 border-cx-surface ${item.urgent ? 'bg-cardinal-500' : 'bg-slate-300'}`} />
+            <h4 className={`text-sm font-semibold ${item.urgent ? 'text-cx-text' : 'text-cx-text-secondary'}`}>{item.title}</h4>
             <div className="flex items-center gap-2 mt-1">
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${item.urgent ? 'bg-cardinal-50 text-cardinal' : 'bg-gray-100 text-slate'}`}>
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${item.urgent ? 'bg-cardinal-50 text-cardinal-700' : 'bg-cx-bg-muted text-cx-text-muted'}`}>
                 {item.date}
               </span>
-              <span className="text-xs text-slate">{item.time}</span>
+              <span className="text-xs text-cx-text-muted">{item.time}</span>
             </div>
           </motion.div>
         ))}
       </div>
-      <button className="w-full mt-6 text-sm text-slate hover:text-thunder transition-colors flex items-center justify-center gap-1">
+      <button className="w-full mt-6 text-sm font-medium text-cx-text-secondary hover:text-cx-text transition-colors flex items-center justify-center gap-1">
         View Full Timeline <ArrowRight className="w-4 h-4" />
       </button>
     </Card>

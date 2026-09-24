@@ -2,16 +2,32 @@
 
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title?: string | ReactNode;
+  description?: string | ReactNode;
   children: ReactNode;
-  size?: 'sm' | 'md' | 'lg';
+  footer?: ReactNode;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  className?: string;
+  hideCloseButton?: boolean;
 }
 
-export default function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
+export default function Modal({ 
+  isOpen, 
+  onClose, 
+  title, 
+  description,
+  children, 
+  footer,
+  size = 'md',
+  className = '',
+  hideCloseButton = false
+}: ModalProps) {
   const [mounted, setMounted] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -52,6 +68,9 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
     const focusableElements = modal.querySelectorAll<HTMLElement>(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
+    
+    if (focusableElements.length === 0) return;
+
     const firstFocusable = focusableElements[0];
     const lastFocusable = focusableElements[focusableElements.length - 1];
 
@@ -76,11 +95,16 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
 
   if (!isOpen || !mounted) return null;
 
-  const sizes = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl' };
+  const sizes = { 
+    sm: 'max-w-sm', 
+    md: 'max-w-lg', 
+    lg: 'max-w-2xl',
+    xl: 'max-w-4xl' 
+  };
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -88,27 +112,58 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-thunder/60 backdrop-blur-sm animate-fade-in"
-        style={{ animationDuration: '0.2s' }}
+        className="absolute inset-0 bg-cx-bg-overlay backdrop-blur-sm animate-fade-in"
+        style={{ animationDuration: '200ms' }}
         onClick={onClose}
         aria-hidden="true"
       />
+      
       {/* Content */}
-      <div className={`relative bg-white rounded-2xl shadow-xl ${sizes[size]} w-full animate-scale-in overflow-hidden max-h-[90vh] flex flex-col`}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
-          <h3 id="modal-title" className="text-lg font-display text-thunder">{title}</h3>
-          <button
-            ref={closeRef}
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate hover:text-thunder hover:bg-gray-100 transition-all"
-            aria-label="Close dialog"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+      <div className={cn(
+        "relative bg-cx-surface rounded-2xl shadow-xl w-full animate-scale-in flex flex-col overflow-hidden max-h-[90vh]",
+        sizes[size],
+        className
+      )}>
+        {/* Header */}
+        {(title || !hideCloseButton) && (
+          <div className="flex items-start justify-between px-6 py-5 border-b border-cx-border-subtle flex-shrink-0 bg-cx-surface">
+            <div>
+              {title && (
+                <h3 id="modal-title" className="text-lg font-display font-semibold text-cx-text">
+                  {title}
+                </h3>
+              )}
+              {description && (
+                <p className="mt-1.5 text-sm text-cx-text-secondary">
+                  {description}
+                </p>
+              )}
+            </div>
+            
+            {!hideCloseButton && (
+              <button
+                ref={closeRef}
+                onClick={onClose}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-cx-text-muted hover:text-cx-text hover:bg-cx-bg-muted transition-colors ml-4 flex-shrink-0"
+                aria-label="Close dialog"
+              >
+                <X className="w-4 h-4" strokeWidth={2.5} />
+              </button>
+            )}
+          </div>
+        )}
+        
+        {/* Body */}
+        <div className="px-6 py-6 overflow-y-auto bg-cx-bg">
+          {children}
         </div>
-        <div className="px-6 py-5 overflow-y-auto">{children}</div>
+        
+        {/* Footer */}
+        {footer && (
+          <div className="px-6 py-4 border-t border-cx-border-subtle bg-cx-surface flex items-center justify-end gap-3 flex-shrink-0">
+            {footer}
+          </div>
+        )}
       </div>
     </div>,
     document.body

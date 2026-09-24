@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Bell, CalendarDays, ChevronDown, LogOut, Menu, Search, Settings, Sparkles, X } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Bell, CalendarDays, ChevronDown, LogOut, Menu, Search, Settings, Sparkles, X, ChevronRight, Home } from 'lucide-react';
 import SettingsModal, { UserProfile } from '../ui/SettingsModal';
 import api, { setStoredAccessToken } from '@/lib/api';
+import Link from 'next/link';
 
 interface TopbarProps {
   title?: string;
@@ -21,6 +22,7 @@ export default function Topbar({ title = 'Dashboard', role, onMenuToggle, userPr
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -59,94 +61,129 @@ export default function Topbar({ title = 'Dashboard', role, onMenuToggle, userPr
     admin: [['Open analytics', '/admin/analytics'], ['Manage users', '/admin/users'], ['Review AI operations', '/admin/ai-team']],
   };
 
+  // Generate breadcrumbs from pathname
+  const paths = pathname.split('/').filter(Boolean);
+  const breadcrumbs = paths.map((path, index) => {
+    const href = '/' + paths.slice(0, index + 1).join('/');
+    const label = path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, ' ');
+    return { href, label, isLast: index === paths.length - 1 };
+  });
+
   return (
-    <header className="h-[68px] sm:h-[82px] bg-white/75 backdrop-blur-2xl border-b border-slate-200/60 flex items-center justify-between px-4 sm:px-7 lg:px-9 sticky top-0 z-30" role="banner">
-      {/* Left: Hamburger + Title */}
-      <div className="flex items-center gap-4">
+    <header className="h-[64px] bg-cx-bg-elevated/80 backdrop-blur-md border-b border-cx-border sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 transition-all" role="banner">
+      {/* Left: Hamburger + Breadcrumbs */}
+      <div className="flex items-center gap-3">
         {/* Hamburger — mobile only */}
         <button
           onClick={onMenuToggle}
-          className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-800 hover:bg-white/50 transition-colors -ml-2"
+          className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-cx-text-muted hover:text-cx-text hover:bg-cx-bg-subtle transition-colors -ml-2"
           aria-label="Open navigation menu"
         >
           <Menu className="h-5 w-5" />
         </button>
 
-        <div>
-          <div className="hidden sm:flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-[0.22em] mb-1.5">
-            <span>Command center</span><span className="h-1 w-1 rounded-full bg-cardinal" /><span className="text-cardinal-600">Live</span>
-          </div>
-          <h1 className="text-xl sm:text-[26px] font-display text-slate-950 leading-none tracking-[-0.025em]">{title}</h1>
-        </div>
+        <nav aria-label="Breadcrumb" className="hidden sm:flex items-center space-x-1.5 text-sm text-cx-text-muted font-medium">
+          <Link href={`/${role}`} className="hover:text-cx-text transition-colors flex items-center">
+            <Home className="w-4 h-4" />
+          </Link>
+          
+          {breadcrumbs.length > 1 && breadcrumbs.slice(1).map((crumb, i) => (
+            <div key={crumb.href} className="flex items-center space-x-1.5">
+              <ChevronRight className="w-4 h-4 text-cx-border-strong" />
+              {crumb.isLast ? (
+                <span className="text-cx-text">{crumb.label}</span>
+              ) : (
+                <Link href={crumb.href} className="hover:text-cx-text transition-colors">
+                  {crumb.label}
+                </Link>
+              )}
+            </div>
+          ))}
+        </nav>
       </div>
 
       {/* Center/Right section */}
-        <div className="flex items-center gap-3 sm:gap-5" ref={dropdownRef}>
+      <div className="flex items-center gap-3 sm:gap-4" ref={dropdownRef}>
         {/* Command Palette Trigger */}
         <button
-          className="hidden md:flex items-center gap-3 px-4 py-2.5 text-sm text-slate-400 bg-white hover:bg-gray-50 rounded-xl transition-all shadow-sm border border-gray-100 min-w-[240px] group"
+          className="hidden md:flex items-center gap-3 px-3 py-2 text-sm text-cx-text-muted bg-cx-bg hover:bg-cx-bg-subtle rounded-lg transition-all border border-cx-border min-w-[200px] lg:min-w-[280px] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cardinal"
           id="search-btn"
           aria-label="Search"
           onClick={() => setSearchOpen(true)}
         >
-          <Search className="w-4 h-4 text-slate-300 group-hover:text-cardinal-500 transition-colors" />
+          <Search className="w-4 h-4 text-cx-text-muted group-hover:text-cx-brand transition-colors" />
           <span className="flex-1 text-left text-xs font-medium">Search workspace</span>
-          <kbd className="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md border border-slate-200 font-mono font-semibold">⌘ K</kbd>
+          <kbd className="text-[10px] bg-cx-bg-muted text-cx-text-secondary px-1.5 py-0.5 rounded border border-cx-border font-mono font-semibold tracking-widest hidden lg:block">⌘K</kbd>
         </button>
 
-        <div className="hidden xl:flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/60 px-3 py-2 text-[11px] font-semibold text-slate-500">
-          <CalendarDays className="h-3.5 w-3.5 text-cardinal" />
-          {new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date())}
-        </div>
-
-        <div className="h-6 w-px bg-slate-200 hidden md:block" />
+        <div className="h-6 w-px bg-cx-border hidden md:block" />
 
         {/* Notification Bell */}
         <div className="relative">
           <button
             onClick={() => router.push(notificationHref)}
-            className="relative w-10 h-10 flex items-center justify-center text-slate-500 hover:text-cardinal-600 bg-white hover:bg-red-50 shadow-sm border border-gray-100 rounded-xl transition-all"
+            className="relative w-9 h-9 flex items-center justify-center text-cx-text-secondary hover:text-cx-brand bg-transparent hover:bg-cx-brand-subtle rounded-lg transition-all"
             id="notification-bell"
             aria-label="Open notifications"
           >
-            <Bell className="h-[18px] w-[18px]" strokeWidth={1.7} />
+            <Bell className="w-[18px] h-[18px]" strokeWidth={2} />
+            {/* Example active badge */}
+            <span className="absolute top-2 right-2 w-2 h-2 bg-cx-brand rounded-full border-2 border-cx-surface" />
           </button>
         </div>
 
+        {/* User Menu */}
         <div className="relative hidden sm:block">
-          <button onClick={() => setUserMenuOpen(!userMenuOpen)}
-            className="flex items-center gap-2.5 rounded-xl border border-slate-200/70 bg-white px-2 py-1.5 pr-3 shadow-sm hover:border-slate-300"
-            aria-expanded={userMenuOpen} aria-label="Open account menu">
-            <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#111827] text-xs font-bold text-white">{userProfile.name?.charAt(0) || 'U'}</span>
-            <span className="hidden lg:block max-w-28 truncate text-xs font-bold text-slate-700">{userProfile.name}</span>
-            <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+          <button 
+            onClick={() => setUserMenuOpen(!userMenuOpen)}
+            className="flex items-center gap-2 rounded-full border border-transparent hover:bg-cx-bg-subtle p-1 pr-2 transition-all"
+            aria-expanded={userMenuOpen} 
+            aria-label="Open account menu"
+          >
+            <div className="w-8 h-8 rounded-full bg-cx-bg-muted border border-cx-border flex items-center justify-center text-xs font-bold text-cx-text">
+              {userProfile.name?.charAt(0) || 'U'}
+            </div>
+            <ChevronDown className={`w-3.5 h-3.5 text-cx-text-muted transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
           </button>
+          
           {userMenuOpen && (
-            <div className="absolute right-0 mt-3 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_20px_55px_rgba(15,23,42,.16)] animate-scale-in origin-top-right">
-              <div className="px-3 py-2.5 border-b border-slate-100 mb-1">
-                <p className="truncate text-xs font-bold text-slate-900">{userProfile.name}</p>
-                <p className="mt-0.5 truncate text-[11px] text-slate-400">{userProfile.email}</p>
+            <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-cx-border bg-cx-surface p-1 shadow-lg animate-scale-in origin-top-right">
+              <div className="px-3 py-2.5 mb-1">
+                <p className="truncate text-sm font-semibold text-cx-text">{userProfile.name}</p>
+                <p className="mt-0.5 truncate text-xs text-cx-text-muted">{userProfile.email}</p>
               </div>
-              <button onClick={() => { setSettingsModalOpen(true); setUserMenuOpen(false); }} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-950"><Settings className="h-4 w-4" /> Account settings</button>
-              <button onClick={handleLogout} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-semibold text-cardinal-600 hover:bg-cardinal-50"><LogOut className="h-4 w-4" /> Sign out</button>
+              <div className="h-px bg-cx-border-subtle my-1 mx-2" />
+              <button 
+                onClick={() => { setSettingsModalOpen(true); setUserMenuOpen(false); }} 
+                className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-cx-text-secondary hover:bg-cx-bg-subtle hover:text-cx-text transition-colors"
+              >
+                <Settings className="w-4 h-4" /> Account settings
+              </button>
+              <button 
+                onClick={handleLogout} 
+                className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <LogOut className="w-4 h-4" /> Sign out
+              </button>
             </div>
           )}
         </div>
       </div>
 
       {searchOpen && (
-        <div className="fixed inset-0 z-[80] flex items-start justify-center bg-slate-950/45 px-4 pt-[14vh] backdrop-blur-sm" onMouseDown={() => setSearchOpen(false)}>
-          <div className="w-full max-w-xl overflow-hidden rounded-[22px] border border-white/60 bg-white shadow-[0_30px_100px_rgba(0,0,0,.3)] animate-scale-in" onMouseDown={event => event.stopPropagation()}>
-            <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-4">
-              <Search className="h-5 w-5 text-cardinal" />
-              <input autoFocus className="min-w-0 flex-1 border-0 p-0 text-sm shadow-none outline-none ring-0" placeholder="Search projects, teams, or actions…" />
-              <button onClick={() => setSearchOpen(false)} className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100"><X className="h-4 w-4" /></button>
+        <div className="fixed inset-0 z-[80] flex items-start justify-center bg-cx-bg-overlay px-4 pt-[14vh] backdrop-blur-sm" onMouseDown={() => setSearchOpen(false)}>
+          <div className="w-full max-w-xl overflow-hidden rounded-2xl border border-cx-border bg-cx-surface shadow-xl animate-scale-in" onMouseDown={event => event.stopPropagation()}>
+            <div className="flex items-center gap-3 border-b border-cx-border px-4 py-3">
+              <Search className="w-5 h-5 text-cx-brand" />
+              <input autoFocus className="min-w-0 flex-1 border-0 p-0 text-base bg-transparent shadow-none outline-none ring-0 placeholder:text-cx-text-muted" placeholder="Search projects, teams, or actions…" />
+              <button onClick={() => setSearchOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-lg text-cx-text-muted hover:bg-cx-bg-muted transition-colors"><X className="w-4 h-4" /></button>
             </div>
-            <div className="p-3">
-              <p className="px-3 pb-2 pt-1 text-[9px] font-bold uppercase tracking-[.2em] text-slate-400">Quick actions</p>
+            <div className="p-2">
+              <p className="px-3 pb-2 pt-2 text-[10px] font-bold uppercase tracking-wider text-cx-text-muted">Quick actions</p>
               {quickActions[role].map(([label, href]) => (
-                <button key={href} onClick={() => { setSearchOpen(false); router.push(href); }} className="group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-slate-100 text-slate-500 group-hover:bg-cardinal-50 group-hover:text-cardinal"><Sparkles className="h-4 w-4" /></span>{label}
+                <button key={href} onClick={() => { setSearchOpen(false); router.push(href); }} className="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-cx-text-secondary hover:bg-cx-bg-subtle hover:text-cx-text transition-colors">
+                  <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-cx-bg-muted text-cx-text-muted group-hover:bg-cx-brand-subtle group-hover:text-cx-brand transition-colors"><Sparkles className="w-4 h-4" /></span>
+                  {label}
                 </button>
               ))}
             </div>
