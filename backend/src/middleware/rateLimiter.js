@@ -2,15 +2,23 @@ const rateLimit = require('express-rate-limit');
 
 /**
  * Rate limiter for auth routes (login, register, forgot-password).
- * 5 requests per 15 minutes per IP for brute-force protection.
+ * Broad auth protection. Login has a separate failed-attempt limiter below.
  */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 1000, // Increased for dev testing
+  max: 100,
   message: { error: 'Too many auth requests. Please try again after 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.ip,
+});
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  skipSuccessfulRequests: true,
+  message: { error: 'Too many failed sign-in attempts. Please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 /**
@@ -23,7 +31,6 @@ const generalLimiter = rateLimit({
   message: { error: 'Too many requests. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.ip,
 });
 
-module.exports = { authLimiter, generalLimiter };
+module.exports = { authLimiter, loginLimiter, generalLimiter };

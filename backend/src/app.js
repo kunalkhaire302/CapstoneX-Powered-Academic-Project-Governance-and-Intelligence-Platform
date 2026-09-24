@@ -27,6 +27,8 @@ const agentTeamRoutes = require('./routes/agentTeamRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+// Set the exact trusted proxy hop count in hosted environments.
+app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS || 0));
 
 // ──────────────────────────────────────────
 // Environment Strictness
@@ -98,6 +100,15 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', service: 'capstonex-backend', timestamp: new Date().toISOString() });
 });
 
+app.get('/api/ready', async (_req, res) => {
+  try {
+    await sequelize.authenticate();
+    res.json({ status: 'ready', service: 'capstonex-backend' });
+  } catch {
+    res.status(503).json({ status: 'unavailable', service: 'capstonex-backend' });
+  }
+});
+
 // ──────────────────────────────────────────
 // API Routes
 // ──────────────────────────────────────────
@@ -140,7 +151,7 @@ const startServer = async () => {
       logger.warn('⚠️  DB_SYNC is enabled; use migrations for persistent environments');
     }
     const { resumePendingRuns } = require('./services/agentTeamService');
-    await resumePendingRuns();
+    if (process.env.AGENT_WORKER_MODE !== 'external') await resumePendingRuns();
   } catch (error) {
     logger.error(`PostgreSQL connection failed: ${error.message}`);
     if (process.env.NODE_ENV === 'production') throw error;

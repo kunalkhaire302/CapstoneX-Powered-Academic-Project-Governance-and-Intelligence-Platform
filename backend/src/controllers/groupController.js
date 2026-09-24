@@ -45,15 +45,16 @@ const createGroup = async (req, res, next) => {
  */
 const joinGroup = async (req, res, next) => {
   try {
-    const { join_code } = req.body;
+    const join_code = req.body.join_code.trim().toUpperCase();
     const group = await Group.findOne({ where: { join_code } });
     if (!group) return res.status(404).json({ error: 'Invalid join code' });
+    if (group.status !== 'forming') return res.status(409).json({ error: 'This group is no longer accepting members' });
 
-    const memberCount = await GroupMember.count({ where: { group_id: group.id } });
+    const memberCount = await GroupMember.count({ where: { group_id: group.id, status: { [Op.in]: ['pending', 'accepted'] } } });
     if (memberCount >= group.max_members) return res.status(400).json({ error: 'Group is full' });
 
-    const existing = await GroupMember.findOne({ where: { group_id: group.id, student_id: req.user.id } });
-    if (existing) return res.status(400).json({ error: 'Already a member of this group' });
+    const existing = await GroupMember.findOne({ where: { student_id: req.user.id, status: { [Op.in]: ['pending', 'accepted'] } } });
+    if (existing) return res.status(409).json({ error: 'You already belong to a group or have a pending invitation' });
 
     await GroupMember.create({
       id: uuidv4(),
@@ -122,7 +123,7 @@ const getGroup = async (req, res, next) => {
 
     // RBAC Check
     if (req.user.role === 'student') {
-      const isMember = group.members.some(m => m.student_id === req.user.id);
+      const isMember = group.members.some(m => m.student_id === req.user.id && m.status === 'accepted');
       if (!isMember) return res.status(403).json({ error: 'Access denied: You are not a member of this group.' });
     } else if (req.user.role === 'mentor' && group.mentor_id !== req.user.id) {
       return res.status(403).json({ error: 'Access denied: You are not assigned to this group.' });
@@ -144,8 +145,13 @@ const updateGroup = async (req, res, next) => {
     const group = await Group.findByPk(req.params.id);
     if (!group) return res.status(404).json({ error: 'Group not found' });
 
-    const { name, mentor_id, coordinator_id, status } = req.body;
-    await group.update({ name: name || group.name, mentor_id: mentor_id || group.mentor_id, coordinator_id: coordinator_id || group.coordinator_id, status: status || group.status });
+    if (req.user.role !== 'admin') {
+      if (group.mentor_id !== req.user.id) return res.status(403).json({ error: 'You are not assigned to this group' });
+      if (req.body.mentor_id !== undefined || req.body.status !== undefined) return res.status(403).json({ error: 'Only administrators can reassign mentors or change group status' });
+    }
+
+    const { name, mentor_id, status } = req.body;
+    await group.update({ name: name || group.name, mentor_id: mentor_id || group.mentor_id, status: status || group.status });
 
     await createAuditLog({ userId: req.user.id, action: 'group.updated', entityType: 'group', entityId: group.id, ipAddress: req.ip });
     res.json(group);

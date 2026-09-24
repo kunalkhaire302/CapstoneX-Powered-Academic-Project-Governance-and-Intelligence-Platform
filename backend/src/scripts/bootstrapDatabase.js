@@ -53,6 +53,15 @@ async function bootstrapDatabase() {
       return;
     }
 
+    // `sync()` is useful only for an explicitly local development bootstrap.
+    // It is not a migration system and must never be the mechanism that
+    // creates or changes a production schema.
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'Empty production database detected. Run reviewed Sequelize migrations; production bootstrap will not use sequelize.sync().'
+      );
+    }
+
     console.log('[database] Empty database detected; creating the CapstoneX schema.');
     await sequelize.sync();
 
@@ -60,12 +69,13 @@ async function bootstrapDatabase() {
     // structures and indexes introduced by these historical migrations.
     await ensureMigrationMetadata(queryInterface);
 
-    if (await User.count() === 0) {
+    if (process.env.CAPSTONEX_BOOTSTRAP_DEMO === 'true' && await User.count() === 0) {
       console.log('[database] Loading Quick Access Demo data.');
       await demoDataSeeder.up(queryInterface);
     }
 
-    console.log('[database] Initial schema and demo data are ready.');
+    console.log('[database] Initial development schema is ready. Demo data was %s.',
+      process.env.CAPSTONEX_BOOTSTRAP_DEMO === 'true' ? 'requested' : 'not requested');
   } finally {
     if (lockAcquired) {
       await sequelize.query("SELECT pg_advisory_unlock(hashtext('capstonex_database_bootstrap'))");

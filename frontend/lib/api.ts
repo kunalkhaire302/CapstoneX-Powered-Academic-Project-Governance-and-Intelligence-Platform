@@ -54,7 +54,7 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config as (typeof error.config & { _retry?: boolean }) | undefined;
-    const isAuthRequest = originalRequest?.url?.includes('/auth/login') || originalRequest?.url?.includes('/auth/refresh');
+    const isAuthRequest = ['/auth/login', '/auth/refresh', '/auth/register', '/auth/reset-password', '/auth/forgot-password'].some(path => originalRequest?.url === path);
 
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthRequest) {
       originalRequest._retry = true;
@@ -68,7 +68,7 @@ api.interceptors.response.use(
       }
     }
 
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isAuthRequest) {
       setStoredAccessToken(null);
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
         window.location.href = '/login';

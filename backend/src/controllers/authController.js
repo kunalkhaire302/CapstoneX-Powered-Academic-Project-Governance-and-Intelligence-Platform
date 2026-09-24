@@ -27,15 +27,22 @@ const register = async (req, res, next) => {
       passwordHash = await bcrypt.hash(password, 12);
     }
 
+    const isPrivilegedRegistration = req.user?.role === 'admin' && ['mentor', 'admin'].includes(role);
     const user = await User.create({
       name,
       email,
       password_hash: passwordHash,
-      role: 'student', // Locked down to student only
+      role: isPrivilegedRegistration ? role : 'student',
       department,
       institution_id,
       firebase_uid,
     });
+
+    // Creating a privileged account must not replace the administrator's session.
+    if (isPrivilegedRegistration) {
+      await createAuditLog({ userId: req.user.id, action: 'user.created', entityType: 'user', entityId: user.id, ipAddress: req.ip });
+      return res.status(201).json({ message: 'Account created', user: { id: user.id, name: user.name, email: user.email, role: user.role, department: user.department } });
+    }
 
     // Generate tokens
     const accessToken = generateAccessToken(user);

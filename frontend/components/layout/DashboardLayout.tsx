@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, createContext, useContext } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import api from '@/lib/api';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import { UserProfile } from '../ui/SettingsModal';
@@ -28,7 +29,9 @@ export const useUserProfile = () => {
 export default function DashboardLayout({ children, role = 'student', title = 'Dashboard', userName = '' }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isEntering, setIsEntering] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   
   const [userProfile, setUserProfile] = useState<UserProfile>({
     name: userName || 'Student 1',
@@ -71,6 +74,21 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
     setUserProfile({ name: realName, email: realEmail, role: realRole, bio: '' });
   }, [role, userName]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setIsAuthorized(false);
+    api.get('/auth/profile').then(({ data }) => {
+      if (cancelled) return;
+      if (!['student', 'mentor', 'admin'].includes(data.user?.role)) throw new Error('Invalid role');
+      localStorage.setItem('user', JSON.stringify(data.user));
+      if (data.user.role !== role) { router.replace(`/${data.user.role}`); return; }
+      setIsAuthorized(true);
+    }).catch(() => {
+      if (!cancelled) router.replace('/login');
+    });
+    return () => { cancelled = true; };
+  }, [pathname, role, router]);
+
   // Save to localStorage when it changes
   useEffect(() => {
     localStorage.setItem(`capstonex_user_profile_${role}`, JSON.stringify(userProfile));
@@ -80,6 +98,8 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
     const timer = window.setTimeout(() => setIsEntering(false), 520);
     return () => window.clearTimeout(timer);
   }, [pathname]);
+
+  if (!isAuthorized) return <AppLoader label="Verifying workspace access" />;
 
   return (
     <div className="app-atmosphere surface-noise min-h-screen w-full overflow-hidden flex">

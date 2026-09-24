@@ -15,17 +15,20 @@ const schemas = {
     max_members: Joi.number().integer().min(1).max(10).optional(),
   }),
   joinGroup: Joi.object({
-    join_code: Joi.string().length(6).required(),
+    join_code: Joi.string().trim().uppercase().pattern(/^(?:[A-Z0-9]{6}|[A-F0-9]{8})$/).required()
+      .messages({ 'string.pattern.base': 'Enter a valid group join code.' }),
   }),
 
   // Topic schemas
   submitTopic: Joi.object({
     group_id: Joi.string().uuid().required(),
-    title: Joi.string().min(5).max(300).required(),
-    abstract: Joi.string().min(20).required(),
-    domain_tags: Joi.array().items(Joi.string()).optional(),
-    technology_tags: Joi.array().items(Joi.string()).optional(),
-    file_url: Joi.string().uri().optional(),
+    topics: Joi.array().min(1).max(3).items(Joi.object({
+      title: Joi.string().trim().min(5).max(300).required(),
+      abstract: Joi.string().trim().min(20).max(10000).required(),
+      domain_tags: Joi.array().items(Joi.string().trim().max(100)).max(10).default([]),
+      technology_tags: Joi.array().items(Joi.string().trim().max(100)).max(20).default([]),
+      file_url: Joi.string().uri().optional(),
+    })).required(),
   }),
 
   // Logbook schemas

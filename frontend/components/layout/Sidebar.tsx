@@ -22,6 +22,7 @@ const roleNavItems: Record<string, NavItem[]> = {
     { label: 'AI Team', href: '/student/ai-team', icon: <SparklesIcon /> },
     { label: 'Logbook', href: '/student/logbook', icon: <BookIcon /> },
     { label: 'Marks', href: '/student/marks', icon: <ChartIcon /> },
+    { label: 'Notifications', href: '/student/notifications', icon: <BellIcon /> },
   ],
   mentor: [
     { label: 'Dashboard', href: '/mentor', icon: <HomeIcon /> },

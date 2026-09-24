@@ -2,11 +2,11 @@
 
 > Living documentation for AI-assisted development. This file describes the repository as implemented; it is not a product brochure.
 
-**Last Updated:** `2026-09-24T11:09:55+05:30`
+**Last Updated:** `2026-09-24T12:30:00+05:30`
 
-**Last Verified Against Codebase:** `2026-09-24T11:09:55+05:30`
+**Last Verified Against Codebase:** `2026-09-24T12:30:00+05:30`
 
-**Context Version:** `1.0.0`
+**Context Version:** `1.1.0`
 
 ---
 
@@ -56,18 +56,18 @@ The platform centralizes capstone governance that is otherwise spread across doc
 |---|---|---|---|---|
 | Authentication | Local JWT/refresh-cookie login with optional Firebase ID-token verification | All | `backend/src/controllers/authController.js`, `backend/src/middleware/auth.js`, `frontend/lib/api.ts` | ✅ Implemented; ⚠️ security/config issues |
 | User administration | Profile, list, create, update, delete, CSV import | Admin, Mentor (read) | `userRoutes.js`, `userController.js` | ✅ Implemented |
-| Project groups | Create, join, invite, lock, allocate mentor | All roles | `groupRoutes.js`, `groupController.js` | ⚠️ Implemented with join-code defects |
-| Topic workflow | Submit up to three topics; approve/reject | Student, Mentor, Admin | `topicRoutes.js`, `topicController.js` | ⚠️ Route/controller schema conflict |
+| Project groups | Create, join, invite, lock, allocate mentor | All roles | `groupRoutes.js`, `groupController.js` | ✅ Canonical and legacy join-code formats accepted; concurrency coverage still pending |
+| Topic workflow | Submit up to three topics; approve/reject | Student, Mentor, Admin | `topicRoutes.js`, `topicController.js` | ✅ Canonical batch schema implemented; transactional coverage still pending |
 | Logbooks | Weekly entries, upload, submit, mentor feedback | Student, Mentor | `logbookRoutes.js`, `logbookController.js` | ✅ Core path implemented; ⚠️ state gaps |
 | Evaluations | Create/update academic evaluations | Mentor; role-filtered read | `evaluationRoutes.js`, `evaluationController.js` | ✅ Implemented |
-| Notifications | Inbox, read state, admin broadcast | All; Admin broadcast | `notificationRoutes.js` | ✅ API implemented; ⚠️ student page missing |
+| Notifications | Inbox, read state, admin broadcast | All; Admin broadcast | `notificationRoutes.js`, `frontend/app/(dashboard)/student/notifications/` | ✅ Student inbox implemented |
 | Analytics and audit | System/department metrics and audit history | Admin, Mentor | `analyticsRoutes.js`, `auditLogRoutes.js` | ✅ Implemented; some UI fallbacks |
 | PDF/Excel exports | Download group reports | Mentor, Admin | `exportRoutes.js`, `exportController.js` | ✅ Implemented |
 | AI recommendations/problem analysis | Recommend projects and improve/analyze problem statements | Student, Mentor | backend AI proxy/recommendation routes; FastAPI routers | 🚧 Depends on deployed AI service; duplicate APIs |
 | Risk prediction | Score project risk and list risky projects | Mentor, Admin | `aiRoutes.js`, `risk_service.py` | 🚧 Model exists; feature placeholders remain |
 | Plagiarism analysis | Similarity/possible plagiarism evidence | Mentor, Admin | `plagiarism.py`, backend AI proxy | 🚧 Implemented but deployment unverified |
-| AI Team | Head agent plans; specialists work; quality auditor gates; humans approve | All with project access | `agentTeamService.js`, `agent_team.py`, role workspaces | ✅ Guarded workflow; ⚠️ execution is not durable |
-| Password recovery | Issue one-time reset token and change password | Public | auth controller and token model | ⚠️ Backend implemented; reset UI route missing |
+| AI Team | Head agent plans; specialists work; quality auditor gates; humans approve | All with project access | `agentTeamService.js`, `agentWorker.js`, `agent_team.py`, role workspaces | 🚧 Persisted-worker entry point added; hosted reliability and recovery tests pending |
+| Password recovery | Issue one-time reset token and change password | Public | auth controller and token model; `frontend/app/(auth)/reset-password/` | ✅ UI implemented; delivery/reuse tests still pending |
 | Model retraining | Periodic model training | Operations | `.github/workflows/retrain.yml`, `ai-service/app/core/tasks.py` | 🚧 Two competing schedulers; validation incomplete |
 
 ---
@@ -105,31 +105,31 @@ There is no Next.js middleware or server-side page guard. Dashboard navigation u
 
 **P0.1 — Repair group invite-code contract**
 
-Problem: group creation generates an eight-character code while the join validator requires exactly six.
+Problem: Previously, group creation generated an eight-character code while the join validator required exactly six.
 
 Evidence: `backend/src/controllers/groupController.js`, `backend/src/routes/groupRoutes.js`.
 
-Task: define one format, migrate existing codes if necessary, and add create-to-join integration coverage.
+Task: Preserve compatibility for existing six-character codes and add create-to-join integration coverage.
 
 Impact: students cannot reliably join newly created groups.
 
-Status: **OPEN**.
+Status: **IMPLEMENTED; integration coverage pending**.
 
 **P0.2 — Repair topic submission contract**
 
-Problem: controller expects `{ group_id, topics: [...] }`; Joi route validation accepts one flat topic and rejects `topics`.
+Problem: Previously, controller expected `{ group_id, topics: [...] }` while Joi accepted one flat topic.
 
 Evidence: `topicRoutes.js`, `topicController.js`.
 
-Task: select a canonical request schema, update client/server/types, and add API tests.
+Task: Maintain the canonical batch schema and extend API integration coverage.
 
 Impact: core project approval workflow is blocked.
 
-Status: **OPEN**.
+Status: **IMPLEMENTED; integration coverage pending**.
 
 **P0.3 — Make database creation deterministic**
 
-Problem: migrations do not create the base schema; bootstrap uses `sequelize.sync()` only when `users` is absent. A partial database cannot be repaired predictably. The performance-index migration references `groups.coordinator_id`, which is absent from the Group model.
+Problem: migrations do not create the base schema. A partial database cannot be repaired predictably. `coordinator_id` is injected by Sequelize associations and exists in the inspected live schema; the earlier claim that the model lacked it was incorrect.
 
 Evidence: `backend/src/scripts/bootstrapDatabase.js`, migrations, `backend/src/models/index.js`.
 
@@ -141,7 +141,7 @@ Status: **OPEN**.
 
 **P0.4 — Restore real authentication abuse protection**
 
-Problem: auth limiter allows 1,000 attempts per 15 minutes despite a comment describing five.
+Problem: A permissive limiter previously allowed 1,000 attempts per 15 minutes.
 
 Evidence: `backend/src/middleware/rateLimiter.js`.
 
@@ -149,7 +149,7 @@ Task: enforce production-appropriate limits, trusted proxy settings, monitoring,
 
 Impact: credential stuffing and brute-force exposure.
 
-Status: **OPEN**.
+Status: **IMPLEMENTED; production observability and live proxy validation pending**.
 
 **P0.5 — Rotate previously disclosed credentials**
 
@@ -827,21 +827,19 @@ Where rationale is not explicit, it is inferred from implementation and must not
 
 ### 🚧 In Progress
 
-- Production hardening and UI redesign.
-- AI recommendations, risk, novelty/plagiarism, model lifecycle, and service deployment.
-- Reliable production database bootstrapping/migrations.
+- Production hardening and UI redesign, including validated login-recovery and notification UI paths.
+- AI recommendations, risk, novelty/plagiarism, model lifecycle, and service deployment. A synthetic agent regression benchmark exists, but it is not an accuracy claim.
+- Reliable production database migrations. Production bootstrap now refuses to use `sequelize.sync()`; an audited baseline migration and restore test remain required.
 - Documentation reconciliation.
 
 ### ⏳ Pending
 
-- Durable workers/queue, comprehensive E2E/contract/security tests, production observability, and verified disaster recovery.
-- Missing password reset and student notifications screens.
+- Worker crash/concurrency coverage, comprehensive E2E/contract/security tests, production observability, and verified disaster recovery.
 - Research/documentation/progress/communication agents reaching independently verified production accuracy.
 
 ### ❌ Blocked
 
-- End-to-end student project lifecycle is blocked by group-code and topic-payload contracts.
-- Hosted AI Team/recommendation reliability is blocked until the AI service URL, secret pairing, health, and storage are verified.
+- Hosted AI Team/recommendation reliability is blocked until the configuration-only Render AI/worker design is funded, deployed, and its URL, secret pairing, health, and storage are verified.
 - Production security sign-off is blocked until exposed credentials are rotated and abuse controls are repaired.
 
 ---
@@ -884,6 +882,19 @@ AI agents MUST:
 ---
 
 # 27. Change Log
+
+### 2026-09-24 — Production-hardening implementation pass
+
+**Changed**
+- Reconciled group and topic request contracts, ownership checks, login throttling, readiness behavior, password-recovery and notifications UI, and an experimental persisted agent worker.
+- Added synthetic agent regression coverage and a non-applied Render service Blueprint template.
+- Prevented production database bootstrap from creating schemas with `sequelize.sync()` or seeding Quick Access Demo accounts.
+
+**Verification**
+- Backend Jest suites, frontend TypeScript/build, and targeted Playwright checks passed during this pass; lint warnings remain.
+
+**Limitations**
+- No paid Render resources, hosted changes, remote RLS changes, secret rotation, backup restore, or real-world model-accuracy validation were performed.
 
 ### 2026-09-24 — Establish repository source of truth
 

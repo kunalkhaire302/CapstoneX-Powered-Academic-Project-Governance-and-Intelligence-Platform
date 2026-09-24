@@ -135,6 +135,7 @@ async function executeRun(runId) {
 }
 
 function dispatchRun(runId) {
+  if (process.env.AGENT_WORKER_MODE === 'external') return;
   setImmediate(() => executeRun(runId).catch(error => logger.error(`Agent dispatcher failed: ${error.message}`)));
 }
 

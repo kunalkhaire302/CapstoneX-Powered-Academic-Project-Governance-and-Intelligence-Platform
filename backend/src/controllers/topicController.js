@@ -14,8 +14,12 @@ const submitTopic = async (req, res, next) => {
 
     // RBAC Check: Must be a member of the group to submit topics
     if (req.user.role === 'student') {
-      const isMember = group.members.some(m => m.student_id === req.user.id);
+      const isMember = group.members.some(m => m.student_id === req.user.id && m.status === 'accepted');
       if (!isMember) return res.status(403).json({ error: 'Access denied: You are not a member of this group.' });
+    }
+
+    if (group.status !== 'pending_approval') {
+      return res.status(409).json({ error: 'Lock the group before submitting topics.' });
     }
 
     const existingCount = await Topic.count({ where: { group_id } });
@@ -108,7 +112,10 @@ const approveTopic = async (req, res, next) => {
   try {
     const topic = await Topic.findByPk(req.params.id);
     if (!topic) return res.status(404).json({ error: 'Topic not found.' });
-    
+    const assignedGroup = await Group.findByPk(topic.group_id);
+    if (!assignedGroup || (req.user.role !== 'admin' && assignedGroup.mentor_id !== req.user.id)) {
+      return res.status(403).json({ error: 'Only the assigned mentor or an administrator can review this topic.' });
+    }
     await topic.update({ status: 'approved', approved_at: new Date(), approved_by: req.user.id });
 
     // Reject other topics in the same group
@@ -135,6 +142,10 @@ const rejectTopic = async (req, res, next) => {
     const topic = await Topic.findByPk(req.params.id);
     if (!topic) return res.status(404).json({ error: 'Topic not found.' });
     const { reason, request_revision } = req.body;
+    const assignedGroup = await Group.findByPk(topic.group_id);
+    if (!assignedGroup || (req.user.role !== 'admin' && assignedGroup.mentor_id !== req.user.id)) {
+      return res.status(403).json({ error: 'Only the assigned mentor or an administrator can review this topic.' });
+    }
     const status = request_revision ? 'revision_requested' : 'rejected';
     await topic.update({ status, rejection_reason: reason });
     await createAuditLog({ userId: req.user.id, action: `topic.${status}`, entityType: 'topic', entityId: topic.id, metadata: { reason }, ipAddress: req.ip });

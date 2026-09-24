@@ -91,7 +91,7 @@ const emailTemplates = {
             Reset Password
           </a>
           <p style="color: #666666; font-size: 13px; margin-top: 24px;">
-            If you didn't request this, please ignore this email. The link expires in 1 hour.
+            If you didn't request this, please ignore this email. The link expires in 15 minutes.
           </p>
         </div>
       </div>

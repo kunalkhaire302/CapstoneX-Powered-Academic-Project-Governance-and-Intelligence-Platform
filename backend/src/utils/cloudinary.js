@@ -3,9 +3,9 @@ const streamifier = require('streamifier');
 const logger = require('./logger');
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'demo',
-  api_key: process.env.CLOUDINARY_API_KEY || '12345',
-  api_secret: process.env.CLOUDINARY_API_SECRET || 'secret',
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 /**
@@ -16,9 +16,11 @@ cloudinary.config({
  */
 const uploadToCloudinary = (fileBuffer, folder = 'capstonex') => {
   return new Promise((resolve, reject) => {
-    if (!process.env.CLOUDINARY_CLOUD_NAME) {
-      logger.warn('Cloudinary not configured, mocking successful upload.');
-      return resolve(`https://mock-cloudinary.com/${folder}/file-${Date.now()}.pdf`);
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      const error = new Error('File storage is not configured. Contact an administrator.');
+      error.statusCode = 503;
+      logger.error('Cloudinary upload rejected because storage credentials are incomplete.');
+      return reject(error);
     }
 
     const uploadStream = cloudinary.uploader.upload_stream(

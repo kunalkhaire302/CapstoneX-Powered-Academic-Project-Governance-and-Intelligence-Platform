@@ -5,6 +5,7 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
+    "worker": "node src/workers/agentWorker.js",
     "dev": "nodemon src/app.js",
     "db:bootstrap": "node src/scripts/bootstrapDatabase.js",
     "test": "jest --coverage --forceExit --detectOpenHandles",
