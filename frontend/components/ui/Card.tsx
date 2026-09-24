@@ -10,7 +10,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'glass' | 'gradient' | 'outlined';
 }
 
-export default function Card({ children, className = '', hover = true, padding = 'md', variant = 'default', ...props }: CardProps) {
+export default function Card({ children, className = '', hover = false, padding = 'md', variant = 'default', ...props }: CardProps) {
   const paddings = { sm: 'p-4', md: 'p-6', lg: 'p-8' };
 
   const variants = {

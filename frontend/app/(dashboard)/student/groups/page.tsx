@@ -98,7 +98,7 @@ export default function StudentGroupsPage() {
                 <Hash className="w-4 h-4 text-cardinal" /> Join a Group by Code
               </h3>
               <div className="flex flex-col sm:flex-row gap-3">
-                <Input placeholder="Enter 6-character code" value={joinCode} onChange={e => setJoinCode(e.target.value)} id="join-code" className="flex-1 max-w-sm" />
+                <Input placeholder="Enter 6- or 8-character code" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} id="join-code" className="flex-1 max-w-sm" />
                 <Button onClick={handleJoinGroup} disabled={submitting}>{submitting ? 'Joining...' : 'Join Group'}</Button>
               </div>
             </Card>
@@ -131,7 +131,7 @@ export default function StudentGroupsPage() {
               <Users className="w-8 h-8" />
             </div>
             <h3 className="text-lg font-semibold text-thunder mb-2">No Groups Yet</h3>
-            <p className="text-slate max-w-md mx-auto mb-6">You are not part of any group yet. You must either create a new group as a leader, or join an existing group using a 6-character invite code.</p>
+            <p className="text-slate max-w-md mx-auto mb-6">You are not part of a group yet. Create a new group as leader, or join an existing group with its 6- or 8-character invite code.</p>
             <div className="flex gap-4">
               <Button variant="secondary" onClick={() => { setShowJoin(true); setShowCreate(false); }}>Join Existing Group</Button>
               <Button onClick={() => { setShowCreate(true); setShowJoin(false); }}>Create New Group</Button>

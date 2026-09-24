@@ -2,14 +2,11 @@
 
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Card from '@/components/ui/Card';
+import { EmptyState, ErrorState } from '@/components/ui/Feedback';
 import { useCurrentUser } from '@/lib/hooks';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
-import {
-  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
-  LineChart, Line,
-} from 'recharts';
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface AnalyticsData {
@@ -24,21 +21,6 @@ interface AnalyticsData {
   groupsByStatus: { status: string; count: string }[];
   recentActivity: { submissionsLast7Days: number; evaluationsThisMonth: number };
 }
-
-// ─── Mock time-series for charts (augmented with real data where available) ─
-const generateActivitySeries = (base: number) =>
-  ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => ({
-    day,
-    submissions: Math.max(0, base + Math.floor(Math.sin(i) * 3 + Math.random() * 5)),
-    evaluations: Math.max(0, Math.floor(base * 0.4 + Math.random() * 3)),
-  }));
-
-const MODEL_METRICS = [
-  { name: 'Risk Predictor', accuracy: 87, precision: 84, recall: 90, f1: 86, status: 'active' },
-  { name: 'Recommendation', accuracy: 82, precision: 79, recall: 85, f1: 82, status: 'active' },
-  { name: 'Similarity', accuracy: 91, precision: 89, recall: 93, f1: 91, status: 'active' },
-  { name: 'NLP Evaluator', accuracy: 76, precision: 74, recall: 78, f1: 76, status: 'training' },
-];
 
 const STATUS_COLORS: Record<string, string> = {
   not_started: '#94A3B8',
@@ -76,6 +58,7 @@ export default function AdminAnalyticsPage() {
   const user = useCurrentUser();
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'overview' | 'models' | 'activity'>('overview');
 
   useEffect(() => {
@@ -83,19 +66,8 @@ export default function AdminAnalyticsPage() {
       try {
         const res = await api.get('/analytics/system');
         setAnalytics(res.data);
-      } catch {
-        // Graceful fallback
-        setAnalytics({
-          overview: { totalUsers: 17, totalGroups: 3, totalTopics: 2, totalLogbooks: 0, totalEvaluations: 0 },
-          usersByRole: [
-            { role: 'student', count: '10' }, { role: 'mentor', count: '2' },
-            { role: 'admin', count: '1' },
-          ],
-          groupsByStatus: [
-            { status: 'not_started', count: '1' }, { status: 'in_progress', count: '2' },
-          ],
-          recentActivity: { submissionsLast7Days: 4, evaluationsThisMonth: 2 },
-        });
+      } catch (requestError: any) {
+        setError(requestError.response?.data?.error || 'Platform analytics could not be loaded.');
       } finally {
         setLoading(false);
       }
@@ -103,7 +75,6 @@ export default function AdminAnalyticsPage() {
     fetch();
   }, []);
 
-  const activityData = generateActivitySeries(analytics?.recentActivity?.submissionsLast7Days ?? 4);
   const pieData = (analytics?.usersByRole || []).map(r => ({
     name: r.role.charAt(0).toUpperCase() + r.role.slice(1),
     value: parseInt(r.count),
@@ -140,13 +111,15 @@ export default function AdminAnalyticsPage() {
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-full text-xs font-semibold text-emerald-600">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Live
+            Server data
           </span>
           <span className="text-xs text-slate bg-gray-50 border border-gray-100 rounded-full px-3 py-1.5">
-            Updated just now
+            Current response
           </span>
         </div>
       </div>
+
+      {error && <div className="mb-6"><ErrorState title="Analytics unavailable" description={error} /></div>}
 
       {/* ── KPI Cards ──────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -275,127 +248,16 @@ export default function AdminAnalyticsPage() {
 
       {/* ── Tab: AI Model Health ─────────────────────────────────────── */}
       {activeTab === 'models' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            {MODEL_METRICS.map((m, i) => (
-              <Card key={i} className="group">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <p className="text-sm font-semibold text-thunder">{m.name}</p>
-                    <span className={`inline-flex items-center gap-1 mt-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                      m.status === 'active' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${m.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
-                      {m.status}
-                    </span>
-                  </div>
-                  <div className="text-2xl">🤖</div>
-                </div>
-                <div className="space-y-3">
-                  {[
-                    { label: 'Accuracy', value: m.accuracy, color: 'bg-blue-500' },
-                    { label: 'Precision', value: m.precision, color: 'bg-violet-500' },
-                    { label: 'Recall', value: m.recall, color: 'bg-emerald-500' },
-                    { label: 'F1 Score', value: m.f1, color: 'bg-amber-500' },
-                  ].map((metric, j) => (
-                    <div key={j}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-slate">{metric.label}</span>
-                        <span className="font-semibold text-thunder">{metric.value}%</span>
-                      </div>
-                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div className={`h-full ${metric.color} rounded-full`} style={{ width: `${metric.value}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            ))}
-          </div>
-
-          {/* Model comparison bar */}
-          <Card>
-            <h3 className="text-base font-display text-thunder mb-5">Model Accuracy Comparison</h3>
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={MODEL_METRICS} margin={{ top: 4, right: 12, left: -20, bottom: 4 }} barSize={20}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748B' }} />
-                  <YAxis domain={[60, 100]} tick={{ fontSize: 11, fill: '#94A3B8' }} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend wrapperStyle={{ fontSize: 12, fontFamily: 'Plus Jakarta Sans' }} />
-                  <Bar dataKey="accuracy" name="Accuracy" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="f1" name="F1 Score" fill="#D2232A" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-        </div>
+        <Card><EmptyState title="No verified model metrics" description="Accuracy, precision, recall and F1 will appear after a versioned evaluation run is stored by the model registry. CapstoneX does not display estimated metrics." /></Card>
       )}
 
       {/* ── Tab: Activity Trends ─────────────────────────────────────── */}
       {activeTab === 'activity' && (
         <div className="space-y-6">
-          {/* Area chart — weekly trend */}
-          <Card>
-            <h3 className="text-base font-display text-thunder mb-5">Weekly Activity Trend</h3>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={activityData} margin={{ top: 4, right: 12, left: -20, bottom: 4 }}>
-                  <defs>
-                    <linearGradient id="subGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#D2232A" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#D2232A" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="evalGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                  <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#64748B' }} />
-                  <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} allowDecimals={false} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend wrapperStyle={{ fontSize: 12, fontFamily: 'Plus Jakarta Sans' }} />
-                  <Area type="monotone" dataKey="submissions" name="Submissions"
-                    stroke="#D2232A" strokeWidth={2} fill="url(#subGrad)" dot={{ r: 4, fill: '#D2232A', strokeWidth: 0 }} />
-                  <Area type="monotone" dataKey="evaluations" name="Evaluations"
-                    stroke="#3B82F6" strokeWidth={2} fill="url(#evalGrad)" dot={{ r: 4, fill: '#3B82F6', strokeWidth: 0 }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          {/* Line chart — simulated 30-day */}
-          <Card>
-            <h3 className="text-base font-display text-thunder mb-5">30-Day Platform Growth</h3>
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={Array.from({ length: 30 }, (_, i) => ({
-                    day: `Day ${i + 1}`,
-                    users: Math.round(10 + i * 0.25 + Math.random() * 1.5),
-                    groups: Math.round(1 + i * 0.08 + Math.random() * 0.5),
-                  }))}
-                  margin={{ top: 4, right: 12, left: -20, bottom: 4 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                  <XAxis dataKey="day" tick={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} allowDecimals={false} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend wrapperStyle={{ fontSize: 12, fontFamily: 'Plus Jakarta Sans' }} />
-                  <Line type="monotone" dataKey="users" name="Users" stroke="#8B5CF6" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="groups" name="Groups" stroke="#10B981" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          {/* Stats summary row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { label: 'Avg Daily Submissions', value: ((analytics?.recentActivity?.submissionsLast7Days ?? 4) / 7).toFixed(1), icon: '📤', change: 'Last 7 days', color: 'border-l-cardinal' },
-              { label: 'Evaluation Rate', value: `${analytics?.recentActivity?.evaluationsThisMonth ?? 2}`, icon: '✅', change: 'This month', color: 'border-l-blue-500' },
+              { label: 'Avg Daily Submissions', value: analytics ? (analytics.recentActivity.submissionsLast7Days / 7).toFixed(1) : '—', icon: '📤', change: 'Last 7 days', color: 'border-l-cardinal' },
+              { label: 'Evaluations', value: analytics?.recentActivity?.evaluationsThisMonth ?? '—', icon: '✅', change: 'This month', color: 'border-l-blue-500' },
               { label: 'Active Topics', value: analytics?.overview?.totalTopics ?? 0, icon: '💡', change: 'Under review', color: 'border-l-amber-500' },
             ].map((s, i) => (
               <Card key={i} className={`border-l-4 ${s.color}`}>
@@ -410,6 +272,7 @@ export default function AdminAnalyticsPage() {
               </Card>
             ))}
           </div>
+          <Card><EmptyState title="Time-series analytics are not available" description="The system API currently exposes aggregate counts only. Trend charts will appear when timestamped analytics buckets are implemented." /></Card>
         </div>
       )}
 

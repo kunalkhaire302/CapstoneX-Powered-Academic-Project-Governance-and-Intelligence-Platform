@@ -1,115 +1,53 @@
 'use client';
 
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Award, BarChart3, ClipboardCheck } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Card from '@/components/ui/Card';
-import { useCurrentUser } from '@/lib/hooks';
-import { useState, useEffect } from 'react';
+import { EmptyState, ErrorState, LoadingState } from '@/components/ui/Feedback';
+import PageHeader from '@/components/ui/PageHeader';
 import api from '@/lib/api';
+import { useCurrentUser } from '@/lib/hooks';
+
+type Evaluation = { id?: string; type: string; total_score: string | number; max_score: string | number; submitted_at?: string };
 
 export default function StudentMarksPage() {
   const user = useCurrentUser();
-  const [evaluations, setEvaluations] = useState<any[]>([]);
+  const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchMarks = async () => {
-      try {
-        setLoading(true);
-        // By default, backend listEvaluations returns student's own marks if they are logged in
-        const res = await api.get('/evaluations');
-        setEvaluations(res.data.data || []);
-      } catch (error) {
-        console.error("Failed to fetch marks", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (user?.id) fetchMarks();
-  }, [user]);
+  const load = useCallback(async () => {
+    setLoading(true); setError('');
+    try { const { data } = await api.get('/evaluations'); setEvaluations(data.data || []); }
+    catch (requestError: any) { setError(requestError.response?.data?.error || 'Your evaluations could not be loaded.'); }
+    finally { setLoading(false); }
+  }, []);
 
-  // Aggregate standard types to show what's pending
-  const expectedTypes = ['Proposal', 'Mid-Term', 'Presentation', 'Final'];
-  
-  // Merge live evaluations with expected placeholders
-  const displayEvaluations = expectedTypes.map(type => {
-    const found = evaluations.find(e => e.type === type);
-    if (found) {
-      return { type, score: parseFloat(found.total_score), maxScore: parseFloat(found.max_score), date: new Date(found.submitted_at).toLocaleDateString() };
-    }
-    return { type, score: null, maxScore: 100, date: 'Pending' };
-  });
+  useEffect(() => { if (user?.id) load(); }, [load, user?.id]);
+  const totals = useMemo(() => evaluations.reduce((result, item) => {
+    const score = Number(item.total_score); const maximum = Number(item.max_score);
+    if (Number.isFinite(score) && Number.isFinite(maximum) && maximum > 0) { result.earned += score; result.maximum += maximum; }
+    return result;
+  }, { earned: 0, maximum: 0 }), [evaluations]);
+  const percentage = totals.maximum ? Math.round((totals.earned / totals.maximum) * 100) : null;
 
-  // Include any extra evaluations that aren't in the standard types
-  evaluations.forEach(ev => {
-    if (!expectedTypes.includes(ev.type)) {
-      displayEvaluations.push({
-        type: ev.type,
-        score: parseFloat(ev.total_score),
-        maxScore: parseFloat(ev.max_score),
-        date: new Date(ev.submitted_at).toLocaleDateString()
-      });
-    }
-  });
-
-  const totalEarned = displayEvaluations.reduce((sum, e) => sum + (e.score || 0), 0);
-  const totalMax = displayEvaluations.reduce((sum, e) => sum + (e.score !== null ? e.maxScore : 0), 0); // Only sum max for graded
-  const percentage = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0;
-  const completedCount = displayEvaluations.filter(e => e.score !== null).length;
-
-  return (
-    <DashboardLayout role="student" title="Marks Tracker" userName={user?.name || 'Student'}>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Card>
-          <p className="text-sm text-slate">Total Score</p>
-          <p className="text-3xl font-display text-thunder mt-1">
-            {loading ? '...' : totalEarned}
-            <span className="text-lg text-slate">/{totalMax || 0}</span>
-          </p>
-        </Card>
-        <Card>
-          <p className="text-sm text-slate">Percentage (Graded)</p>
-          <p className="text-3xl font-display text-thunder mt-1">
-            {loading ? '...' : `${percentage}%`}
-          </p>
-        </Card>
-        <Card>
-          <p className="text-sm text-slate">Evaluations Completed</p>
-          <p className="text-3xl font-display text-thunder mt-1">
-            {loading ? '...' : `${completedCount}/${displayEvaluations.length}`}
-          </p>
-        </Card>
+  return <DashboardLayout role="student" title="Marks" userName={user?.name || 'Student'}>
+    <PageHeader eyebrow="Assessment record" title="Marks and evaluations" description="Only submitted, server-verified evaluations appear here. Upcoming assessments are not shown as grades." />
+    {error ? <ErrorState title="Marks unavailable" description={error} onRetry={load} /> : loading ? <LoadingState label="Loading evaluations" rows={4} /> : <>
+      <div className="mb-6 grid gap-4 md:grid-cols-3">
+        <Card><Award className="h-5 w-5 text-cardinal" /><p className="mt-4 text-3xl font-display text-thunder">{totals.earned}<span className="text-base text-slate-500">/{totals.maximum}</span></p><p className="mt-1 text-xs font-bold uppercase tracking-wider text-slate-500">Recorded score</p></Card>
+        <Card><BarChart3 className="h-5 w-5 text-blue-600" /><p className="mt-4 text-3xl font-display text-thunder">{percentage === null ? '—' : `${percentage}%`}</p><p className="mt-1 text-xs font-bold uppercase tracking-wider text-slate-500">Weighted result</p></Card>
+        <Card><ClipboardCheck className="h-5 w-5 text-emerald-600" /><p className="mt-4 text-3xl font-display text-thunder">{evaluations.length}</p><p className="mt-1 text-xs font-bold uppercase tracking-wider text-slate-500">Evaluations recorded</p></Card>
       </div>
-
       <Card>
-        <h3 className="text-lg font-display text-thunder mb-4">Evaluation Breakdown</h3>
-        {loading ? (
-          <p className="text-slate">Loading marks...</p>
-        ) : (
-          <div className="space-y-4">
-            {displayEvaluations.map((ev, i) => (
-              <div key={i} className="flex items-center gap-4">
-                <div className="w-32 text-sm font-medium text-thunder">{ev.type}</div>
-                <div className="flex-1">
-                  <div className="h-3 bg-surface rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${ev.score !== null && (ev.score/ev.maxScore) >= 0.5 ? 'bg-green-500' : 'bg-red-500'}`}
-                      style={{ width: ev.score !== null ? `${(ev.score / ev.maxScore) * 100}%` : '0%' }}
-                    />
-                  </div>
-                </div>
-                <div className="w-32 text-right text-sm">
-                  {ev.score !== null ? (
-                    <span className="text-thunder font-medium">{ev.score}/{ev.maxScore}</span>
-                  ) : (
-                    <span className="text-slate italic">Pending</span>
-                  )}
-                  <p className="text-xs text-slate mt-0.5">{ev.date}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <h2 className="font-display text-xl text-thunder">Evaluation record</h2>
+        {evaluations.length === 0 ? <EmptyState title="No marks have been recorded" description="Completed mentor evaluations will appear here after submission." /> : <div className="mt-5 divide-y divide-slate-100">{evaluations.map((evaluation, index) => {
+          const score = Number(evaluation.total_score); const maximum = Number(evaluation.max_score);
+          const ratio = maximum > 0 ? Math.min(100, Math.max(0, (score / maximum) * 100)) : 0;
+          return <article key={evaluation.id || `${evaluation.type}-${index}`} className="grid gap-3 py-5 sm:grid-cols-[minmax(9rem,1fr)_2fr_auto] sm:items-center"><div><h3 className="font-semibold text-thunder">{evaluation.type}</h3>{evaluation.submitted_at && <time dateTime={evaluation.submitted_at} className="text-xs text-slate-500">{new Date(evaluation.submitted_at).toLocaleDateString()}</time>}</div><div className="h-2 overflow-hidden rounded-full bg-slate-100" aria-label={`${ratio.toFixed(0)} percent`}><div className="h-full rounded-full bg-cardinal transition-[width] duration-500" style={{ width: `${ratio}%` }} /></div><p className="text-right text-sm font-bold text-thunder">{score}/{maximum}</p></article>;
+        })}</div>}
       </Card>
-    </DashboardLayout>
-  );
+    </>}
+  </DashboardLayout>;
 }

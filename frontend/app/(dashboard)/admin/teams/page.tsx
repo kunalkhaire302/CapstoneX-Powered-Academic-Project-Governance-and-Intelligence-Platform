@@ -2,7 +2,6 @@
 
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Card from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
 import { useCurrentUser } from '@/lib/hooks';
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
@@ -81,20 +80,14 @@ export default function AdminTeamsPage() {
       try {
         const res = await api.get('/users', { params: { role: 'student', limit: 50 } });
         const raw = res.data.data || [];
-        const allSkills = ['Python', 'JavaScript', 'SQL', 'React', 'Node.js', 'TensorFlow', 'Java', 'Docker', 'TypeScript'];
-        const allInterests = ['AI/ML', 'Web Dev', 'Data Science', 'IoT', 'Mobile', 'Blockchain', 'DevOps', 'Security'];
         setStudents(raw.map((s: any) => ({
           id: s.id, name: s.name, email: s.email,
-          skills: s.skills || allSkills.sort(() => 0.5 - Math.random()).slice(0, 2 + Math.floor(Math.random() * 3)),
-          interests: s.interests || allInterests.sort(() => 0.5 - Math.random()).slice(0, 1 + Math.floor(Math.random() * 2)),
+          skills: Array.isArray(s.skills) ? s.skills : [],
+          interests: Array.isArray(s.interests) ? s.interests : [],
         })));
-      } catch {
-        const allSkills = ['Python', 'JavaScript', 'SQL', 'React', 'Node.js', 'TensorFlow', 'Java', 'Docker'];
-        setStudents(Array.from({ length: 12 }, (_, i) => ({
-          id: String(i + 1), name: `Student ${i + 1}`, email: `student${i + 1}@capstonex.com`,
-          skills: allSkills.sort(() => 0.5 - Math.random()).slice(0, 2 + Math.floor(Math.random() * 2)),
-          interests: ['AI/ML', 'Web Dev', 'Data Science'].sort(() => 0.5 - Math.random()).slice(0, 1),
-        })));
+      } catch (requestError: any) {
+        setStudents([]);
+        showToast(requestError.response?.data?.error || 'The student roster could not be loaded.', 'error');
       } finally { setLoading(false); }
     };
     fetchStudents();
@@ -110,22 +103,14 @@ export default function AdminTeamsPage() {
         diversity: t.diversity_score !== undefined ? t.diversity_score / 100 : (t.diversity || 0),
       }));
       setTeams(structuredTeams);
-    } catch {
-      const shuffled = [...students].sort(() => 0.5 - Math.random());
-      const numTeams = Math.ceil(shuffled.length / teamSize);
-      const newTeams: Team[] = [];
-      for (let i = 0; i < numTeams; i++) {
-        const members = shuffled.slice(i * teamSize, (i + 1) * teamSize);
-        if (members.length === 0) break;
-        const allSkills = new Set(members.flatMap(m => m.skills));
-        const diversity = Math.min(1, allSkills.size / (teamSize * 2));
-        newTeams.push({ members, diversity });
-      }
-      setTeams(newTeams);
+      setGenerated(true);
+      showToast(`${structuredTeams.length} teams generated successfully!`);
+    } catch (requestError: any) {
+      setTeams([]);
+      setGenerated(false);
+      showToast(requestError.response?.data?.error || 'Team generation failed. No teams were created.', 'error');
     } finally {
       setGenerating(false);
-      setGenerated(true);
-      showToast(`${Math.ceil(students.length / teamSize)} teams generated successfully!`);
     }
   };
 

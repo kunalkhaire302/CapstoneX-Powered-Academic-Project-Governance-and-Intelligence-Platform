@@ -4,7 +4,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import NotificationInbox from '@/components/notifications/NotificationInbox';
 import { useCurrentUser } from '@/lib/hooks';
 
-export default function StudentNotificationsPage() {
+export default function MentorNotificationsPage() {
   const user = useCurrentUser();
-  return <DashboardLayout role="student" title="Notifications" userName={user?.name || 'Student'}><NotificationInbox role="student" /></DashboardLayout>;
+  return <DashboardLayout role="mentor" title="Notifications" userName={user?.name || 'Mentor'}><NotificationInbox role="mentor" /></DashboardLayout>;
 }

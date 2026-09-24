@@ -2,11 +2,11 @@
 
 > Living documentation for AI-assisted development. This file describes the repository as implemented; it is not a product brochure.
 
-**Last Updated:** `2026-09-24T20:10:00+05:30`
+**Last Updated:** `2026-09-24T20:30:00+05:30`
 
 **Last Verified Against Codebase:** `2026-09-24T20:10:00+05:30`
 
-**Context Version:** `1.2.0`
+**Context Version:** `1.3.0`
 
 ---
 
@@ -60,8 +60,8 @@ The platform centralizes capstone governance that is otherwise spread across doc
 | Topic workflow | Submit up to three topics; approve/reject | Student, Mentor, Admin | `topicRoutes.js`, `topicController.js` | ✅ Canonical batch schema implemented; transactional coverage still pending |
 | Logbooks | Weekly entries, upload, submit, mentor feedback | Student, Mentor | `logbookRoutes.js`, `logbookController.js` | ✅ Core path implemented; ⚠️ state gaps |
 | Evaluations | Create/update academic evaluations | Mentor; role-filtered read | `evaluationRoutes.js`, `evaluationController.js` | ✅ Implemented |
-| Notifications | Inbox, read state, admin broadcast | All; Admin broadcast | `notificationRoutes.js`, `frontend/app/(dashboard)/student/notifications/` | ✅ Student inbox implemented |
-| Analytics and audit | System/department metrics and audit history | Admin, Mentor | `analyticsRoutes.js`, `auditLogRoutes.js` | ✅ Implemented; some UI fallbacks |
+| Notifications | Inbox, read state, admin broadcast | All; Admin broadcast | `notificationRoutes.js`, shared `NotificationInbox`, role pages | ✅ Student/Mentor inboxes and Admin broadcast implemented |
+| Analytics and audit | System/department metrics and audit history | Admin, Mentor | `analyticsRoutes.js`, `auditLogRoutes.js` | ✅ Aggregate API implemented; UI no longer fabricates missing trend/model metrics |
 | PDF/Excel exports | Download group reports | Mentor, Admin | `exportRoutes.js`, `exportController.js` | ✅ Implemented |
 | AI recommendations/problem analysis | Recommend projects and improve/analyze problem statements | Student, Mentor | backend AI proxy/recommendation routes; FastAPI routers | 🚧 Depends on deployed AI service; duplicate APIs |
 | Risk prediction | Score project risk and list risky projects | Mentor, Admin | `aiRoutes.js`, `risk_service.py` | 🚧 Model exists; feature placeholders remain |
@@ -167,7 +167,7 @@ Status: **REQUIRES OPERATOR ACTION**.
 
 - **P1.1:** Extend the verified focused AI Team runtime to the full recommendation/risk/plagiarism workload only after right-sizing its dependency and compute requirements. The focused runtime and backend secret pairing are live and smoke-tested.
 - **P1.2:** Replace in-process `setImmediate` agent execution with a durable queue/worker, leasing, idempotency, cancellation, and recovery.
-- **P1.3:** Add `/reset-password` frontend flow and test delivery; SMTP absence currently degrades to logging while returning a generic success.
+- **P1.3:** Verify hosted password-reset delivery and token reuse behavior; the frontend flow exists, while SMTP absence currently degrades to logging behind a generic response.
 - **P1.4:** Fix `/auth/admin/register`; the route permits Admin/Mentor but the shared controller always creates Student.
 - **P1.5:** Enforce accepted group membership and lifecycle transitions consistently for logbooks, group join/invite, and updates.
 - **P1.6:** Remove production mock/fallback behavior for Cloudinary URLs and dashboard data, or label demo data unambiguously.
@@ -377,15 +377,15 @@ Next.js App Router pages are split into public authentication routes and a share
 | Path(s) | Screen | Intended Guard | Purpose |
 |---|---|---|---|
 | `/` | Redirect | Public | Sends user to login |
-| `/login`, `/register`, `/forgot-password` | Authentication | Public | Account access/recovery request |
+| `/login`, `/register`, `/forgot-password`, `/reset-password` | Authentication | Public | Account access/recovery; public registration is Student-only |
 | `/student` | Student dashboard | Student | Overview |
-| `/student/groups`, `/topics`, `/recommendations`, `/ai-team`, `/logbook`, `/marks` | Student workspaces | Student | Project lifecycle |
+| `/student/groups`, `/topics`, `/recommendations`, `/ai-team`, `/logbook`, `/marks`, `/notifications` | Student workspaces | Student | Project lifecycle and notification inbox |
 | `/mentor` | Mentor dashboard | Mentor | Supervision overview |
-| `/mentor/groups`, `/logbook-review`, `/evaluations`, `/schedule`, `/risk`, `/reports`, `/ai-team` | Mentor workspaces | Mentor | Review/evaluation/AI governance |
+| `/mentor/groups`, `/logbook-review`, `/evaluations`, `/schedule`, `/risk`, `/reports`, `/ai-team`, `/notifications` | Mentor workspaces | Mentor | Review/evaluation/AI governance and notification inbox |
 | `/admin` | Admin dashboard | Admin | Administration overview |
 | `/admin/users`, `/audit`, `/topics`, `/risk`, `/teams`, `/analytics`, `/ai-team`, `/models`, `/notifications` | Admin workspaces | Admin | Platform administration |
 
-Guards are intended but not enforced by Next middleware. `/reset-password` and `/student/notifications` are linked or required but not implemented.
+Dashboard pages enforce role access client-side through `/auth/profile`; no Next middleware guard exists. Recovery, Student notifications, and Mentor notifications are implemented. Server API authorization remains the security boundary.
 
 ## State Management
 
@@ -686,7 +686,7 @@ Alternatively: `docker compose up --build`. Local ports are frontend 3000, backe
 |---|---|---|---|
 | `npm run lint` | Frontend | ESLint | ✅ Passed |
 | `npx tsc --noEmit --incremental false` | Frontend | Type check | ✅ Passed |
-| `npm run build` | Frontend | Production bundle | ⚠️ Compilation succeeded; local Next worker ended with Windows `spawn EPERM` |
+| `npm run build` | Frontend | Production bundle | ✅ Passed across 36 statically generated routes (2026-09-24) |
 | `npm run lint` | Backend | ESLint | ✅ 0 errors, 11 warnings |
 | `npm test -- --runInBand` | Backend | Jest/Supertest + coverage | ⚠️ 3 suites/8 tests passed; coverage output had local EPERM and branch coverage 38.57% below configured 50% |
 | `npm run db:bootstrap` | Backend | Create initial model schema if absent | Not run against user DB |
@@ -774,8 +774,8 @@ Deployment concerns: fixed 30-second sleeps are brittle; deploy success does not
 | Full recommendation/risk/plagiarism AI service | High | Deployment | Blocked on right-sized hosting; free full-service updates failed | Render deploy evidence |
 | Logbook membership/status transitions are weak | High | Business logic | Open | logbook controller |
 | Cloudinary absence | High | Uploads | Fake fallback removed; hosted credential/flow verification pending | upload utility |
-| Student notification inbox | Low | Frontend | Implemented; broader E2E pending | student notifications page |
-| Placeholder risk features and dashboard fallback data | Medium | Accuracy/UI | Open | AI controller/pages |
+| Student/Mentor notification inbox | Low | Frontend | Implemented; broader E2E pending | shared notification inbox and role pages |
+| Placeholder risk features and legacy dashboard fallbacks | Medium | Accuracy/UI | Partially addressed: analytics/team/marks fabrication removed; other routes require audit | frontend pages |
 | Duplicate/stale backup files and impossible roles | Medium | Maintainability | Open | repository scan |
 | k6 scenario violates protected API contract | Medium | Testing | Open | load test/routes |
 | README overstates roles, model production status, monitoring, and table counts | Medium | Documentation | Open | README vs code |
@@ -790,7 +790,7 @@ Deployment concerns: fixed 30-second sleeps are brittle; deploy success does not
 | Contracts | Frontend/routes/controllers lack one shared schema | P0 | Open | OpenAPI/schema generation and contract tests |
 | Async work | Agent execution tied to API process | P1 | Open | Redis-backed or managed durable queue |
 | Authorization | Controller checks and role comments are inconsistent | P1 | Open | Central policy/service layer plus isolation tests |
-| Frontend quality | No automated tests; loose typing/static fallbacks | P1 | Open | Playwright/component tests and typed clients |
+| Frontend quality | Limited automation, loose typing, legacy native alerts/effect warnings | P1 | In progress | Playwright/component/a11y tests, typed clients, and shared feedback migration |
 | Python packaging | All dependencies unpinned | P2 | Open | Pin/lock and automated updates |
 | API duplication | Two recommendation/problem surfaces | P2 | Open | Canonical versioned API |
 | MLOps | Duplicate scheduling; weak promotion checks | P2 | Open | One orchestrator, dataset/version/metric gates |
@@ -825,10 +825,11 @@ Where rationale is not explicit, it is inferred from implementation and must not
 - Core models/controllers for users, groups, topics, logbooks, evaluations, notifications, audit, analytics, and exports.
 - Governed AI Team state model, worker catalog, quality gate, evidence fields, and human review actions.
 - CI/deploy/retraining workflow definitions and per-service Dockerfiles.
+- Frontend trust pass: Student-only public registration, real role-scoped notification routes, truthful marks/team/analytics states, shared feedback/page-header primitives, and accessible modal focus restoration.
 
 ### 🚧 In Progress
 
-- Production hardening and UI redesign, including validated login-recovery and notification UI paths.
+- Production hardening and UI redesign. The audit/design-system foundation and highest-risk trust fixes are complete; route-by-route component/state/accessibility migration remains active.
 - AI recommendations, risk, novelty/plagiarism, model lifecycle, and service deployment. A synthetic agent regression benchmark exists, but it is not an accuracy claim.
 - Reliable production database migrations. Production bootstrap now refuses to use `sequelize.sync()`; an audited baseline migration and restore test remain required.
 - Documentation reconciliation.
@@ -883,6 +884,27 @@ AI agents MUST:
 ---
 
 # 27. Change Log
+
+### 2026-09-24 — Frontend production foundation and trust pass
+
+**Changed**
+- Added an evidence-based UI/UX audit, complete route inventory, design-system specification, and redesign change log.
+- Added shared page-header and feedback primitives, centralized layout/motion tokens, passive-card semantics, and dialog focus restoration.
+- Made public registration Student-only, added Mentor notifications, and made header actions role-aware.
+- Removed fabricated notifications, evaluation placeholders, random student/team fallbacks, simulated analytics trends, and static model metrics from production UI paths.
+
+**Reason**
+- Production-facing academic governance screens must distinguish verified records from unavailable, pending, or degraded data.
+
+**Files / Areas**
+- Frontend authentication, shared shell/primitives, notifications, Student marks, Admin analytics/team formation, and `docs/` UI specifications.
+
+**Verification**
+- `npm run lint` completed with zero errors (legacy warnings remain).
+- `npm run build` passed TypeScript, static generation, and optimization for all 36 generated routes.
+
+**Impact**
+- The frontend now has a truthful reusable foundation and 33 user-facing routes. The full route-by-route visual/state/accessibility migration remains in progress.
 
 ### 2026-09-24 — Deploy focused AI Team runtime
 

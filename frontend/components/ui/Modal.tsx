@@ -15,6 +15,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
   const [mounted, setMounted] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -23,10 +24,14 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
   // Lock body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
+      previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
       document.body.style.overflow = 'hidden';
       // Focus the close button on open
       setTimeout(() => closeRef.current?.focus(), 50);
-      return () => { document.body.style.overflow = ''; };
+      return () => {
+        document.body.style.overflow = '';
+        previouslyFocusedRef.current?.focus();
+      };
     }
   }, [isOpen]);
 

@@ -10,7 +10,7 @@ import AppLoader from '../ui/AppLoader';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  role?: string;
+  role?: 'student' | 'mentor' | 'admin';
   title?: string;
   userName?: string;
 }
@@ -34,9 +34,9 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
   const router = useRouter();
   
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: userName || 'Student 1',
-    email: 'student1@capstonex.com',
-    role: role || 'Student',
+    name: userName || 'Workspace member',
+    email: '',
+    role,
     bio: ''
   });
 
@@ -44,9 +44,9 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
   useEffect(() => {
     // 1. Try to get actual logged-in auth user
     const authUserStr = localStorage.getItem('user');
-    let realName = userName || 'Student 1';
-    let realEmail = 'student1@capstonex.com';
-    let realRole = role || 'Student';
+    let realName = userName || 'Workspace member';
+    let realEmail = '';
+    let realRole = role;
 
     if (authUserStr) {
       try {
@@ -132,6 +132,7 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
           
           <Topbar 
             title={title} 
+            role={role}
             onMenuToggle={() => setSidebarOpen(true)} 
             userProfile={userProfile}
             setUserProfile={setUserProfile}
