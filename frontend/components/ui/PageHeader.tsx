@@ -7,6 +7,7 @@ import Button from './Button';
 interface PageHeaderProps {
   title: string;
   description?: string;
+  eyebrow?: string;
   badge?: ReactNode;
   actions?: ReactNode;
   className?: string;
@@ -15,6 +16,7 @@ interface PageHeaderProps {
 export default function PageHeader({
   title,
   description,
+  eyebrow,
   badge,
   actions,
   className,
@@ -22,6 +24,11 @@ export default function PageHeader({
   return (
     <div className={cn("flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8 page-reveal", className)}>
       <div className="space-y-1.5 flex-1">
+        {eyebrow && (
+          <p className="text-xs font-semibold uppercase tracking-wider text-cardinal-600 mb-1">
+            {eyebrow}
+          </p>
+        )}
         <div className="flex items-center gap-3">
           <h1 className="text-2xl sm:text-[28px] font-display text-cx-text font-semibold tracking-tight">
             {title}
