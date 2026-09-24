@@ -107,7 +107,7 @@ export default function LoginPage() {
       <div className="mx-auto grid min-h-screen max-w-[1600px] lg:grid-cols-[1.05fr_0.95fr]">
         <section className="relative hidden overflow-hidden bg-[#0d1b2a] px-10 py-10 text-white lg:flex lg:flex-col xl:px-16 xl:py-14">
           <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px)] [background-size:46px_46px]" />
-          <div className="absolute -left-28 top-28 h-80 w-80 rounded-full bg-cardinal-500/30 blur-[110px]" />
+          <div className="absolute -left-28 top-28 h-80 w-80 rounded-full bg-brand-500/30 blur-[110px]" />
           <div className="absolute -bottom-24 right-0 h-96 w-96 rounded-full bg-amber-300/10 blur-[120px]" />
 
           <motion.div initial={{ opacity: 0, y: -14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="relative flex items-center gap-3">
@@ -148,7 +148,7 @@ export default function LoginPage() {
         </section>
 
         <section className="relative flex items-center justify-center px-5 py-10 sm:px-8 lg:px-12">
-          <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-cardinal-100/70 blur-[100px]" />
+          <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-brand-100/70 blur-[100px]" />
           <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="relative w-full max-w-[470px]">
             <div className="mb-10 flex items-center justify-between lg:hidden">
               <div className="flex items-center gap-2.5">
@@ -159,7 +159,7 @@ export default function LoginPage() {
             </div>
 
             <div className="mb-7">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-cardinal-700">Welcome back</p>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-700">Welcome back</p>
               <h2 className="mt-3 font-display text-4xl tracking-tight text-[#172331]">Enter your workspace.</h2>
               <p className="mt-3 max-w-md text-sm leading-6 text-slate-600">Use your CapstoneX account, or use a safe demo workspace to explore the platform.</p>
             </div>
@@ -179,14 +179,14 @@ export default function LoginPage() {
                   <span className="mb-2 block text-xs font-bold uppercase tracking-[0.12em] text-slate-600">Institutional email</span>
                   <span className="relative block">
                     <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <input id="login-email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@university.edu" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-cardinal-500 focus:bg-white focus:ring-4 focus:ring-cardinal-100" />
+                    <input id="login-email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@university.edu" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-100" />
                   </span>
                 </label>
                 <label className="block">
-                  <span className="mb-2 flex items-center justify-between text-xs font-bold uppercase tracking-[0.12em] text-slate-600"><span>Password</span><Link href="/forgot-password" className="normal-case tracking-normal text-cardinal-700 hover:text-cardinal-800">Forgot password?</Link></span>
+                  <span className="mb-2 flex items-center justify-between text-xs font-bold uppercase tracking-[0.12em] text-slate-600"><span>Password</span><Link href="/forgot-password" className="normal-case tracking-normal text-brand-700 hover:text-brand-800">Forgot password?</Link></span>
                   <span className="relative block">
                     <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <input id="login-password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-12 text-sm outline-none transition placeholder:text-slate-400 focus:border-cardinal-500 focus:bg-white focus:ring-4 focus:ring-cardinal-100" />
+                    <input id="login-password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-12 text-sm outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-100" />
                     <button type="button" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((visible) => !visible)} className="absolute right-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
                   </span>
                 </label>
@@ -203,7 +203,7 @@ export default function LoginPage() {
                   const Icon = demo.icon;
                   const active = selectedRole === demo.role;
                   const classes = active
-                    ? 'border-cardinal-400 bg-cardinal-50 ring-2 ring-cardinal-100'
+                    ? 'border-brand-400 bg-brand-50 ring-2 ring-brand-100'
                     : 'border-slate-200 bg-white hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-card';
                   return (
                     <motion.button key={demo.role} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 + index * 0.07 }} type="button" disabled={loading} onClick={() => openDemo(demo.role, demo.email)} className={'group rounded-2xl border p-3 text-left transition ' + classes}>
@@ -217,7 +217,7 @@ export default function LoginPage() {
               <p className="mt-3 text-center text-xs text-slate-500">Demo access signs in immediately — no extra password step.</p>
             </div>
 
-            <p className="mt-8 text-center text-sm text-slate-600">New to CapstoneX? <Link href="/register" className="font-semibold text-cardinal-700 hover:text-cardinal-800">Create your account</Link></p>
+            <p className="mt-8 text-center text-sm text-slate-600">New to CapstoneX? <Link href="/register" className="font-semibold text-brand-700 hover:text-brand-800">Create your account</Link></p>
           </motion.div>
         </section>
       </div>

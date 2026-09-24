@@ -20,11 +20,11 @@
 
 :root {
   /* Brand */
-  --cx-brand: #D2232A;
-  --cx-brand-hover: #B01E24;
-  --cx-brand-subtle: #FEF2F2;
-  --cx-brand-muted: rgba(210, 35, 42, 0.08);
-  --cx-brand-glow: rgba(210, 35, 42, 0.12);
+  --cx-brand: #4F46E5;
+  --cx-brand-hover: #4338CA;
+  --cx-brand-subtle: #EEF2FF;
+  --cx-brand-muted: rgba(79, 70, 229, 0.08);
+  --cx-brand-glow: rgba(79, 70, 229, 0.12);
 
   /* Backgrounds */
   --cx-bg: #FFFFFF;
@@ -133,8 +133,8 @@
   --cx-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.07), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
   --cx-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
   --cx-shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.04);
-  --cx-shadow-brand: 0 4px 14px rgba(210, 35, 42, 0.18);
-  --cx-shadow-focus: 0 0 0 3px rgba(210, 35, 42, 0.15);
+  --cx-shadow-brand: 0 4px 14px rgba(79, 70, 229, 0.18);
+  --cx-shadow-focus: 0 0 0 3px rgba(79, 70, 229, 0.15);
 
   /* Motion */
   --cx-motion-fast: 120ms;
@@ -332,7 +332,7 @@ a:hover {
 
   input:focus, textarea:focus, select:focus {
     @apply ring-2 ring-offset-1 outline-none;
-    --tw-ring-color: rgba(210, 35, 42, 0.15);
+    --tw-ring-color: rgba(79, 70, 229, 0.15);
     border-color: var(--cx-brand);
   }
 
@@ -397,7 +397,7 @@ a:hover {
   }
   .btn-primary:hover:not(:disabled) {
     background: var(--cx-brand-hover);
-    box-shadow: 0 6px 20px rgba(210, 35, 42, 0.25);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.25);
   }
   .btn-primary:active:not(:disabled) {
     transform: scale(0.98);
@@ -482,7 +482,7 @@ a:hover {
 
   /* ── Gradient Text ──────────────────────────────────────────────── */
   .gradient-text {
-    background: linear-gradient(135deg, var(--cx-brand), #F87171);
+    background: linear-gradient(135deg, var(--cx-brand), #818CF8);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

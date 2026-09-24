@@ -153,7 +153,7 @@ export default function AdminUsersPage() {
   const activeCount = users.filter(u => u.is_active).length;
   const thisMonth = users.filter(u => new Date(u.created_at).getMonth() === new Date().getMonth()).length;
 
-  const selectClass = "w-full px-3.5 py-2.5 text-sm bg-cx-surface border border-cx-border rounded-xl focus:ring-2 focus:ring-cardinal-200 focus:border-cardinal-500 outline-none transition-all hover:border-cx-border-strong text-cx-text";
+  const selectClass = "w-full px-3.5 py-2.5 text-sm bg-cx-surface border border-cx-border rounded-xl focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none transition-all hover:border-cx-border-strong text-cx-text";
 
   const columns: ColumnDef<User>[] = [
     {
@@ -249,7 +249,7 @@ export default function AdminUsersPage() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-cx-text-muted" />
           <input type="text" placeholder="Search by name or email..." value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
-            className="w-full pl-10 pr-4 py-2.5 text-sm bg-cx-surface border border-cx-border rounded-xl focus:ring-2 focus:ring-cardinal-200 focus:border-cardinal-500 outline-none transition-all hover:border-cx-border-strong text-cx-text"
+            className="w-full pl-10 pr-4 py-2.5 text-sm bg-cx-surface border border-cx-border rounded-xl focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none transition-all hover:border-cx-border-strong text-cx-text"
             id="search-users" />
         </div>
 
@@ -383,9 +383,9 @@ export default function AdminUsersPage() {
             <p className="text-sm font-semibold text-blue-800 mb-2">Required CSV columns:</p>
             <code className="text-xs bg-white px-2 py-1 rounded border border-blue-200 text-blue-700 font-mono shadow-sm">name, email, role, sap_id, roll_no, branch</code>
           </div>
-          <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-cx-border rounded-xl cursor-pointer hover:border-cardinal-300 hover:bg-cardinal-50/50 transition-all group bg-cx-surface">
-            <Upload className="w-8 h-8 mb-3 text-cx-text-muted group-hover:text-cardinal-500 group-hover:scale-110 transition-all" />
-            <span className="text-sm font-medium text-cx-text-secondary group-hover:text-cardinal-600">Click to choose CSV file</span>
+          <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-cx-border rounded-xl cursor-pointer hover:border-brand-300 hover:bg-brand-50/50 transition-all group bg-cx-surface">
+            <Upload className="w-8 h-8 mb-3 text-cx-text-muted group-hover:text-brand-500 group-hover:scale-110 transition-all" />
+            <span className="text-sm font-medium text-cx-text-secondary group-hover:text-brand-600">Click to choose CSV file</span>
             <input type="file" accept=".csv" onChange={handleCSVImport} className="hidden" />
           </label>
           <div className="flex gap-3 justify-end pt-2">

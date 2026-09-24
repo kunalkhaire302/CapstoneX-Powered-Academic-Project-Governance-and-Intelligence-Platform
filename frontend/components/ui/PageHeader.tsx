@@ -25,7 +25,7 @@ export default function PageHeader({
     <div className={cn("flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8 page-reveal", className)}>
       <div className="space-y-1.5 flex-1">
         {eyebrow && (
-          <p className="text-xs font-semibold uppercase tracking-wider text-cardinal-600 mb-1">
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand-600 mb-1">
             {eyebrow}
           </p>
         )}

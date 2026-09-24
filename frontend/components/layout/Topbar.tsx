@@ -106,7 +106,7 @@ export default function Topbar({ title = 'Dashboard', role, onMenuToggle, userPr
       <div className="flex items-center gap-3 sm:gap-4" ref={dropdownRef}>
         {/* Command Palette Trigger */}
         <button
-          className="hidden md:flex items-center gap-3 px-3 py-2 text-sm text-cx-text-muted bg-cx-bg hover:bg-cx-bg-subtle rounded-lg transition-all border border-cx-border min-w-[200px] lg:min-w-[280px] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cardinal"
+          className="hidden md:flex items-center gap-3 px-3 py-2 text-sm text-cx-text-muted bg-cx-bg hover:bg-cx-bg-subtle rounded-lg transition-all border border-cx-border min-w-[200px] lg:min-w-[280px] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           id="search-btn"
           aria-label="Search"
           onClick={() => setSearchOpen(true)}

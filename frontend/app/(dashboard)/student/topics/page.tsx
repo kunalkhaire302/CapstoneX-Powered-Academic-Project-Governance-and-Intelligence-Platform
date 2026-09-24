@@ -143,7 +143,7 @@ export default function StudentTopicsPage() {
                         <span key={idx} className="text-[10px] bg-slate/10 text-slate px-2 py-0.5 rounded font-medium">{d}</span>
                       ))}
                       {topic.technology_tags?.map((d: string, idx: number) => (
-                        <span key={idx} className="text-[10px] bg-cardinal/10 text-cardinal px-2 py-0.5 rounded font-medium border border-cardinal/10">{d}</span>
+                        <span key={idx} className="text-[10px] bg-brand/10 text-brand px-2 py-0.5 rounded font-medium border border-brand/10">{d}</span>
                       ))}
                     </div>
                   </div>
@@ -151,7 +151,7 @@ export default function StudentTopicsPage() {
                 
                 <div className="pt-4 border-t border-border mt-auto bg-surface/30 -mx-6 px-6 -mb-6 pb-6 rounded-b-xl">
                   <div className="flex items-center gap-2 mb-4 mt-2">
-                    <Brain className="w-4 h-4 text-cardinal" />
+                    <Brain className="w-4 h-4 text-brand" />
                     <h4 className="text-sm font-semibold text-thunder">AI Analysis</h4>
                   </div>
                   
@@ -165,7 +165,7 @@ export default function StudentTopicsPage() {
                   ) : (
                     <div className="flex items-center justify-center p-6 bg-surface rounded-lg border border-dashed border-border">
                       <span className="text-xs text-slate flex items-center gap-2 font-medium">
-                        <Search className="w-4 h-4 animate-pulse text-cardinal"/> AI Analysis Pending...
+                        <Search className="w-4 h-4 animate-pulse text-brand"/> AI Analysis Pending...
                       </span>
                     </div>
                   )}
@@ -175,10 +175,10 @@ export default function StudentTopicsPage() {
           </div>
         </div>
       ) : (
-        <Card className="max-w-5xl mx-auto p-0 overflow-hidden relative animate-fade-in shadow-lg border-cardinal/20">
+        <Card className="max-w-5xl mx-auto p-0 overflow-hidden relative animate-fade-in shadow-lg border-brand/20">
           <div className="p-8 border-b border-border bg-gradient-to-br from-surface to-white">
             <h3 className="text-2xl font-display text-thunder flex items-center gap-3">
-              <Brain className="w-8 h-8 text-cardinal" />
+              <Brain className="w-8 h-8 text-brand" />
               Submit Project Proposals
             </h3>
             <p className="text-sm text-slate mt-2 max-w-2xl leading-relaxed">
@@ -189,9 +189,9 @@ export default function StudentTopicsPage() {
           <form onSubmit={handleSubmit} className="p-8 bg-white pb-28">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {[0, 1, 2].map((i) => (
-                <div key={i} className="space-y-4 p-6 bg-surface/50 border border-border rounded-xl hover:border-cardinal/30 transition-colors duration-300">
+                <div key={i} className="space-y-4 p-6 bg-surface/50 border border-border rounded-xl hover:border-brand/30 transition-colors duration-300">
                   <h4 className="font-semibold text-thunder flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-gradient-to-br from-cardinal to-cardinal-600 text-white flex items-center justify-center text-xs shadow-sm">
+                    <span className="w-6 h-6 rounded-full bg-gradient-to-br from-brand to-brand-600 text-white flex items-center justify-center text-xs shadow-sm">
                       {i + 1}
                     </span>
                     Topic Option {i + 1}
@@ -206,7 +206,7 @@ export default function StudentTopicsPage() {
                   <div className="space-y-1.5">
                     <label className="block text-sm font-semibold text-thunder">Abstract / Description</label>
                     <textarea 
-                      className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg h-32 focus:ring-2 focus:ring-cardinal/20 focus:border-cardinal outline-none resize-none transition-all" 
+                      className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg h-32 focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none resize-none transition-all" 
                       placeholder="Describe your project in 100-200 words..." 
                       value={topicsForm[i].description}
                       onChange={e => updateForm(i, 'description', e.target.value)}

@@ -184,7 +184,7 @@ export function LoadingState({
     >
       <div className="relative">
         <div className="w-8 h-8 border-2 border-cx-border rounded-full" />
-        <div className="absolute inset-0 w-8 h-8 border-2 border-transparent border-t-cardinal rounded-full animate-spin" />
+        <div className="absolute inset-0 w-8 h-8 border-2 border-transparent border-t-brand rounded-full animate-spin" />
       </div>
       <p className="mt-3 text-sm text-cx-text-muted">{message}</p>
     </div>

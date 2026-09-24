@@ -75,7 +75,7 @@ export default function AdminDashboardPage() {
   const roleConfig: Record<string, { color: string; bg: string }> = {
     student: { color: 'bg-blue-500', bg: 'bg-blue-50' },
     mentor: { color: 'bg-emerald-500', bg: 'bg-emerald-50' },
-    admin: { color: 'bg-cardinal-500', bg: 'bg-cardinal-50' },
+    admin: { color: 'bg-brand-500', bg: 'bg-brand-50' },
   };
 
   const statCards = [
@@ -105,7 +105,7 @@ export default function AdminDashboardPage() {
             System Online
           </span>
           <Link href="/admin/analytics"
-            className="px-4 py-2 text-sm font-semibold bg-cardinal hover:bg-cardinal-hover text-white rounded-xl transition-colors shadow-brand">
+            className="px-4 py-2 text-sm font-semibold bg-brand hover:bg-brand-hover text-white rounded-xl transition-colors shadow-brand">
             View Analytics →
           </Link>
         </div>

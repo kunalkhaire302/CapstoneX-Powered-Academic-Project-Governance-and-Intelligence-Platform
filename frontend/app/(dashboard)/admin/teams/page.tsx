@@ -38,7 +38,7 @@ const SKILL_COLORS: Record<string, string> = {
 const DEFAULT_SKILL = 'bg-slate-100 text-slate-600 border-slate-200';
 
 const AVATAR_GRADIENTS = [
-  'from-cardinal to-red-700', 'from-blue-500 to-blue-700', 'from-emerald-500 to-emerald-700',
+  'from-brand to-red-700', 'from-blue-500 to-blue-700', 'from-emerald-500 to-emerald-700',
   'from-violet-500 to-violet-700', 'from-amber-500 to-amber-700', 'from-pink-500 to-pink-700',
   'from-teal-500 to-teal-700', 'from-indigo-500 to-indigo-700',
 ];
@@ -165,7 +165,7 @@ export default function AdminTeamsPage() {
                   <button key={n} onClick={() => setTeamSize(n)}
                     className={`w-10 h-10 rounded-xl text-sm font-bold border transition-all ${
                       teamSize === n
-                        ? 'bg-cardinal text-white border-cardinal shadow-sm'
+                        ? 'bg-brand text-white border-brand shadow-sm'
                         : 'bg-white text-slate border-gray-200 hover:border-gray-300 hover:text-thunder'
                     }`}>{n}</button>
                 ))}
@@ -176,7 +176,7 @@ export default function AdminTeamsPage() {
               <br /><span className="text-xs">students</span>
             </div>
             <button onClick={generateTeams} disabled={generating || students.length < 2 || loading}
-              className="flex items-center gap-2 px-5 py-3 text-sm font-bold text-white bg-gradient-to-r from-cardinal to-cardinal-600 rounded-xl hover:from-cardinal-hover shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+              className="flex items-center gap-2 px-5 py-3 text-sm font-bold text-white bg-gradient-to-r from-brand to-brand-600 rounded-xl hover:from-brand-hover shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed">
               {generating
                 ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Generating...</>
                 : <><span>🤖</span> Generate {Math.ceil(students.length / teamSize)} Teams</>}
@@ -232,7 +232,7 @@ export default function AdminTeamsPage() {
           {teams.map((team, i) => (
             <Card key={i} className="relative overflow-hidden group">
               {/* Top accent bar with gradient */}
-              <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gradient-to-r from-cardinal to-violet-500" />
+              <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gradient-to-r from-brand to-violet-500" />
 
               <div className="flex items-start justify-between mb-4 pt-1">
                 <div>

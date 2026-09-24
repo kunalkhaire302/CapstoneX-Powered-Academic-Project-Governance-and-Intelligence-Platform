@@ -23,7 +23,7 @@ export default function CoordinatorReportsPage() {
               <div className="flex-1">
                 <h3 className="text-sm font-medium text-thunder">{r.title}</h3>
                 <p className="text-xs text-slate mt-1">{r.description}</p>
-                <button className="text-xs text-cardinal hover:text-cardinal-hover font-medium mt-2">Download →</button>
+                <button className="text-xs text-brand hover:text-brand-hover font-medium mt-2">Download →</button>
               </div>
             </div>
           </Card>

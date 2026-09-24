@@ -98,9 +98,9 @@ export default function StudentGroupsPage() {
         {/* Forms with animation */}
         {showJoin && (
           <div className="animate-slide-up">
-            <Card className="border-cardinal-200 shadow-glow">
+            <Card className="border-brand-200 shadow-glow">
               <h3 className="text-sm font-semibold text-cx-text mb-3 flex items-center gap-2">
-                <Hash className="w-4 h-4 text-cardinal-500" /> Join a Group by Code
+                <Hash className="w-4 h-4 text-brand-500" /> Join a Group by Code
               </h3>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Input placeholder="Enter 6- or 8-character code" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} id="join-code" className="flex-1 max-w-sm" />
@@ -112,9 +112,9 @@ export default function StudentGroupsPage() {
 
         {showCreate && (
           <div className="animate-slide-up">
-            <Card className="border-cardinal-200 shadow-glow">
+            <Card className="border-brand-200 shadow-glow">
               <h3 className="text-sm font-semibold text-cx-text mb-3 flex items-center gap-2">
-                <Plus className="w-4 h-4 text-cardinal-500" /> Create a New Group
+                <Plus className="w-4 h-4 text-brand-500" /> Create a New Group
               </h3>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Input placeholder="Enter group name (e.g. Innovators)" value={createName} onChange={e => setCreateName(e.target.value)} id="create-name" className="flex-1 max-w-sm" />
@@ -149,7 +149,7 @@ export default function StudentGroupsPage() {
                   <div className="mt-2 space-y-1.5">
                     <p className="text-sm text-cx-text-secondary flex items-center gap-2">
                       <span className="font-medium text-cx-text">Join Code:</span> 
-                      <code className="font-mono bg-cardinal-50 text-cardinal-600 px-2 py-0.5 rounded border border-cardinal-100">{group.join_code}</code>
+                      <code className="font-mono bg-brand-50 text-brand-600 px-2 py-0.5 rounded border border-brand-100">{group.join_code}</code>
                     </p>
                     <p className="text-sm text-cx-text-secondary">
                       <span className="font-medium text-cx-text">Mentor:</span> {group.mentor ? group.mentor.name : 'Unassigned'}

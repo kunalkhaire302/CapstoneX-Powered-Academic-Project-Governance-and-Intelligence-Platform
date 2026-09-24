@@ -102,7 +102,7 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
   if (!isAuthorized) return <AppLoader label="Verifying workspace access" />;
 
   return (
-    <div className="min-h-screen w-full overflow-hidden flex bg-cx-bg text-cx-text font-body selection:bg-cardinal-200 selection:text-cardinal-900">
+    <div className="min-h-screen w-full overflow-hidden flex bg-cx-bg text-cx-text font-body selection:bg-brand-200 selection:text-brand-900">
       {isEntering && <AppLoader compact label={`Opening ${title}`} />}
 
       {/* Mobile overlay */}

@@ -107,7 +107,7 @@ export default function AdminNotificationsPage() {
   const selectedAudience = AUDIENCE_OPTIONS.find(a => a.value === targetRole) || AUDIENCE_OPTIONS[0];
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const inputClass = "w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-cardinal/20 focus:border-cardinal outline-none transition-all";
+  const inputClass = "w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all";
 
   return (
     <DashboardLayout role="admin" title="Notifications" userName={user?.name || 'Admin'}>
@@ -123,8 +123,8 @@ export default function AdminNotificationsPage() {
           </div>
         </div>
         {unreadCount > 0 && (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cardinal-50 border border-cardinal/20 rounded-full text-xs font-semibold text-cardinal">
-            <span className="w-1.5 h-1.5 rounded-full bg-cardinal animate-pulse" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 border border-brand/20 rounded-full text-xs font-semibold text-brand">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" />
             {unreadCount} unread
           </span>
         )}
@@ -146,7 +146,7 @@ export default function AdminNotificationsPage() {
                     <button key={a.value} type="button" onClick={() => setTargetRole(a.value)}
                       className={`flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all ${
                         targetRole === a.value
-                          ? 'border-cardinal bg-cardinal-50/50 text-cardinal shadow-sm'
+                          ? 'border-brand bg-brand-50/50 text-brand shadow-sm'
                           : 'border-gray-200 text-slate hover:border-gray-300 hover:text-thunder'
                       }`}>
                       <span className="text-lg">{a.icon}</span>
@@ -187,7 +187,7 @@ export default function AdminNotificationsPage() {
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-sm font-medium text-thunder">Message</label>
                   <button type="button" onClick={() => setShowPreview(!showPreview)}
-                    className="text-xs text-cardinal hover:text-cardinal-hover font-medium">
+                    className="text-xs text-brand hover:text-brand-hover font-medium">
                     {showPreview ? 'Hide Preview' : 'Preview'}
                   </button>
                 </div>
@@ -212,7 +212,7 @@ export default function AdminNotificationsPage() {
               )}
 
               <button type="submit" disabled={sending || !title || !body}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-gradient-to-r from-cardinal to-cardinal-600 rounded-xl hover:from-cardinal-hover hover:to-cardinal shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-gradient-to-r from-brand to-brand-600 rounded-xl hover:from-brand-hover hover:to-brand shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                 {sending
                   ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Sending...</>
                   : <><span>📢</span> Send to {selectedAudience.label}</>}
@@ -255,7 +255,7 @@ export default function AdminNotificationsPage() {
             <h3 className="text-base font-display text-thunder">My Notifications</h3>
             {unreadCount > 0 && (
               <button onClick={handleMarkAllRead}
-                className="text-xs text-cardinal hover:text-cardinal-hover font-semibold transition-colors">
+                className="text-xs text-brand hover:text-brand-hover font-semibold transition-colors">
                 Mark all read
               </button>
             )}
@@ -272,11 +272,11 @@ export default function AdminNotificationsPage() {
               {notifications.map(n => (
                 <div key={n.id}
                   className={`p-3.5 rounded-xl border transition-all ${
-                    n.read ? 'border-gray-100 bg-gray-50/40 hover:bg-gray-50' : 'border-cardinal/20 bg-cardinal-50/20 hover:bg-cardinal-50/30'
+                    n.read ? 'border-gray-100 bg-gray-50/40 hover:bg-gray-50' : 'border-brand/20 bg-brand-50/20 hover:bg-brand-50/30'
                   }`}>
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <div className="flex items-center gap-2">
-                      {!n.read && <span className="w-2 h-2 rounded-full bg-cardinal flex-shrink-0 mt-0.5" />}
+                      {!n.read && <span className="w-2 h-2 rounded-full bg-brand flex-shrink-0 mt-0.5" />}
                       <h4 className="text-sm font-semibold text-thunder leading-tight">{n.title}</h4>
                     </div>
                     <span className="text-[10px] text-slate whitespace-nowrap">{formatDate(n)}</span>

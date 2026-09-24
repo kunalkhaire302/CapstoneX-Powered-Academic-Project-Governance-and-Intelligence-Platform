@@ -203,8 +203,8 @@ export default function RecommendationsPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-cardinal/10 flex items-center justify-center">
-              <Brain className="w-5 h-5 text-cardinal" />
+            <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center">
+              <Brain className="w-5 h-5 text-brand" />
             </div>
             <div>
               <h1 className="text-2xl font-display text-thunder">
@@ -251,7 +251,7 @@ export default function RecommendationsPage() {
                         onChange={(e) => handleChange('problem_statement', e.target.value)}
                         placeholder="What specific problem does your project solve?"
                         rows={3}
-                        className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-cardinal/20 focus:border-cardinal outline-none transition-all resize-none"
+                        className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all resize-none"
                       />
                     </div>
                     <div>
@@ -261,7 +261,7 @@ export default function RecommendationsPage() {
                         onChange={(e) => handleChange('description', e.target.value)}
                         placeholder="Provide a detailed description of your project..."
                         rows={4}
-                        className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-cardinal/20 focus:border-cardinal outline-none transition-all resize-none"
+                        className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all resize-none"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -311,7 +311,7 @@ export default function RecommendationsPage() {
                         onChange={(e) => handleChange('expected_impact', e.target.value)}
                         placeholder="Describe the real-world impact: who benefits, how, and how much..."
                         rows={3}
-                        className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-cardinal/20 focus:border-cardinal outline-none transition-all resize-none"
+                        className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all resize-none"
                       />
                     </div>
                   </div>
@@ -374,7 +374,7 @@ export default function RecommendationsPage() {
                   <Button
                     onClick={handleAnalyze}
                     disabled={loading || !formData.title || !formData.problem_statement}
-                    className="flex-1 bg-cardinal hover:bg-cardinal-dark text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                    className="flex-1 bg-brand hover:bg-brand-dark text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
                   >
                     {loading ? (
                       <>
@@ -399,8 +399,8 @@ export default function RecommendationsPage() {
                 </div>
 
                 {/* Tip box */}
-                <div className="bg-cardinal/5 border border-cardinal/10 rounded-lg p-4">
-                  <p className="text-xs text-cardinal font-semibold mb-1">💡 Tips for better analysis</p>
+                <div className="bg-brand/5 border border-brand/10 rounded-lg p-4">
+                  <p className="text-xs text-brand font-semibold mb-1">💡 Tips for better analysis</p>
                   <ul className="text-xs text-slate space-y-1">
                     <li>• Be specific in your problem statement — vague ideas get lower scores</li>
                     <li>• List all planned technologies — it improves feasibility scoring</li>
@@ -427,7 +427,7 @@ export default function RecommendationsPage() {
               <Button
                 onClick={handleImprove}
                 disabled={loading}
-                className="px-4 py-2 bg-cardinal text-white hover:bg-cardinal-dark rounded-lg text-sm font-medium flex items-center gap-2"
+                className="px-4 py-2 bg-brand text-white hover:bg-brand-dark rounded-lg text-sm font-medium flex items-center gap-2"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 Improve Idea
@@ -523,8 +523,8 @@ export default function RecommendationsPage() {
         {loading && !report && (
           <div className="fixed inset-0 bg-thunder/20 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center gap-4 max-w-sm mx-4">
-              <div className="w-16 h-16 rounded-full bg-cardinal/10 flex items-center justify-center">
-                <Brain className="w-8 h-8 text-cardinal animate-pulse" />
+              <div className="w-16 h-16 rounded-full bg-brand/10 flex items-center justify-center">
+                <Brain className="w-8 h-8 text-brand animate-pulse" />
               </div>
               <h3 className="text-lg font-display text-thunder">Analyzing Your Idea</h3>
               <p className="text-sm text-slate text-center">
@@ -533,7 +533,7 @@ export default function RecommendationsPage() {
                 This may take a few seconds.
               </p>
               <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-cardinal rounded-full animate-pulse" style={{ width: '60%' }} />
+                <div className="h-full bg-brand rounded-full animate-pulse" style={{ width: '60%' }} />
               </div>
             </div>
           </div>

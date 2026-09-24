@@ -64,7 +64,7 @@ export function StatCard({
   value, 
   trend, 
   icon, 
-  iconBg = 'bg-cardinal-50 text-cardinal', 
+  iconBg = 'bg-brand-50 text-brand', 
   delay = 0,
   className = ''
 }: StatCardProps) {

@@ -69,7 +69,7 @@ function SuggestionSection({ title, items, icon, color, defaultOpen = false }: S
                 className="flex items-start gap-2 text-sm text-gray-700 animate-fade-in"
                 style={{ animationDelay: `${idx * 0.03}s` }}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-cardinal mt-2 flex-shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-brand mt-2 flex-shrink-0" />
                 <span>{item}</span>
               </li>
             ))}
@@ -90,7 +90,7 @@ export default function AISuggestionsPanel({ suggestions }: AISuggestionsPanelPr
   const sections: SectionProps[] = [
     { title: 'Strengths', items: suggestions.strengths || [], icon: <Star className="w-4 h-4" />, color: 'bg-emerald-50 text-emerald-600', defaultOpen: true },
     { title: 'Weaknesses', items: suggestions.weaknesses || [], icon: <AlertCircle className="w-4 h-4" />, color: 'bg-red-50 text-red-500', defaultOpen: true },
-    { title: 'Improvement Suggestions', items: suggestions.improvement_suggestions || [], icon: <ArrowUpCircle className="w-4 h-4" />, color: 'bg-cardinal-50 text-cardinal', defaultOpen: true },
+    { title: 'Improvement Suggestions', items: suggestions.improvement_suggestions || [], icon: <ArrowUpCircle className="w-4 h-4" />, color: 'bg-brand-50 text-brand', defaultOpen: true },
     { title: 'Missing Features', items: suggestions.missing_features || [], icon: <Puzzle className="w-4 h-4" />, color: 'bg-amber-50 text-amber-600' },
     { title: 'Unique Features', items: suggestions.unique_features || [], icon: <Lightbulb className="w-4 h-4" />, color: 'bg-purple-50 text-purple-600' },
     { title: 'Future Scope', items: suggestions.future_scope || [], icon: <Rocket className="w-4 h-4" />, color: 'bg-blue-50 text-blue-600' },

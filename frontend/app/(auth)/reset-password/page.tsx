@@ -62,7 +62,7 @@ function ResetPasswordForm() {
           <Input label="New password" id="new-password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} error={passwordError} icon={<KeyRound className="h-4 w-4" />} trailingIcon={<button type="button" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>} required />
           <Input label="Confirm password" id="confirm-password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} error={confirmPassword && confirmPassword !== password ? 'Passwords do not match.' : ''} required />
           <Button type="submit" size="lg" className="w-full" loading={loading} disabled={!token || Boolean(passwordError)}>Update password securely</Button>
-          <p className="text-center text-sm text-slate-600"><Link href="/login" className="font-semibold text-cardinal-700 hover:text-cardinal-800">Return to sign in</Link></p>
+          <p className="text-center text-sm text-slate-600"><Link href="/login" className="font-semibold text-brand-700 hover:text-brand-800">Return to sign in</Link></p>
         </form>
       )}
     </AuthFrame>

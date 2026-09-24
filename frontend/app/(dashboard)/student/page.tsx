@@ -31,7 +31,7 @@ function WelcomeBanner() {
             className="flex items-center gap-2 mb-2"
           >
             <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-medium border border-white/10 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-cardinal-300" />
+              <Sparkles className="w-3.5 h-3.5 text-brand-300" />
               Capstone Journey
             </span>
           </motion.div>
@@ -117,7 +117,7 @@ export default function StudentDashboard() {
                 <Activity className="w-5 h-5 text-indigo-500" />
                 Recent Activity
               </h3>
-              <Link href="/student/notifications" className="text-xs text-cardinal-600 font-medium hover:underline">View All</Link>
+              <Link href="/student/notifications" className="text-xs text-brand-600 font-medium hover:underline">View All</Link>
             </div>
             
             {dashboardLoading ? (
@@ -161,7 +161,7 @@ export default function StudentDashboard() {
           <Card>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-display font-semibold text-cx-text flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-cardinal-600" />
+                <Sparkles className="w-5 h-5 text-brand-600" />
                 AI Insights
               </h3>
             </div>
@@ -179,7 +179,7 @@ export default function StudentDashboard() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.1 }}
                     key={i} 
-                    className="p-3.5 rounded-xl border border-cx-border hover:border-cardinal-300 hover:bg-cardinal-50/50 transition-all cursor-pointer group"
+                    className="p-3.5 rounded-xl border border-cx-border hover:border-brand-300 hover:bg-brand-50/50 transition-all cursor-pointer group"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-sm font-semibold text-cx-text truncate mr-2">{rec.domain || rec.title}</p>
@@ -201,7 +201,7 @@ export default function StudentDashboard() {
             )}
             
             <Link href="/student/recommendations">
-              <button className="w-full mt-4 text-sm font-semibold text-cardinal-600 hover:text-cardinal-700 transition-colors flex items-center justify-center gap-1 py-2 rounded-lg hover:bg-cardinal-50">
+              <button className="w-full mt-4 text-sm font-semibold text-brand-600 hover:text-brand-700 transition-colors flex items-center justify-center gap-1 py-2 rounded-lg hover:bg-brand-50">
                 Explore Recommendations
                 <ChevronRight className="w-4 h-4" />
               </button>

@@ -37,7 +37,7 @@ export function ErrorState({ title = 'This information could not be loaded', des
 
 export function LoadingState({ label = 'Loading workspace data', rows = 0 }: { label?: string; rows?: number }) {
   return <div role="status" aria-live="polite" className="rounded-[var(--radius-xl)] border border-slate-200 bg-white/70 p-6 text-sm font-semibold text-slate-600">
-    <div className="flex items-center justify-center gap-3"><Loader2 className="h-5 w-5 animate-spin text-cardinal" aria-hidden="true" />{label}</div>
+    <div className="flex items-center justify-center gap-3"><Loader2 className="h-5 w-5 animate-spin text-brand" aria-hidden="true" />{label}</div>
     {rows > 0 && <div className="mt-6 space-y-3" aria-hidden="true">{Array.from({ length: rows }, (_, index) => <div key={index} className="h-16 animate-pulse rounded-xl bg-slate-100" />)}</div>}
   </div>;
 }

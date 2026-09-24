@@ -18,7 +18,7 @@ export default function MentorSchedulePage() {
           <Card key={i}>
             <div className="flex items-center gap-6">
               <div className="w-24 text-center">
-                <p className="text-sm font-display text-cardinal">{s.day}</p>
+                <p className="text-sm font-display text-brand">{s.day}</p>
                 <p className="text-xs text-slate">{s.time}</p>
               </div>
               <div className="w-px h-10 bg-border" />

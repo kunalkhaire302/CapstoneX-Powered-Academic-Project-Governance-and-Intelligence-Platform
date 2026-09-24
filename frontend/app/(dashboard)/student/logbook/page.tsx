@@ -120,7 +120,7 @@ export default function StudentLogbookPage() {
                   <p className="text-xs text-slate mt-2">{new Date(entry.created_at).toLocaleDateString()}</p>
                   
                   {entry.file_url && (
-                    <a href={entry.file_url} target="_blank" rel="noreferrer" className="inline-block mt-3 text-sm text-cardinal hover:underline">
+                    <a href={entry.file_url} target="_blank" rel="noreferrer" className="inline-block mt-3 text-sm text-brand hover:underline">
                       📄 View Attachment
                     </a>
                   )}

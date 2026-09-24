@@ -289,7 +289,7 @@ export default function AdminModelsPage() {
             </ResponsiveContainer>
           </div>
           <div className="flex gap-4 mt-3 justify-center">
-            {[{ color: 'bg-cardinal', label: 'Accuracy' }, { color: 'bg-blue-500', label: 'F1 Score' }].map((l, i) => (
+            {[{ color: 'bg-brand', label: 'Accuracy' }, { color: 'bg-blue-500', label: 'F1 Score' }].map((l, i) => (
               <span key={i} className="flex items-center gap-1.5 text-xs text-slate">
                 <span className={`w-2.5 h-2.5 rounded-sm ${l.color}`} />{l.label}
               </span>
@@ -348,7 +348,7 @@ export default function AdminModelsPage() {
             <Card
               key={m.id}
               className={`cursor-pointer transition-all duration-200 group relative overflow-hidden ${
-                isSelected ? 'ring-2 ring-cardinal/40 shadow-lg' : 'hover:shadow-md'
+                isSelected ? 'ring-2 ring-brand/40 shadow-lg' : 'hover:shadow-md'
               }`}
               onClick={() => setSelectedModel(isSelected ? null : m)}
             >
@@ -403,7 +403,7 @@ export default function AdminModelsPage() {
                 <button
                   onClick={(e) => { e.stopPropagation(); handleRetrain(m.id); }}
                   disabled={retraining === m.id}
-                  className="px-3 py-1.5 text-[11px] font-semibold rounded-lg bg-gray-50 border border-gray-200 text-slate hover:border-cardinal/40 hover:text-cardinal hover:bg-cardinal-50/40 transition-all disabled:opacity-50"
+                  className="px-3 py-1.5 text-[11px] font-semibold rounded-lg bg-gray-50 border border-gray-200 text-slate hover:border-brand/40 hover:text-brand hover:bg-brand-50/40 transition-all disabled:opacity-50"
                 >
                   {retraining === m.id ? 'Triggering...' : '↻ Retrain'}
                 </button>
@@ -454,7 +454,7 @@ export default function AdminModelsPage() {
               <h4 className="text-sm font-semibold text-thunder mb-4">Detailed Metrics</h4>
               <div className="space-y-4">
                 {[
-                  { label: 'Accuracy',  value: selectedModel.accuracy,  color: 'bg-cardinal' },
+                  { label: 'Accuracy',  value: selectedModel.accuracy,  color: 'bg-brand' },
                   { label: 'Precision', value: selectedModel.precision, color: 'bg-violet-500' },
                   { label: 'Recall',    value: selectedModel.recall,    color: 'bg-blue-500' },
                   { label: 'F1 Score',  value: selectedModel.f1,        color: 'bg-emerald-500' },

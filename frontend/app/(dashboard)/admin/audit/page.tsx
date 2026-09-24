@@ -43,14 +43,14 @@ const ACTION_STYLES: Record<string, { bg: string; text: string; icon: string }> 
 
 const ENTITY_COLORS: Record<string, string> = {
   user: 'border-l-blue-400', auth: 'border-l-violet-400', topic: 'border-l-amber-400',
-  logbook: 'border-l-emerald-400', evaluation: 'border-l-cardinal', group: 'border-l-blue-600',
+  logbook: 'border-l-emerald-400', evaluation: 'border-l-brand', group: 'border-l-blue-600',
   notification: 'border-l-slate-400',
 };
 
 const ALL_ENTITIES = ['user', 'auth', 'topic', 'logbook', 'evaluation', 'group', 'notification'];
 
 const AVATAR_GRADIENTS = [
-  'from-cardinal to-red-700', 'from-blue-500 to-blue-700', 'from-emerald-500 to-emerald-700',
+  'from-brand to-red-700', 'from-blue-500 to-blue-700', 'from-emerald-500 to-emerald-700',
   'from-violet-500 to-violet-700', 'from-amber-500 to-amber-700',
 ];
 

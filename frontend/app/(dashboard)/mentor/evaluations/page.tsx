@@ -103,7 +103,7 @@ export default function MentorEvaluationsPage() {
                     <td className="py-3 px-4 font-medium text-thunder">{ev.Group?.name || 'Unknown'}</td>
                     <td className="py-3 px-4 text-slate">{ev.evaluated_student?.name || 'Group Evaluation'}</td>
                     <td className="py-3 px-4 text-slate">{ev.type}</td>
-                    <td className="py-3 px-4 font-medium text-cardinal">{ev.total_score}/{ev.max_score}</td>
+                    <td className="py-3 px-4 font-medium text-brand">{ev.total_score}/{ev.max_score}</td>
                     <td className="py-3 px-4 text-slate">{new Date(ev.submitted_at).toLocaleDateString()}</td>
                   </tr>
                 ))

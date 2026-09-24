@@ -11,7 +11,7 @@ export function QuickActions() {
     { label: 'Submit Logbook', icon: <FileText className="w-5 h-5" />, href: '/student/logbook', color: 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100 hover:border-emerald-200' },
     { label: 'Find a Group', icon: <Users className="w-5 h-5" />, href: '/student/groups', color: 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 hover:border-blue-200' },
     { label: 'Explore Topics', icon: <Search className="w-5 h-5" />, href: '/student/topics', color: 'bg-indigo-50 text-indigo-600 border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200' },
-    { label: 'AI Insights', icon: <Target className="w-5 h-5" />, href: '/student/recommendations', color: 'bg-cardinal-light text-cardinal-700 border-cardinal-200 hover:bg-cardinal-100 hover:border-cardinal-300' }
+    { label: 'AI Insights', icon: <Target className="w-5 h-5" />, href: '/student/recommendations', color: 'bg-brand-light text-brand-700 border-brand-200 hover:bg-brand-100 hover:border-brand-300' }
   ];
 
   return (
@@ -59,10 +59,10 @@ export function UpcomingDeadlines() {
             key={i} 
             className="relative pl-6"
           >
-            <div className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-4 border-cx-surface ${item.urgent ? 'bg-cardinal-500' : 'bg-slate-300'}`} />
+            <div className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-4 border-cx-surface ${item.urgent ? 'bg-brand-500' : 'bg-slate-300'}`} />
             <h4 className={`text-sm font-semibold ${item.urgent ? 'text-cx-text' : 'text-cx-text-secondary'}`}>{item.title}</h4>
             <div className="flex items-center gap-2 mt-1">
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${item.urgent ? 'bg-cardinal-50 text-cardinal-700' : 'bg-cx-bg-muted text-cx-text-muted'}`}>
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${item.urgent ? 'bg-brand-50 text-brand-700' : 'bg-cx-bg-muted text-cx-text-muted'}`}>
                 {item.date}
               </span>
               <span className="text-xs text-cx-text-muted">{item.time}</span>

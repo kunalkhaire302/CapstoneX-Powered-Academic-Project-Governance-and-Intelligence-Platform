@@ -25,7 +25,7 @@ interface RecommendationRadarProps {
 
 /**
  * RecommendationRadar — Radar chart showing all 8 recommendation dimensions.
- * Styled to match CapstoneX design system (cardinal red, Plus Jakarta Sans).
+ * Styled to match CapstoneX design system (brand red, Plus Jakarta Sans).
  */
 export default function RecommendationRadar({ scores }: RecommendationRadarProps) {
   const data = [

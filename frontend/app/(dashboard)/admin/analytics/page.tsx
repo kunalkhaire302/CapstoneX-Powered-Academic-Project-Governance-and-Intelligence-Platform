@@ -256,7 +256,7 @@ export default function AdminAnalyticsPage() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { label: 'Avg Daily Submissions', value: analytics ? (analytics.recentActivity.submissionsLast7Days / 7).toFixed(1) : '—', icon: '📤', change: 'Last 7 days', color: 'border-l-cardinal' },
+              { label: 'Avg Daily Submissions', value: analytics ? (analytics.recentActivity.submissionsLast7Days / 7).toFixed(1) : '—', icon: '📤', change: 'Last 7 days', color: 'border-l-brand' },
               { label: 'Evaluations', value: analytics?.recentActivity?.evaluationsThisMonth ?? '—', icon: '✅', change: 'This month', color: 'border-l-blue-500' },
               { label: 'Active Topics', value: analytics?.overview?.totalTopics ?? 0, icon: '💡', change: 'Under review', color: 'border-l-amber-500' },
             ].map((s, i) => (
