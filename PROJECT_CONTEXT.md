@@ -2,11 +2,11 @@
 
 > Living documentation for AI-assisted development. This file describes the repository as implemented; it is not a product brochure.
 
-**Last Updated:** `2026-09-24T12:30:00+05:30`
+**Last Updated:** `2026-09-24T20:10:00+05:30`
 
-**Last Verified Against Codebase:** `2026-09-24T12:30:00+05:30`
+**Last Verified Against Codebase:** `2026-09-24T20:10:00+05:30`
 
-**Context Version:** `1.1.0`
+**Context Version:** `1.2.0`
 
 ---
 
@@ -46,7 +46,7 @@ The platform centralizes capstone governance that is otherwise spread across doc
 
 ## Current Status
 
-**Deployed development-stage beta; not yet production-ready.** A Vercel frontend and Render backend have been used, and the custom domain is configured. However, confirmed P0 contract defects, incomplete database migration coverage, ineffective authentication throttling, non-durable AI execution, missing frontend flows, placeholder data, and limited tests prevent a production classification. The README's “production-grade” and “six-role RBAC” claims are not supported by the current implementation.
+**Deployed development-stage beta; not yet production-ready.** The Vercel frontend, Render backend, and a focused Render AI Team runtime are live. Core request-contract defects, login throttling, password recovery UI, student notifications, and AI availability handling have been repaired. Incomplete baseline migrations, unverified recovery/rotation controls, limited integration coverage, an experimental worker, and the absence of independently reviewed AI-quality data still prevent a production classification. The README's “production-grade” and “six-role RBAC” claims remain unsupported.
 
 ---
 
@@ -66,7 +66,7 @@ The platform centralizes capstone governance that is otherwise spread across doc
 | AI recommendations/problem analysis | Recommend projects and improve/analyze problem statements | Student, Mentor | backend AI proxy/recommendation routes; FastAPI routers | 🚧 Depends on deployed AI service; duplicate APIs |
 | Risk prediction | Score project risk and list risky projects | Mentor, Admin | `aiRoutes.js`, `risk_service.py` | 🚧 Model exists; feature placeholders remain |
 | Plagiarism analysis | Similarity/possible plagiarism evidence | Mentor, Admin | `plagiarism.py`, backend AI proxy | 🚧 Implemented but deployment unverified |
-| AI Team | Head agent plans; specialists work; quality auditor gates; humans approve | All with project access | `agentTeamService.js`, `agentWorker.js`, `agent_team.py`, role workspaces | 🚧 Persisted-worker entry point added; hosted reliability and recovery tests pending |
+| AI Team | Head agent plans; specialists work; quality auditor gates; humans approve | All with project access | backend agent service/worker, `agent_team_service.py`, `agent_main.py`, role workspaces | 🚧 Focused runtime live in fallback mode; worker/recovery/load and real accuracy validation pending |
 | Password recovery | Issue one-time reset token and change password | Public | auth controller and token model; `frontend/app/(auth)/reset-password/` | ✅ UI implemented; delivery/reuse tests still pending |
 | Model retraining | Periodic model training | Operations | `.github/workflows/retrain.yml`, `ai-service/app/core/tasks.py` | 🚧 Two competing schedulers; validation incomplete |
 
@@ -165,7 +165,7 @@ Status: **REQUIRES OPERATOR ACTION**.
 
 ### P1 — High
 
-- **P1.1:** Deploy and verify the AI service; configure matching `AI_INTERNAL_SECRET` on backend and AI service. Current production AI URL is unknown.
+- **P1.1:** Extend the verified focused AI Team runtime to the full recommendation/risk/plagiarism workload only after right-sizing its dependency and compute requirements. The focused runtime and backend secret pairing are live and smoke-tested.
 - **P1.2:** Replace in-process `setImmediate` agent execution with a durable queue/worker, leasing, idempotency, cancellation, and recovery.
 - **P1.3:** Add `/reset-password` frontend flow and test delivery; SMTP absence currently degrades to logging while returning a generic success.
 - **P1.4:** Fix `/auth/admin/register`; the route permits Admin/Mentor but the shared controller always creates Student.
@@ -559,7 +559,7 @@ Register/login -> create or join group -> invite/accept members -> lock group
 -> weekly logbooks -> mentor feedback -> evaluation
 ```
 
-This intended flow is currently blocked by the group-code and topic-schema defects described in P0.
+The former group-code and topic-payload blockers are reconciled. The flow still needs a transactional, authenticated end-to-end staging test before it can be classified as production-verified.
 
 ### AI governance
 
@@ -705,9 +705,9 @@ Alternatively: `docker compose up --build`. Local ports are frontend 3000, backe
 
 | Area | Framework | Existing Coverage | Status | Gaps |
 |---|---|---|---|---|
-| Backend unit/API | Jest, Supertest | Auth/health and selected behavior; 8 tests observed | 🟡 Limited | Core group/topic/logbook/RBAC/AI paths absent; configured thresholds not met |
-| AI service | pytest | Two agent guardrail tests plus one broad pipeline test collected | 🟡 Limited | External integrations, model quality, DB, retry, load, adversarial coverage |
-| Frontend | None found | No component/E2E tests | 🔴 Missing | Login, route access, all user journeys, accessibility, responsive/visual regression |
+| Backend unit/API | Jest, Supertest | 5 suites / 15 tests passed in hardening pass; AI readiness adds 2 focused tests | 🟡 Limited | Transactional group/topic/logbook, broad RBAC, and worker crash paths remain sparse; configured coverage thresholds were not met |
+| AI service | pytest | 8 focused runtime/agent/synthetic benchmark tests passed | 🟡 Limited | Real model quality, DB integrations, retry/load, and adversarial coverage remain unverified |
+| Frontend | Playwright script plus TypeScript/build | Recovery and notification flow passed at mobile width; production build/type-check passed | 🟡 Limited | Full role journeys, accessibility, component, and visual regression coverage remain incomplete |
 | Load | k6 | One script | 🔴 Stale | Calls protected groups route without auth but expects 200 |
 | CI | GitHub Actions | lint/test/build on push/PR | 🟡 Configured | Hosted result not checked in this audit; Python dependencies unpinned |
 | Security | Middleware/tests | Basic headers/auth checks | 🔴 Insufficient | Abuse, injection, isolation, token lifecycle, upload attacks, dependency scanning |
@@ -724,7 +724,8 @@ Critical untested paths are fresh database creation, login/refresh/logout in bro
 - Frontend: Vercel, custom domains `https://capstonex.me` and `https://www.capstonex.me`; repository history records custom-domain CORS/login fixes.
 - Backend: Render web service at a configured `onrender.com` domain; `/api/health` is used by deploy workflow smoke testing.
 - Database: hosted PostgreSQL configured through secrets; operationally Supabase has been used. Repository evidence alone does not prove the active provider or migration state.
-- AI service: Render deployment hook exists, but current public service URL/readiness was not verified. Mark **Unknown — requires verification**.
+- AI Team runtime: free Render service `capstonex-agent-runtime`; public health returned healthy, backend URL/shared-secret pairing was deployed, and an authenticated four-agent smoke request completed with confidence `0.52`. It intentionally runs `LLM_PROVIDER=fallback` and requires human review.
+- Full AI/ML service: a separate free Render attempt using the complete dependency set failed to update and is not used by the backend. Recommendation/risk/plagiarism hosting is therefore not production-verified.
 
 ## Local Infrastructure
 
@@ -736,7 +737,7 @@ Compose builds all three services and provisions PostgreSQL, Redis, and pgAdmin.
 - `deploy.yml`: Vercel deploy and Render deploy hooks after main-branch CI, followed by fixed-delay health checks.
 - `retrain.yml`: weekly/manual download, training, smoke validation, and attempted model commit.
 
-Deployment concerns: fixed 30-second sleeps are brittle; deploy hook success does not prove migration or user-journey health; AI deployment status is unknown; retraining validation does not enforce stated quality; production secrets must be rotated after disclosure.
+Deployment concerns: fixed 30-second sleeps are brittle; deploy success does not prove migration or user-journey health; the focused AI runtime has free-tier cold starts and no load/recovery evidence; the full ML service is oversized for its attempted free runtime; retraining validation does not enforce stated quality; production secrets must be rotated after disclosure.
 
 ---
 
@@ -746,7 +747,7 @@ Deployment concerns: fixed 30-second sleeps are brittle; deploy hook success doe
 |---|---|---|---|
 | PostgreSQL / Supabase | Primary persistence | Sequelize and async SQLAlchemy | ✅ Used; schema lifecycle ⚠️ |
 | Vercel | Frontend hosting | workflow/project config | ✅ Operationally used |
-| Render | Backend/AI hosting | deploy hooks | Backend ✅; AI ❓ |
+| Render | Backend and AI Team runtime hosting | service configuration/deploy hooks | Backend ✅; focused AI runtime ✅; full ML runtime ❌ update failed |
 | Firebase Auth | Optional identity verification | frontend auth, backend Firebase Admin | 🚧 Optional; empty config allowed |
 | Cloudinary | Upload storage | backend upload utility | 🚧 Optional; mock fallback is unsafe for prod |
 | SMTP | Password reset/admin email | backend email utility | 🚧 Optional; delivery not guaranteed |
@@ -762,18 +763,18 @@ Deployment concerns: fixed 30-second sleeps are brittle; deploy hook success doe
 
 | Issue | Severity | Area | Status | Evidence |
 |---|---|---|---|---|
-| Eight-character generated group code vs six-character join validator | Critical | Groups | Open | controller/route |
-| Topic route schema contradicts controller batch schema | Critical | Topics | Open | route/controller |
-| Incomplete baseline migrations and absent `coordinator_id` model field referenced by migration | Critical | Database | Open | models/bootstrap/migration |
-| Auth limiter permits 1,000 attempts/15m | Critical | Security | Open | rate limiter |
+| Legacy six-character vs current eight-character group codes | Medium | Groups | Compatibility implemented; concurrency coverage pending | controller/schema/tests |
+| Topic batch contract | Medium | Topics | Reconciled; transactional integration coverage pending | route/controller/tests |
+| Incomplete baseline migrations; production sync now refused | Critical | Database | Open | bootstrap/migrations |
+| Login abuse limiter and proxy behavior | High | Security | Implemented/tested locally; hosted alerting validation pending | rate limiter/tests |
 | Previously shared live secrets require rotation | Critical | Operations | Operator action | external deployment history |
-| Privileged register route creates Student | High | Auth/Admin | Open | auth route/controller |
-| Password-reset link targets missing page | High | Auth/UI | Open | controller/frontend route scan |
-| AI jobs are in-process rather than durable | High | AI Team | Open | agent service |
-| AI production service not verified | High | Deployment | Unknown | deploy config only |
+| Privileged registration and token-lifecycle hardening | High | Auth/Admin | Partially addressed; broader integration coverage pending | auth route/controller |
+| Password reset delivery/token reuse | High | Auth/UI | UI implemented; hosted mail delivery/reuse verification pending | controller/frontend recovery pages |
+| External worker durability | High | AI Team | Experimental entry point; hosted worker not provisioned | agent service/worker |
+| Full recommendation/risk/plagiarism AI service | High | Deployment | Blocked on right-sized hosting; free full-service updates failed | Render deploy evidence |
 | Logbook membership/status transitions are weak | High | Business logic | Open | logbook controller |
-| Cloudinary absence can create fake URLs | High | Uploads | Open | upload utility |
-| Student notification link has no page | Medium | Frontend | Open | student page/route scan |
+| Cloudinary absence | High | Uploads | Fake fallback removed; hosted credential/flow verification pending | upload utility |
+| Student notification inbox | Low | Frontend | Implemented; broader E2E pending | student notifications page |
 | Placeholder risk features and dashboard fallback data | Medium | Accuracy/UI | Open | AI controller/pages |
 | Duplicate/stale backup files and impossible roles | Medium | Maintainability | Open | repository scan |
 | k6 scenario violates protected API contract | Medium | Testing | Open | load test/routes |
@@ -839,7 +840,7 @@ Where rationale is not explicit, it is inferred from implementation and must not
 
 ### ❌ Blocked
 
-- Hosted AI Team/recommendation reliability is blocked until the configuration-only Render AI/worker design is funded, deployed, and its URL, secret pairing, health, and storage are verified.
+- Full recommendation/risk/plagiarism hosting and independently verified AI accuracy remain blocked on right-sized infrastructure and reviewed evaluation data. The focused AI Team fallback runtime is live and smoke-tested.
 - Production security sign-off is blocked until exposed credentials are rotated and abuse controls are repaired.
 
 ---
@@ -882,6 +883,24 @@ AI agents MUST:
 ---
 
 # 27. Change Log
+
+### 2026-09-24 — Deploy focused AI Team runtime
+
+**Changed**
+- Added `app/agent_main.py` and a minimal pinned dependency set for the governed AI Team endpoint.
+- Provisioned a free Render runtime, paired its internal secret with the backend, and replaced the invalid production localhost URL.
+- Kept training, embeddings, vector search, risk, recommendation, and plagiarism workloads out of the focused runtime.
+
+**Reason**
+- The complete ML dependency graph was too large for the attempted free service, while the AI Team workflow can run independently in guarded fallback mode.
+
+**Verification**
+- Eight focused Python tests passed.
+- Runtime health returned `healthy`.
+- An authenticated four-agent smoke request completed; backend and focused runtime deployments reached live status.
+
+**Impact**
+- AI Team missions can execute again. Results remain advisory, fallback-generated, and subject to human approval; this is not evidence of real-world model accuracy.
 
 ### 2026-09-24 — Fail-fast AI service availability
 
@@ -940,16 +959,16 @@ AI agents MUST:
 | Authentication/RBAC | 🟢 | Middleware/controllers inspected; browser E2E still needed |
 | Environment | 🟡 | Code references scanned; root example is incomplete/stale |
 | Testing | 🟡 | Commands run; coverage and breadth are weak |
-| Deployment | 🟡 | frontend/backend operational history known; AI/live DB state unverified |
+| Deployment | 🟡 | frontend, backend, and focused AI runtime verified live; full ML service and worker are not operational |
 | AI/ML accuracy | 🔴 | Architecture verified; production quality metrics/datasets not validated |
-| Security | 🔴 | Critical rotation, throttling, migration, and test actions remain |
-| Product completion | 🔴 | P0 workflow contracts remain broken |
+| Security | 🔴 | Credential rotation, database policy, lifecycle, and broader security-test actions remain |
+| Product completion | 🟡 | Core workflow contracts repaired; full ML hosting, baseline migrations, observability, and recovery remain incomplete |
 
 ### Documentation Confidence
 
 - **High:** repository layout, declared dependencies, routes, models, implemented roles, auth code, AI Team structure, CI definitions.
-- **Medium:** current hosted frontend/backend state, database provider, feature behavior not covered by integration tests.
-- **Low:** production AI service state, real model accuracy, data quality, load capacity, recovery objectives, and operational monitoring.
+- **Medium:** current hosted frontend/backend/focused-runtime state, database provider, and behavior not covered by integration tests.
+- **Low:** full ML service state, real model accuracy, data quality, load capacity, recovery objectives, and operational monitoring.
 
 ---
 
@@ -958,18 +977,19 @@ AI agents MUST:
 - `README.md`, `KANBAN.md`, `docs/` — intent and claims, cross-checked against code.
 - `frontend/package.json`, lock file, `app/`, `components/`, `lib/`, config, Dockerfile.
 - `backend/package.json`, `src/app.js`, all route/controller/middleware/model/service/migration/seeder/script modules, tests, config, Dockerfile.
-- `ai-service/requirements.txt`, `app/main.py`, routers/services/core/models/ML modules, tests, data/index layout, Dockerfile.
+- `ai-service/requirements.txt`, `requirements-agent.txt`, `app/main.py`, `app/agent_main.py`, routers/services/core/models/ML modules, tests, data/index layout, Dockerfile.
 - `.env.example`, `docker-compose.yml`.
 - `.github/workflows/ci.yml`, `deploy.yml`, `retrain.yml`, Dependabot configuration.
 - `load-tests/k6/`.
-- Recent Git history through commit `856ad4c`.
+- Recent Git history through commit `6724fe1`.
+- Render service/deploy/log inspection and authenticated focused-runtime smoke result on 2026-09-24.
 - Local verification command outputs recorded in sections 18–19.
 
 ---
 
 # 30. Verification and Consistency Audit
 
-The following audit was performed before publishing version 1.0.0:
+The following audit was refreshed before publishing context version 1.2.0:
 
 - Project name matches manifests, services, and repository.
 - Stack and versions come from manifests/config; unpinned Python versions are not invented.
@@ -987,7 +1007,7 @@ The following audit was performed before publishing version 1.0.0:
 
 - Compare every live production table/constraint/index to intended models and a future baseline migration.
 - Run authenticated browser E2E tests against a staging deployment for all three roles.
-- Verify the AI service health and internal-token pairing from the backend network boundary.
+- Run an authenticated UI-to-backend-to-AI mission on staging/production and record the run ID; direct authenticated runtime execution and backend configuration are already verified.
 - Measure model performance on versioned held-out data and document fairness/error analysis.
 - Confirm hosted secret rotation, backup/restore, logs, alerts, rate limits, and rollback behavior.
 
