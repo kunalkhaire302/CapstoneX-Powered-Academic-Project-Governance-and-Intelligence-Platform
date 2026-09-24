@@ -883,6 +883,18 @@ AI agents MUST:
 
 # 27. Change Log
 
+### 2026-09-24 — Fail-fast AI service availability
+
+**Changed**
+- Added authenticated AI-service readiness reporting and blocked mission creation/retry when the configured service is missing, unreachable, or points to localhost in production.
+- Added an actionable workspace outage state and preserved readable failure details for historical runs.
+
+**Reason**
+- Live Render logs confirmed agent missions were failing with `ECONNREFUSED` because production used `http://localhost:8000` without a colocated AI service.
+
+**Verification**
+- Readiness regression tests and frontend TypeScript validation passed.
+
 ### 2026-09-24 — Production-hardening implementation pass
 
 **Changed**

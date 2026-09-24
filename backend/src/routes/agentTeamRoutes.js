@@ -3,7 +3,7 @@ const Joi = require('joi');
 const { verifyToken } = require('../middleware/auth');
 const { validate } = require('../middleware/validator');
 const { checkRole } = require('../middleware/rbac');
-const { createRun, listRuns, getRun, cancelRun, retryRun, reviewRun, getCatalog } = require('../controllers/agentTeamController');
+const { createRun, listRuns, getRun, cancelRun, retryRun, reviewRun, getCatalog, getStatus } = require('../controllers/agentTeamController');
 
 const agentKeys = [
   'head_agent', 'project_analyst', 'technical_reviewer', 'research_agent',
@@ -27,6 +27,7 @@ const reviewSchema = Joi.object({
 
 router.use(verifyToken);
 router.get('/catalog', getCatalog);
+router.get('/status', getStatus);
 router.get('/runs', listRuns);
 router.post('/runs', validate(createSchema), createRun);
 router.get('/runs/:id', getRun);

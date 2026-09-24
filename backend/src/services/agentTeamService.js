@@ -5,9 +5,43 @@ const {
 } = require('../models');
 const logger = require('../utils/logger');
 
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:8000');
 const AI_INTERNAL_SECRET = process.env.AI_INTERNAL_SECRET;
 const EXECUTION_TIMEOUT_MS = Number(process.env.AGENT_TEAM_TIMEOUT_MS || 120000);
+let readinessCache = { checkedAt: 0, value: null };
+
+async function getAIServiceReadiness({ refresh = false } = {}) {
+  if (!AI_SERVICE_URL) {
+    return { available: false, reason: 'AI service is not configured. Set AI_SERVICE_URL to a deployed service.' };
+  }
+  if (process.env.NODE_ENV === 'production' && /localhost|127\.0\.0\.1|\[?::1\]?/i.test(AI_SERVICE_URL)) {
+    return { available: false, reason: 'AI_SERVICE_URL points to localhost, which is not the deployed AI service.' };
+  }
+  if (!AI_INTERNAL_SECRET) {
+    return { available: false, reason: 'AI service authentication is not configured.' };
+  }
+  if (!refresh && readinessCache.value && Date.now() - readinessCache.checkedAt < 30000) return readinessCache.value;
+  try {
+    await axios.get(`${AI_SERVICE_URL}/api/ai/health`, { timeout: 5000 });
+    readinessCache = { checkedAt: Date.now(), value: { available: true, reason: null } };
+  } catch (error) {
+    const reason = error.code === 'ECONNABORTED'
+      ? 'AI service health check timed out.'
+      : 'AI service is currently unreachable.';
+    readinessCache = { checkedAt: Date.now(), value: { available: false, reason } };
+  }
+  return readinessCache.value;
+}
+
+async function assertAIServiceReady() {
+  const readiness = await getAIServiceReadiness({ refresh: true });
+  if (!readiness.available) {
+    const error = new Error(readiness.reason);
+    error.statusCode = 503;
+    error.code = 'AI_SERVICE_UNAVAILABLE';
+    throw error;
+  }
+}
 
 async function assertGroupAccess(user, groupId, { reviewer = false } = {}) {
   const group = await Group.findByPk(groupId);
@@ -155,4 +189,6 @@ module.exports = {
   executeRun,
   dispatchRun,
   resumePendingRuns,
+  getAIServiceReadiness,
+  assertAIServiceReady,
 };

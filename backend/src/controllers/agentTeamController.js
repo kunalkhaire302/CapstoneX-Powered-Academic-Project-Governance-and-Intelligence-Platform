@@ -2,7 +2,7 @@ const { Op } = require('sequelize');
 const { AgentRun, AgentTask, AgentApproval, Group, GroupMember, User } = require('../models');
 const { createAuditLog } = require('../utils/auditLog');
 const {
-  assertGroupAccess, getAccessibleRun, dispatchRun,
+  assertGroupAccess, getAccessibleRun, dispatchRun, getAIServiceReadiness, assertAIServiceReady,
 } = require('../services/agentTeamService');
 const { AGENT_CATALOG, normalizeAgentSelection } = require('../services/agentCatalog');
 
@@ -10,6 +10,7 @@ const createRun = async (req, res, next) => {
   try {
     const { group_id, objective, context = {}, constraints = [], selected_agents, workflow = 'proposal_review' } = req.body;
     await assertGroupAccess(req.user, group_id);
+    await assertAIServiceReady();
     const agents = normalizeAgentSelection(selected_agents);
     if (!agents.some(agent => agent.key === 'head_agent') || !agents.some(agent => agent.key === 'quality_auditor')) {
       return res.status(400).json({ error: 'Head Agent and Quality Auditor are required for every run.' });
@@ -101,6 +102,7 @@ const retryRun = async (req, res, next) => {
     if (run.tasks.some(task => task.attempt >= task.max_attempts)) {
       return res.status(409).json({ error: 'Maximum retry limit reached. Create a new run with revised project context.' });
     }
+    await assertAIServiceReady();
     await run.update({ status: 'queued', error_message: null, completed_at: null, canceled_at: null, approved_at: null, approved_by: null });
     await AgentTask.update({ status: 'queued', result_json: null, confidence: null, error_message: null, started_at: null, completed_at: null, latency_ms: null }, { where: { run_id: run.id } });
     await createAuditLog({ userId: req.user.id, action: 'agent_run.retried', entityType: 'agent_run', entityId: run.id, ipAddress: req.ip });
@@ -129,5 +131,8 @@ const reviewRun = async (req, res, next) => {
 };
 
 const getCatalog = (req, res) => res.json({ data: AGENT_CATALOG });
+const getStatus = async (req, res, next) => {
+  try { res.json({ data: await getAIServiceReadiness() }); } catch (error) { next(error); }
+};
 
-module.exports = { createRun, listRuns, getRun, cancelRun, retryRun, reviewRun, getCatalog };
+module.exports = { createRun, listRuns, getRun, cancelRun, retryRun, reviewRun, getCatalog, getStatus };
