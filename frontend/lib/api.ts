@@ -15,7 +15,7 @@ export function setStoredAccessToken(token: string | null) {
 }
 
 const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
-const apiBaseUrl = configuredApiUrl
+export const apiBaseUrl = configuredApiUrl
   ? (configuredApiUrl.endsWith('/api') ? configuredApiUrl : `${configuredApiUrl}/api`)
   : 'http://localhost:5000/api';
 

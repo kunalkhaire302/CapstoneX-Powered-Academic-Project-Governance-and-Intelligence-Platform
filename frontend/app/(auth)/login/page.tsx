@@ -3,255 +3,190 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, ArrowRight, ShieldCheck, Cpu, LayoutDashboard, Sparkles, Loader2, Users, Eye, EyeOff } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import api, { setStoredAccessToken } from '@/lib/api';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowRight, Check, Eye, EyeOff, GraduationCap, Loader2, Lock, Mail, ShieldCheck, Sparkles, Users } from 'lucide-react';
+import { apiBaseUrl, setStoredAccessToken } from '@/lib/api';
+
+type Role = 'student' | 'mentor' | 'admin';
+type LoginUser = { id: string; name: string; email: string; role: Role; department?: string };
+type LoginResponse = { accessToken?: string; error?: string; user?: LoginUser };
+
+const DEMO_PASSWORD = 'CapstoneX@2024';
+const roles: Record<Role, string> = { student: '/student', mentor: '/mentor', admin: '/admin' };
+const demos = [
+  { role: 'student' as Role, title: 'Student', email: 'student1@capstonex.com', caption: 'Open my project space', icon: GraduationCap },
+  { role: 'mentor' as Role, title: 'Mentor', email: 'mentor1@capstonex.com', caption: 'Review project teams', icon: Users },
+  { role: 'admin' as Role, title: 'Administrator', email: 'admin@capstonex.com', caption: 'Oversee the platform', icon: ShieldCheck },
+];
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [selectedDemo, setSelectedDemo] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [error, setError] = useState('');
 
-  const completeLogin = async (loginEmail: string, loginPassword: string) => {
+  const authenticate = async (loginEmail: string, loginPassword: string) => {
     setError('');
     setLoading(true);
-
     try {
-      const { data } = await api.post('/auth/login', { email: loginEmail, password: loginPassword });
+      // Login uses the returned access token directly. It does not depend on
+      // third-party refresh cookies or any Firebase client state.
+      const response = await fetch(apiBaseUrl + '/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginEmail.trim().toLowerCase(), password: loginPassword }),
+      });
+      const data = await response.json().catch(() => ({})) as LoginResponse;
+      if (!response.ok || !data.accessToken || !data.user) {
+        throw new Error(data.error || 'Sign-in could not be completed (HTTP ' + response.status + ').');
+      }
       setStoredAccessToken(data.accessToken);
       localStorage.setItem('user', JSON.stringify(data.user));
-
-      const rolePaths: Record<string, string> = { student: '/student', mentor: '/mentor', admin: '/admin' };
-      router.push(rolePaths[data.user.role] || '/student');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
+      router.replace(roles[data.user.role]);
+    } catch (caughtError) {
+      const message = caughtError instanceof Error ? caughtError.message : 'Unable to contact CapstoneX.';
+      setError(message === 'Failed to fetch'
+        ? 'We could not reach the secure sign-in service. Refresh once and try again.'
+        : message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await completeLogin(email, password);
+  const signIn = async (event: React.FormEvent) => {
+    event.preventDefault();
+    await authenticate(email, password);
   };
 
-  const handleDemoClick = async (role: string, demoEmail: string) => {
-    const demoPassword = 'CapstoneX@2024';
-    setSelectedDemo(role);
+  const openDemo = async (role: Role, demoEmail: string) => {
+    setSelectedRole(role);
     setEmail(demoEmail);
-    setPassword(demoPassword);
-    await completeLogin(demoEmail, demoPassword);
+    setPassword(DEMO_PASSWORD);
+    await authenticate(demoEmail, DEMO_PASSWORD);
   };
 
   return (
-    <div className="h-screen bg-slate-50 flex overflow-hidden">
-      {/* Left Panel — Branding */}
-      <motion.div 
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="hidden lg:flex lg:w-[45%] bg-gradient-to-br from-[#0F172A] via-[#1a2744] to-[#0F172A] relative overflow-hidden items-center justify-center border-r border-white/10"
-      >
-        <div className="absolute top-20 left-20 w-[400px] h-[400px] bg-cardinal-500/10 rounded-full blur-[100px] mix-blend-screen animate-pulse-glow" />
-        <div className="absolute bottom-20 right-20 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] mix-blend-screen" style={{ animation: 'pulse-glow 8s infinite alternate-reverse' }} />
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-[0.05]" />
+    <main className="min-h-screen overflow-hidden bg-[#f7f6f2] text-thunder">
+      <div className="mx-auto grid min-h-screen max-w-[1600px] lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="relative hidden overflow-hidden bg-[#0d1b2a] px-10 py-10 text-white lg:flex lg:flex-col xl:px-16 xl:py-14">
+          <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px)] [background-size:46px_46px]" />
+          <div className="absolute -left-28 top-28 h-80 w-80 rounded-full bg-cardinal-500/30 blur-[110px]" />
+          <div className="absolute -bottom-24 right-0 h-96 w-96 rounded-full bg-amber-300/10 blur-[120px]" />
 
-        <div className="relative z-10 p-10 text-white max-w-lg w-full">
-          <motion.div 
-            initial={{ y: 20, opacity: 0 }} 
-            animate={{ y: 0, opacity: 1 }} 
-            transition={{ delay: 0.2, duration: 0.6 }}
-          >
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center ring-1 ring-white/20 shadow-xl shadow-black/20">
-                <img src="/logo.png" alt="CX" className="w-7 h-7 object-contain brightness-0 invert" />
-              </div>
-              <div>
-                <span className="font-display text-2xl block leading-tight font-bold tracking-tight">CapstoneX</span>
-                <span className="text-[10px] text-cardinal-300 font-semibold uppercase tracking-[0.2em]">Platform</span>
-              </div>
+          <motion.div initial={{ opacity: 0, y: -14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="relative flex items-center gap-3">
+            <div className="grid h-11 w-11 place-items-center rounded-2xl border border-white/15 bg-white/10 shadow-inner">
+              <img src="/logo.png" alt="CapstoneX" className="h-6 w-6 object-contain brightness-0 invert" />
             </div>
-            
-            <h1 className="text-4xl lg:text-[40px] font-display mb-4 leading-[1.1] font-medium tracking-tight">
-              Govern projects with <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cardinal-400 to-orange-300">
-                Intelligent Insights
-              </span>
-            </h1>
-            <p className="text-slate-300 text-base leading-relaxed mb-8 font-light max-w-[400px]">
-              AI-powered academic project governance. Manage your capstone journey seamlessly.
-            </p>
-            
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { value: '4+', label: 'AI Modules', icon: Sparkles }, 
-                { value: '6', label: 'User Roles', icon: Users }, 
-                { value: '100%', label: 'Automated', icon: LayoutDashboard }
-              ].map((s, i) => (
-                <div key={i} className="flex flex-col border-l-2 border-white/10 pl-3">
-                  <span className="text-2xl font-display font-semibold text-white tracking-tight">{s.value}</span>
-                  <span className="text-[13px] text-slate-400 mt-0.5 flex items-center gap-1.5">
-                    {s.label}
-                  </span>
+            <div>
+              <p className="font-display text-2xl leading-none">CapstoneX</p>
+              <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Academic intelligence</p>
+            </div>
+          </motion.div>
+
+          <div className="relative my-auto max-w-xl py-16">
+            <motion.p initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.12, duration: 0.55 }} className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-200">
+              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+              Project governance, made visible
+            </motion.p>
+            <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.65 }} className="font-display text-5xl leading-[0.98] tracking-tight xl:text-6xl">
+              The calm control room for ambitious capstone work.
+            </motion.h1>
+            <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32, duration: 0.55 }} className="mt-7 max-w-lg text-base leading-7 text-slate-300">
+              Bring students, mentors, evidence and decisions into one accountable project journey.
+            </motion.p>
+            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42, duration: 0.55 }} className="mt-11 grid grid-cols-3 gap-3">
+              {[['AI team', 'Evidence-led reviews'], ['Live status', 'Milestones in view'], ['Human approval', 'Decisions stay yours']].map(([title, caption]) => (
+                <div key={title} className="border-l border-white/20 pl-3">
+                  <p className="text-sm font-semibold text-white">{title}</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-400">{caption}</p>
                 </div>
               ))}
-            </div>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      {/* Right Panel — Login Form */}
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative bg-slate-50/50 h-full overflow-y-auto">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cardinal-50/50 rounded-full blur-[120px] -z-10 pointer-events-none" />
-
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="w-full max-w-[400px]"
-        >
-          <div className="lg:hidden mb-6 flex flex-col items-center gap-2">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cardinal-500 to-cardinal-700 flex items-center justify-center shadow-lg shadow-cardinal/20">
-              <img src="/logo.png" alt="CX" className="w-7 h-7 object-contain brightness-0 invert" />
-            </div>
-            <span className="font-display text-xl font-bold text-thunder tracking-tight">CapstoneX</span>
-          </div>
-
-          <div className="mb-6 text-center lg:text-left">
-            <h2 className="text-2xl font-display font-semibold text-slate-900 mb-1 tracking-tight">Welcome back</h2>
-            <p className="text-slate-500 text-sm">Sign in to your account to continue</p>
-          </div>
-
-          <AnimatePresence>
-            {error && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                animate={{ opacity: 1, height: 'auto', scale: 1 }}
-                exit={{ opacity: 0, height: 0, scale: 0.95 }}
-                className="overflow-hidden mb-4"
-              >
-                <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-700 flex items-start gap-2 shadow-sm">
-                  <div className="p-1 bg-red-100 rounded-md shrink-0 mt-0.5">
-                    <svg className="w-3.5 h-3.5 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                  </div>
-                  <span className="leading-snug font-medium text-[13px]">{error}</span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <form onSubmit={handleLogin} className="bg-white rounded-3xl border border-slate-200/60 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative">
-            <div className="space-y-4">
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-                <Input 
-                  label="Email Address" 
-                  type="email" 
-                  placeholder="you@university.edu" 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  required 
-                  id="login-email" 
-                  icon={<Mail className="w-4 h-4" />}
-                  className="bg-slate-50 hover:bg-white focus:bg-white transition-colors"
-                />
-              </motion.div>
-              
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-                <Input 
-                  label="Password" 
-                  type={showPassword ? 'text' : 'password'} 
-                  placeholder="••••••••" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  required 
-                  id="login-password" 
-                  icon={<Lock className="w-4 h-4" />}
-                  trailingIcon={
-                    <button 
-                      type="button" 
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="p-1 text-slate-400 hover:text-slate-600 focus:outline-none"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  }
-                  className="bg-slate-50 hover:bg-white focus:bg-white transition-colors"
-                />
-              </motion.div>
-
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="flex items-center justify-between text-[13px] pt-1">
-                <label className="flex items-center gap-2 text-slate-600 cursor-pointer group select-none">
-                  <div className="relative flex items-center justify-center">
-                    <input type="checkbox" className="peer appearance-none w-3.5 h-3.5 rounded-[4px] border-slate-300 checked:bg-cardinal-600 checked:border-cardinal-600 transition-all cursor-pointer" id="remember-me" />
-                    <svg className="absolute w-2.5 h-2.5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                  </div>
-                  <span className="group-hover:text-slate-900 transition-colors">Remember me</span>
-                </label>
-                <Link href="/forgot-password" className="text-cardinal-600 hover:text-cardinal-700 font-semibold transition-colors">
-                  Forgot password?
-                </Link>
-              </motion.div>
-
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="pt-2">
-                <Button 
-                  type="submit" 
-                  className="w-full h-11 text-sm font-medium shadow-lg shadow-cardinal-500/20 bg-gradient-to-r from-cardinal-600 to-cardinal-500 hover:from-cardinal-700 hover:to-cardinal-600" 
-                  disabled={loading}
-                  id="login-submit"
-                >
-                  {loading ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Authenticating...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      Sign In
-                      <ArrowRight className="w-4 h-4" />
-                    </span>
-                  )}
-                </Button>
-              </motion.div>
-            </div>
-
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="mt-6 pt-5 border-t border-slate-100">
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest text-center mb-3">Quick Access Demo</p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {[
-                  { role: 'Student', email: 'student1@capstonex.com' },
-                  { role: 'Mentor', email: 'mentor1@capstonex.com' },
-                  { role: 'Admin', email: 'admin@capstonex.com' }
-                ].map(demo => (
-                  <button
-                    key={demo.role}
-                    type="button"
-                    onClick={() => handleDemoClick(demo.role, demo.email)}
-                    disabled={loading}
-                    className={`px-2.5 py-1 text-[11px] rounded-lg transition-all duration-200 font-medium border flex items-center gap-1.5
-                      ${selectedDemo === demo.role 
-                        ? 'bg-cardinal-50 border-cardinal-200 text-cardinal-700 shadow-sm ring-1 ring-cardinal-100' 
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 shadow-sm'
-                      }`}
-                  >
-                    {demo.role}
-                  </button>
-                ))}
-              </div>
             </motion.div>
-          </form>
-          
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="mt-5 text-center text-[13px] text-slate-500">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-cardinal-600 font-semibold hover:text-cardinal-700 transition-colors">Create one</Link>
+          </div>
+
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.65 }} className="relative flex items-center gap-2 text-xs text-slate-400">
+            <Check className="h-4 w-4 text-emerald-300" />
+            Secure, role-aware access for every project team.
           </motion.div>
-        </motion.div>
+        </section>
+
+        <section className="relative flex items-center justify-center px-5 py-10 sm:px-8 lg:px-12">
+          <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-cardinal-100/70 blur-[100px]" />
+          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="relative w-full max-w-[470px]">
+            <div className="mb-10 flex items-center justify-between lg:hidden">
+              <div className="flex items-center gap-2.5">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-thunder"><img src="/logo.png" alt="CapstoneX" className="h-5 w-5 brightness-0 invert" /></div>
+                <span className="font-display text-xl">CapstoneX</span>
+              </div>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Academic intelligence</span>
+            </div>
+
+            <div className="mb-7">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-cardinal-700">Welcome back</p>
+              <h2 className="mt-3 font-display text-4xl tracking-tight text-[#172331]">Enter your workspace.</h2>
+              <p className="mt-3 max-w-md text-sm leading-6 text-slate-600">Use your CapstoneX account, or use a safe demo workspace to explore the platform.</p>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {error && (
+                <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} role="alert" className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                  <p className="font-semibold">Sign-in needs attention</p>
+                  <p className="mt-1 leading-5 text-red-700">{error}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <form onSubmit={signIn} className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_24px_55px_-32px_rgba(15,23,42,.32)] sm:p-7">
+              <div className="space-y-4">
+                <label className="block">
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.12em] text-slate-600">Institutional email</span>
+                  <span className="relative block">
+                    <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input id="login-email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@university.edu" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-cardinal-500 focus:bg-white focus:ring-4 focus:ring-cardinal-100" />
+                  </span>
+                </label>
+                <label className="block">
+                  <span className="mb-2 flex items-center justify-between text-xs font-bold uppercase tracking-[0.12em] text-slate-600"><span>Password</span><Link href="/forgot-password" className="normal-case tracking-normal text-cardinal-700 hover:text-cardinal-800">Forgot password?</Link></span>
+                  <span className="relative block">
+                    <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input id="login-password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-12 text-sm outline-none transition placeholder:text-slate-400 focus:border-cardinal-500 focus:bg-white focus:ring-4 focus:ring-cardinal-100" />
+                    <button type="button" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((visible) => !visible)} className="absolute right-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
+                  </span>
+                </label>
+              </div>
+              <button id="login-submit" type="submit" disabled={loading} className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-thunder text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 hover:bg-[#1c3147] disabled:cursor-not-allowed disabled:opacity-70">
+                {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Signing you in…</> : <>Sign in securely <ArrowRight className="h-4 w-4" /></>}
+              </button>
+            </form>
+
+            <div className="mt-6">
+              <div className="flex items-center gap-3"><div className="h-px flex-1 bg-slate-200" /><span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Explore the demo</span><div className="h-px flex-1 bg-slate-200" /></div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                {demos.map((demo, index) => {
+                  const Icon = demo.icon;
+                  const active = selectedRole === demo.role;
+                  const classes = active
+                    ? 'border-cardinal-400 bg-cardinal-50 ring-2 ring-cardinal-100'
+                    : 'border-slate-200 bg-white hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-card';
+                  return (
+                    <motion.button key={demo.role} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 + index * 0.07 }} type="button" disabled={loading} onClick={() => openDemo(demo.role, demo.email)} className={'group rounded-2xl border p-3 text-left transition ' + classes}>
+                      <span className="flex items-center justify-between"><span className="grid h-8 w-8 place-items-center rounded-lg bg-slate-100 text-slate-700 transition group-hover:bg-thunder group-hover:text-white"><Icon className="h-4 w-4" /></span><ArrowRight className="h-3.5 w-3.5 text-slate-400" /></span>
+                      <span className="mt-3 block text-sm font-bold text-slate-800">{demo.title}</span>
+                      <span className="mt-1 block text-[11px] leading-4 text-slate-500">{demo.caption}</span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+              <p className="mt-3 text-center text-xs text-slate-500">Demo access signs in immediately — no extra password step.</p>
+            </div>
+
+            <p className="mt-8 text-center text-sm text-slate-600">New to CapstoneX? <Link href="/register" className="font-semibold text-cardinal-700 hover:text-cardinal-800">Create your account</Link></p>
+          </motion.div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }
