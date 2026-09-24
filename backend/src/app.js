@@ -58,6 +58,8 @@ app.use(compression());
 const allowedOrigins = new Set([
   'http://localhost:3000',
   'http://127.0.0.1:3000',
+  'https://capstonex.me',
+  'https://www.capstonex.me',
   process.env.FRONTEND_URL,
 ].filter(Boolean));
 

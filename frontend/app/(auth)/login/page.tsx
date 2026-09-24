@@ -10,6 +10,7 @@ import { apiBaseUrl, setStoredAccessToken } from '@/lib/api';
 type Role = 'student' | 'mentor' | 'admin';
 type LoginUser = { id: string; name: string; email: string; role: Role; department?: string };
 type LoginResponse = { accessToken?: string; error?: string; user?: LoginUser };
+type AuthenticatedLoginResponse = { accessToken: string; user: LoginUser };
 
 const DEMO_PASSWORD = 'CapstoneX@2024';
 const roles: Record<Role, string> = { student: '/student', mentor: '/mentor', admin: '/admin' };
@@ -18,6 +19,47 @@ const demos = [
   { role: 'mentor' as Role, title: 'Mentor', email: 'mentor1@capstonex.com', caption: 'Review project teams', icon: Users },
   { role: 'admin' as Role, title: 'Administrator', email: 'admin@capstonex.com', caption: 'Oversee the platform', icon: ShieldCheck },
 ];
+
+const wait = (milliseconds: number) => new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
+const isTransientSignInFailure = (error: unknown) =>
+  error instanceof TypeError || (error instanceof DOMException && error.name === 'AbortError') ||
+  (error instanceof Error && 'transient' in error && error.transient === true);
+
+async function requestLogin(loginEmail: string, loginPassword: string): Promise<AuthenticatedLoginResponse> {
+  let lastNetworkError: unknown;
+
+  // Render may need a moment to wake an idle service. A single, short retry
+  // makes the first sign-in reliable without ever retrying invalid credentials.
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 15_000);
+    try {
+      const response = await fetch(apiBaseUrl + '/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginEmail.trim().toLowerCase(), password: loginPassword }),
+        signal: controller.signal,
+      });
+      const data = await response.json().catch(() => ({})) as LoginResponse;
+
+      if (!response.ok || !data.accessToken || !data.user) {
+        const error = new Error(data.error || 'Sign-in could not be completed (HTTP ' + response.status + ').') as Error & { transient?: boolean };
+        error.transient = response.status >= 500;
+        throw error;
+      }
+      return { accessToken: data.accessToken, user: data.user };
+    } catch (error) {
+      lastNetworkError = error;
+      // An HTTP response is a real login outcome, so do not send it again.
+      if (!isTransientSignInFailure(error)) throw error;
+      if (attempt === 0) await wait(900);
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
+
+  throw lastNetworkError;
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,22 +76,14 @@ export default function LoginPage() {
     try {
       // Login uses the returned access token directly. It does not depend on
       // third-party refresh cookies or any Firebase client state.
-      const response = await fetch(apiBaseUrl + '/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail.trim().toLowerCase(), password: loginPassword }),
-      });
-      const data = await response.json().catch(() => ({})) as LoginResponse;
-      if (!response.ok || !data.accessToken || !data.user) {
-        throw new Error(data.error || 'Sign-in could not be completed (HTTP ' + response.status + ').');
-      }
+      const data = await requestLogin(loginEmail, loginPassword);
       setStoredAccessToken(data.accessToken);
       localStorage.setItem('user', JSON.stringify(data.user));
       router.replace(roles[data.user.role]);
     } catch (caughtError) {
       const message = caughtError instanceof Error ? caughtError.message : 'Unable to contact CapstoneX.';
-      setError(message === 'Failed to fetch'
-        ? 'We could not reach the secure sign-in service. Refresh once and try again.'
+      setError(isTransientSignInFailure(caughtError)
+        ? 'The secure sign-in service is taking longer than usual. Please try again in a moment.'
         : message);
     } finally {
       setLoading(false);
