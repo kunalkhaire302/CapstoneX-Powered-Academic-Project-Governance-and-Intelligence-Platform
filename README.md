@@ -1,3 +1,4 @@
+````markdown
 <div align="center">
 
 # ⚡ CapstoneX
@@ -43,6 +44,7 @@
 - [Overview](#-overview)
 - [Key Highlights](#-key-highlights)
 - [At a Glance](#-at-a-glance)
+- [Project Demo](#-project-demo)
 - [Screenshots](#-screenshots)
 - [System Architecture](#-system-architecture)
 - [Request Flow](#-request-flow)
@@ -120,6 +122,23 @@ What pushes this past a typical academic CRUD project:
 
 ---
 
+## 🎥 Project Demo
+
+### CapstoneX — AI-Powered Academic Project Governance & Intelligence Platform
+
+<video controls width="100%">
+  <source src="docs/videos/capstonex-demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+> Full walkthrough of the CapstoneX platform, including the core academic project governance workflow and AI-powered capabilities.
+
+**[▶️ Watch the CapstoneX Demo Video](docs/videos/capstonex-demo.mp4)**
+
+**[⬆ back to top](#-capstonex)**
+
+---
+
 ## 📸 Screenshots
 
 > Add real screenshots or a short GIF walkthrough of the live app here — it's one of the first things a recruiter looks at. Suggested shots: **login screen**, **student dashboard with AI recommendations**, **risk prediction view**, **mentor feedback screen**, **admin/HOD analytics view**.
@@ -129,9 +148,9 @@ What pushes this past a typical academic CRUD project:
 ![AI Project Recommendations](docs/screenshots/recommendations.png)
 ![Risk Prediction View](docs/screenshots/risk-prediction.png)
 ![Admin Analytics](docs/screenshots/admin-analytics.png)
-```
+````
 
-Save the images inside a `docs/screenshots/` folder in the repo and reference them with relative paths as above — they'll render directly on this page.
+Save the images inside a `docs/screenshots/` folder in the repo and reference them with relative paths as above.
 
 **[⬆ back to top](#-capstonex)**
 
@@ -259,6 +278,7 @@ features = [
     "mentor_feedback_count",
     "team_activity_score",
 ]
+
 model = GradientBoostingClassifier(n_estimators=100, max_depth=4)
 risk_label = model.predict([project_features])  # "Low" | "Medium" | "High"
 ```
@@ -292,46 +312,46 @@ A scheduled `retrain.yml` GitHub Actions workflow retrains all four models **eve
 
 ### Frontend — Next.js 14 + TypeScript
 
-| Technology | Purpose |
-|---|---|
+| Technology                  | Purpose                                               |
+| --------------------------- | ----------------------------------------------------- |
 | **Next.js 14** (App Router) | Full-stack React framework — SSR, SSG, and API routes |
-| **TypeScript** | Type safety across the majority of the codebase |
-| **Tailwind CSS** | Utility-first, responsive styling |
-| **Zustand** | Lightweight global state management |
-| **TanStack React Query** | Server-state caching and background refetching |
-| **Recharts** | Analytics dashboards and progress charts |
-| **Framer Motion** | Page and component animation |
+| **TypeScript**              | Type safety across the majority of the codebase       |
+| **Tailwind CSS**            | Utility-first, responsive styling                     |
+| **Zustand**                 | Lightweight global state management                   |
+| **TanStack React Query**    | Server-state caching and background refetching        |
+| **Recharts**                | Analytics dashboards and progress charts              |
+| **Framer Motion**           | Page and component animation                          |
 
 ### Backend — Express.js + Node.js
 
-| Technology | Purpose |
-|---|---|
-| **Express.js** | REST API server and business logic layer |
+| Technology              | Purpose                                                             |
+| ----------------------- | ------------------------------------------------------------------- |
+| **Express.js**          | REST API server and business logic layer                            |
 | **JWT + Firebase Auth** | Dual-layer authentication — stateless tokens plus Firebase identity |
-| **Sequelize ORM** | Type-safe database access with migrations and seeders |
-| **RBAC middleware** | 6-role access control enforced on every route |
-| **Rate limiting** | Protects endpoints from abuse and brute-force attempts |
-| **Audit logging** | Records every sensitive action for compliance |
+| **Sequelize ORM**       | Type-safe database access with migrations and seeders               |
+| **RBAC middleware**     | 6-role access control enforced on every route                       |
+| **Rate limiting**       | Protects endpoints from abuse and brute-force attempts              |
+| **Audit logging**       | Records every sensitive action for compliance                       |
 
 ### AI Service — FastAPI + Python
 
-| Technology | Purpose |
-|---|---|
-| **FastAPI** | Async Python REST API with auto-generated Swagger docs |
-| **scikit-learn** | Gradient Boosting, TF-IDF, and K-Means models |
-| **flan-t5** *(optional)* | Transformer model for natural-language feedback |
-| **pytest** | Automated testing for every ML endpoint |
+| Technology               | Purpose                                                |
+| ------------------------ | ------------------------------------------------------ |
+| **FastAPI**              | Async Python REST API with auto-generated Swagger docs |
+| **scikit-learn**         | Gradient Boosting, TF-IDF, and K-Means models          |
+| **flan-t5** *(optional)* | Transformer model for natural-language feedback        |
+| **pytest**               | Automated testing for every ML endpoint                |
 
 ### Database & DevOps
 
-| Technology | Purpose |
-|---|---|
-| **PostgreSQL 15** | Primary relational data store |
-| **Docker Compose** | One-command orchestration of all four services |
-| **GitHub Actions** | CI/CD — lint, test, deploy, and weekly model retraining |
-| **Prometheus + Grafana** | Real-time API metrics and dashboards |
-| **k6** | Load testing under simulated concurrent traffic |
-| **Firebase Analytics** | Frontend event tracking |
+| Technology               | Purpose                                                 |
+| ------------------------ | ------------------------------------------------------- |
+| **PostgreSQL 15**        | Primary relational data store                           |
+| **Docker Compose**       | One-command orchestration of all four services          |
+| **GitHub Actions**       | CI/CD — lint, test, deploy, and weekly model retraining |
+| **Prometheus + Grafana** | Real-time API metrics and dashboards                    |
+| **k6**                   | Load testing under simulated concurrent traffic         |
+| **Firebase Analytics**   | Frontend event tracking                                 |
 
 **[⬆ back to top](#-capstonex)**
 
@@ -357,10 +377,11 @@ erDiagram
 ```
 
 **Design decisions:**
-- **UUID primary keys** — distributed-safe and non-enumerable, unlike auto-increment IDs.
-- **JSONB metadata columns** — flexible fields without constant schema migrations.
-- **Indexed foreign keys** — fast joins across projects, teams, and logbooks.
-- **Sequelize migrations + seeders** — version-controlled schema and an instant demo dataset.
+
+* **UUID primary keys** — distributed-safe and non-enumerable, unlike auto-increment IDs.
+* **JSONB metadata columns** — flexible fields without constant schema migrations.
+* **Indexed foreign keys** — fast joins across projects, teams, and logbooks.
+* **Sequelize migrations + seeders** — version-controlled schema and an instant demo dataset.
 
 **[⬆ back to top](#-capstonex)**
 
@@ -370,11 +391,11 @@ erDiagram
 
 CapstoneX enforces **6-role RBAC** at the API middleware layer — every request is checked against the caller's role before it reaches business logic.
 
-| Role | Demo Email | Password | Key Permissions |
-|---|---|---|---|
-| 👑 **Admin** | admin@capstonex.com |  | Full system access, user management, configuration |
-| 🧑‍🏫 **Mentor** | mentor1@capstonex.com | `CapstoneX@2024` | Review logbooks, write feedback, track progress |
-| 🎓 **Student** | student1@capstonex.com | `CapstoneX@2024` | Submit logbooks, view projects, collaborate |
+| Role             | Demo Email                                              | Password         | Key Permissions                                    |
+| ---------------- | ------------------------------------------------------- | ---------------- | -------------------------------------------------- |
+| 👑 **Admin**     | [admin@capstonex.com](mailto:admin@capstonex.com)       |                  | Full system access, user management, configuration |
+| 🧑‍🏫 **Mentor** | [mentor1@capstonex.com](mailto:mentor1@capstonex.com)   | `CapstoneX@2024` | Review logbooks, write feedback, track progress    |
+| 🎓 **Student**   | [student1@capstonex.com](mailto:student1@capstonex.com) | `CapstoneX@2024` | Submit logbooks, view projects, collaborate        |
 
 > Head to **[capstonex.me](https://www.capstonex.me)** and log in with any account above to explore the live platform from that role's perspective.
 
@@ -384,7 +405,7 @@ CapstoneX enforces **6-role RBAC** at the API middleware layer — every request
 
 ## 📁 Folder Structure
 
-```
+```text
 CapstoneX/
 │
 ├── frontend/                   # Next.js 14 application
@@ -412,6 +433,10 @@ CapstoneX/
 │   └── tests/                  # pytest suite
 │
 ├── docs/                       # Architecture & API documentation
+│   ├── screenshots/            # Project screenshots
+│   └── videos/                 # Project demo videos
+│       └── capstonex-demo.mp4
+│
 ├── .github/workflows/          # CI/CD pipelines (ci, deploy, retrain)
 ├── docker-compose.yml          # Full local environment
 ├── k6-load-test.js             # API load testing scripts
@@ -427,10 +452,10 @@ CapstoneX/
 
 ### Prerequisites
 
-- **Node.js 20+** — `node --version`
-- **Python 3.11+** — `python --version`
-- **Docker & Docker Compose** — `docker --version`
-- **PostgreSQL 15+** — only if setting up manually without Docker
+* **Node.js 20+** — `node --version`
+* **Python 3.11+** — `python --version`
+* **Docker & Docker Compose** — `docker --version`
+* **PostgreSQL 15+** — only if setting up manually without Docker
 
 ### Option 1 — Docker Compose (recommended)
 
@@ -452,12 +477,12 @@ docker-compose up --build
 docker exec capstonex-backend npm run db:reset
 ```
 
-| Service | URL |
-|---|---|
-| Frontend | http://localhost:3000 |
-| Backend health check | http://localhost:5000/api/health |
-| AI service docs (Swagger) | http://localhost:8000/docs |
-| pgAdmin | http://localhost:5050 |
+| Service                   | URL                              |
+| ------------------------- | -------------------------------- |
+| Frontend                  | http://localhost:3000            |
+| Backend health check      | http://localhost:5000/api/health |
+| AI service docs (Swagger) | http://localhost:8000/docs       |
+| pgAdmin                   | http://localhost:5050            |
 
 ### Option 2 — Manual setup (service by service)
 
@@ -493,51 +518,51 @@ Backend base URL: `http://localhost:5000/api` · AI service Swagger UI: `http://
 
 ### Auth
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/auth/login` | Authenticate and return a JWT |
-| POST | `/api/auth/register` | Register a new user |
-| POST | `/api/auth/refresh` | Refresh an expired token |
+| Method | Endpoint             | Description                   |
+| ------ | -------------------- | ----------------------------- |
+| POST   | `/api/auth/login`    | Authenticate and return a JWT |
+| POST   | `/api/auth/register` | Register a new user           |
+| POST   | `/api/auth/refresh`  | Refresh an expired token      |
 
 ### Projects
 
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| GET | `/api/projects` | List projects (paginated, filterable) | All roles |
-| POST | `/api/projects` | Create a project | Coordinator, Admin |
-| GET | `/api/projects/:id` | Get project details | All roles |
-| PUT | `/api/projects/:id` | Update project metadata | Coordinator, Admin |
-| DELETE | `/api/projects/:id` | Remove a project | Admin |
+| Method | Endpoint            | Description                           | Access             |
+| ------ | ------------------- | ------------------------------------- | ------------------ |
+| GET    | `/api/projects`     | List projects (paginated, filterable) | All roles          |
+| POST   | `/api/projects`     | Create a project                      | Coordinator, Admin |
+| GET    | `/api/projects/:id` | Get project details                   | All roles          |
+| PUT    | `/api/projects/:id` | Update project metadata               | Coordinator, Admin |
+| DELETE | `/api/projects/:id` | Remove a project                      | Admin              |
 
 ### Logbooks & Teams
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/logbooks` | Submit a weekly logbook entry |
-| GET | `/api/logbooks/:projectId` | View all entries for a project |
-| PUT | `/api/logbooks/:id/feedback` | Mentor adds feedback to an entry |
-| POST | `/api/teams/auto-form` | Trigger AI team formation |
-| GET | `/api/teams/:id` | Get team members and activity |
-| PATCH | `/api/teams/:id/members` | Manually adjust a team's composition |
+| Method | Endpoint                     | Description                          |
+| ------ | ---------------------------- | ------------------------------------ |
+| POST   | `/api/logbooks`              | Submit a weekly logbook entry        |
+| GET    | `/api/logbooks/:projectId`   | View all entries for a project       |
+| PUT    | `/api/logbooks/:id/feedback` | Mentor adds feedback to an entry     |
+| POST   | `/api/teams/auto-form`       | Trigger AI team formation            |
+| GET    | `/api/teams/:id`             | Get team members and activity        |
+| PATCH  | `/api/teams/:id/members`     | Manually adjust a team's composition |
 
 ### AI Proxy (backend → AI service)
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/ai/recommend` | Get project recommendations for a student |
-| POST | `/api/ai/risk` | Predict a project's risk level |
-| GET | `/api/ai/feedback/:logbookId` | Generate AI feedback for a logbook |
+| Method | Endpoint                      | Description                               |
+| ------ | ----------------------------- | ----------------------------------------- |
+| POST   | `/api/ai/recommend`           | Get project recommendations for a student |
+| POST   | `/api/ai/risk`                | Predict a project's risk level            |
+| GET    | `/api/ai/feedback/:logbookId` | Generate AI feedback for a logbook        |
 
 ### AI Service (FastAPI, port 8000)
 
-| Method | Endpoint | Request | Response |
-|---|---|---|---|
-| POST | `/recommend` | `student_id`, `interests` | Ranked project list |
-| POST | `/predict-risk` | `project_features` | `"Low"` \| `"Medium"` \| `"High"` |
-| POST | `/feedback` | `logbook_text`, `context` | Generated feedback string |
-| POST | `/form-teams` | `students[]`, `n_teams` | Balanced team assignments |
-| GET | `/health` | — | Service health check |
-| GET | `/docs` | — | Interactive Swagger UI |
+| Method | Endpoint        | Request                   | Response                        |
+| ------ | --------------- | ------------------------- | ------------------------------- |
+| POST   | `/recommend`    | `student_id`, `interests` | Ranked project list             |
+| POST   | `/predict-risk` | `project_features`        | `"Low"` | `"Medium"` | `"High"` |
+| POST   | `/feedback`     | `logbook_text`, `context` | Generated feedback string       |
+| POST   | `/form-teams`   | `students[]`, `n_teams`   | Balanced team assignments       |
+| GET    | `/health`       | —                         | Service health check            |
+| GET    | `/docs`         | —                         | Interactive Swagger UI          |
 
 **[⬆ back to top](#-capstonex)**
 
@@ -560,10 +585,10 @@ graph LR
     VALIDATE -.->|regressed| KEEP["Keep Previous Model"]
 ```
 
-| Workflow | Trigger | What it does |
-|---|---|---|
-| `ci.yml` | Every pull request | Lints frontend (ESLint) and backend, runs Jest and pytest suites, blocks merge on failure |
-| `deploy.yml` | Merge to `main` | Builds Docker images, pushes to the registry, deploys updated containers |
+| Workflow      | Trigger                 | What it does                                                                                |
+| ------------- | ----------------------- | ------------------------------------------------------------------------------------------- |
+| `ci.yml`      | Every pull request      | Lints frontend (ESLint) and backend, runs Jest and pytest suites, blocks merge on failure   |
+| `deploy.yml`  | Merge to `main`         | Builds Docker images, pushes to the registry, deploys updated containers                    |
 | `retrain.yml` | Every Sunday, 02:00 UTC | Pulls latest project data, retrains all four ML models, validates accuracy before promoting |
 
 **[⬆ back to top](#-capstonex)**
@@ -593,7 +618,7 @@ k6 run k6-load-test.js
 
 ## 📊 Monitoring & Observability
 
-- **Prometheus + Grafana** — `express-prometheus-bundle` exposes HTTP request rate, latency, and error rate per route; Grafana visualizes it in real time.
+* **Prometheus + Grafana** — `express-prometheus-bundle` exposes HTTP request rate, latency, and error rate per route; Grafana visualizes it in real time.
 
   ```bash
   docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up
@@ -601,9 +626,11 @@ k6 run k6-load-test.js
   # Grafana    → http://localhost:3001
   ```
 
-- **Firebase Analytics** — tracks frontend product events, e.g. `logEvent(analytics, 'logbook_submitted', { project_id, student_id })`.
-- **Accessibility (WCAG 2.1 AA)** — `eslint-plugin-jsx-a11y` runs in CI, and Lighthouse CI scores every pull request automatically.
-- **Load testing (k6)** — `k6-load-test.js` simulates concurrent users hitting the most critical endpoints to verify the system holds up under university-scale traffic.
+* **Firebase Analytics** — tracks frontend product events, e.g. `logEvent(analytics, 'logbook_submitted', { project_id, student_id })`.
+
+* **Accessibility (WCAG 2.1 AA)** — `eslint-plugin-jsx-a11y` runs in CI, and Lighthouse CI scores every pull request automatically.
+
+* **Load testing (k6)** — `k6-load-test.js` simulates concurrent users hitting the most critical endpoints to verify the system holds up under university-scale traffic.
 
 **[⬆ back to top](#-capstonex)**
 
@@ -611,19 +638,60 @@ k6 run k6-load-test.js
 
 ## 🗺 Roadmap
 
-- [x] Core RBAC with 6 roles
-- [x] TF-IDF project recommendation engine
-- [x] Gradient Boosting risk prediction
-- [x] K-Means team formation
-- [x] AI feedback generation with flan-t5
-- [x] Docker Compose full-stack setup
-- [x] GitHub Actions CI/CD + weekly ML retraining
-- [x] Prometheus + Grafana monitoring scaffold
-- [ ] Real-time notifications (WebSockets)
-- [ ] Internationalization — Hindi, Marathi via `next-intl`
-- [ ] Mobile app (React Native)
-- [ ] LLM upgrade — Llama 3 / GPT-4o for feedback generation
-- [ ] Plagiarism detection module
+* [x] Core RBAC with 6 roles
+* [x] TF-IDF project recommendation engine
+* [x] Gradient Boosting risk prediction
+* [x] K-Means team formation
+* [x] AI feedback generation with flan-t5
+* [x] Docker Compose full-stack setup
+* [x] GitHub Actions CI/CD + weekly ML retraining
+* [x] Prometheus + Grafana monitoring scaffold
+* [ ] Real-time notifications (WebSockets)
+* [ ] Internationalization — Hindi, Marathi via `next-intl`
+* [ ] Mobile app (React Native)
+* [ ] LLM upgrade — Llama 3 / GPT-4o for feedback generation
+* [ ] Plagiarism detection module
+
+**[⬆ back to top](#-capstonex)**
+
+---
+
+## 🤖 Hierarchical AI Agent Team
+
+CapstoneX includes a governed AI Team workspace for students, mentors, and administrators. A Head Agent coordinates specialist workers for project analysis, technical review, supplied-source research, documentation, progress monitoring, recommendations, communication, and quality auditing.
+
+The workflow is advisory by design. Every run is persisted, project-scoped, evidence-linked, audited, retryable, and held at `awaiting_approval` until the assigned mentor or an administrator records a decision. Grades, rejections, and official feedback are never applied automatically.
+
+Before starting the services, apply the database migration:
+
+```bash
+cd backend
+npm run migrate
+```
+
+Configure the backend and AI service with the same `AI_INTERNAL_SECRET`.
+
+Set:
+
+```env
+LLM_PROVIDER=openai
+OPENAI_API_KEY=your_api_key
+OPENAI_MODEL=your_model
+```
+
+to enable model-backed specialists.
+
+Without a configured provider, the workflow returns a conservative deterministic fallback, lowers confidence, and requires human review.
+
+Optional token-price variables in `.env.example` enable per-run cost estimates.
+
+### AI Team Routes
+
+| Role          | Route              |
+| ------------- | ------------------ |
+| Student       | `/student/ai-team` |
+| Mentor        | `/mentor/ai-team`  |
+| Administrator | `/admin/ai-team`   |
 
 **[⬆ back to top](#-capstonex)**
 
@@ -632,9 +700,24 @@ k6 run k6-load-test.js
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature-name`
-3. Commit using [Conventional Commits](https://www.conventionalcommits.org/): `git commit -m "feat: add your feature"`
-4. Push the branch: `git push origin feature/your-feature-name`
+2. Create a feature branch:
+
+```bash
+git checkout -b feature/your-feature-name
+```
+
+3. Commit using [Conventional Commits](https://www.conventionalcommits.org/):
+
+```bash
+git commit -m "feat: add your feature"
+```
+
+4. Push the branch:
+
+```bash
+git push origin feature/your-feature-name
+```
+
 5. Open a Pull Request — CI checks run automatically
 
 ---
@@ -649,8 +732,7 @@ Licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
 
 **Kunal Khaire**
 
-[![GitHub](https://img.shields.io/badge/GitHub-kunalkhaire302-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/kunalkhaire302)
-
+[![GitHub](https://img.shields.io/badge/GitHub-kunalkhaire302-181717?style=flat-square\&logo=github\&logoColor=white)](https://github.com/kunalkhaire302)
 
 <div align="center">
 
@@ -659,23 +741,14 @@ Licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
 Built with a lot of ☕ and a healthy respect for deadline pressure.
 
 </div>
-# Hierarchical AI Agent Team
-
-CapstoneX includes a governed AI Team workspace for students, mentors, and administrators. A Head Agent coordinates specialist workers for project analysis, technical review, supplied-source research, documentation, progress monitoring, recommendations, communication, and quality auditing.
-
-The workflow is advisory by design. Every run is persisted, project-scoped, evidence-linked, audited, retryable, and held at `awaiting_approval` until the assigned mentor or an administrator records a decision. Grades, rejections, and official feedback are never applied automatically.
-
-Before starting the services, apply the database migration:
-
-```bash
-cd backend
-npm run migrate
 ```
 
-Configure the backend and AI service with the same `AI_INTERNAL_SECRET`. Set `LLM_PROVIDER=openai`, `OPENAI_API_KEY`, and `OPENAI_MODEL` to enable model-backed specialists. Without a configured provider, the workflow returns a conservative deterministic fallback, lowers confidence, and requires human review. Optional token-price variables in `.env.example` enable per-run cost estimates.
+For the video path, your repository should contain:
 
-AI Team routes:
+```text
+docs/
+└── videos/
+    └── capstonex-demo.mp4
+```
 
-- Student: `/student/ai-team`
-- Mentor: `/mentor/ai-team`
-- Administrator: `/admin/ai-team`
+The video is referenced in the README as `docs/videos/capstonex-demo.mp4`.
