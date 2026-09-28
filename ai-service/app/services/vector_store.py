@@ -17,8 +17,9 @@ logger = logging.getLogger(__name__)
 
 # Path for persisting the FAISS index and metadata
 INDEX_DIR = Path(os.getenv("FAISS_INDEX_PATH", "data/faiss_index"))
-INDEX_FILE = INDEX_DIR / "projects.index"
-METADATA_FILE = INDEX_DIR / "projects_meta.json"
+_index_suffix = "_hashing" if os.getenv("EMBEDDING_PROVIDER", "sentence-transformer").strip().lower() == "hashing" else ""
+INDEX_FILE = INDEX_DIR / f"projects{_index_suffix}.index"
+METADATA_FILE = INDEX_DIR / f"projects{_index_suffix}_meta.json"
 
 # Global state
 _index = None

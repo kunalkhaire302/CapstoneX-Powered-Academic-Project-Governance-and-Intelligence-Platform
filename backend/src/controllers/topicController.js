@@ -51,7 +51,7 @@ const submitTopic = async (req, res, next) => {
           tech_stack: t.technology_tags || []
         };
         const aiResponse = await axios.post(
-          `${process.env.AI_SERVICE_URL || 'http://localhost:8000'}/api/ai/problem/analyze`, 
+          `${process.env.AI_MODEL_SERVICE_URL || process.env.AI_SERVICE_URL || 'http://localhost:8000'}/api/ai/problem/analyze`,
           aiPayload,
           {
             headers: {

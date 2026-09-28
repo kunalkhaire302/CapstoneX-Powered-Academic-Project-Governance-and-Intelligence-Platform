@@ -187,7 +187,7 @@ async def health_check():
 async def detailed_health():
     """Detailed health check with model readiness status."""
     from app.services.risk_service import risk_pipeline
-    from app.services.embedding_service import _model as embedding_model
+    from app.services.embedding_service import _model as embedding_model, get_embedding_backend
     from app.services.vector_store import get_total_projects
     from app.core.cache import is_available as cache_available
 
@@ -203,8 +203,8 @@ async def detailed_health():
         "service": "capstonex-ai-service",
         "version": "2.0.0",
         "models": {
-            "risk_model": "loaded" if risk_pipeline is not None else "not_loaded",
-            "embedding_model": "loaded" if embedding_model is not None else "not_loaded",
+            "risk_model": "loaded" if risk_pipeline is not None else "heuristic fallback",
+            "embedding_model": "loaded" if embedding_model is not None else get_embedding_backend(),
             "vector_store_projects": get_total_projects(),
         },
         "infrastructure": {

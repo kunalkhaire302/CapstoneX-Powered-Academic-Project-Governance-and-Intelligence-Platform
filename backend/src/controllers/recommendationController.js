@@ -8,7 +8,7 @@ const { ProblemStatement, Recommendation, RecommendationHistory, User, Group, Gr
 const { createAuditLog } = require('../utils/auditLog');
 const logger = require('../utils/logger');
 
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+const AI_SERVICE_URL = process.env.AI_MODEL_SERVICE_URL || process.env.AI_SERVICE_URL || 'http://localhost:8000';
 const AI_INTERNAL_SECRET = process.env.AI_INTERNAL_SECRET;
 
 const getAiHeaders = () => ({

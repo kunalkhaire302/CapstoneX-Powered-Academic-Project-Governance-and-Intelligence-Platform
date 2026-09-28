@@ -903,6 +903,18 @@ AI agents MUST:
 
 **Status:** Local fix ready; push to GitHub pending user decision.
 
+### 2026-09-28 — Split AI runtime routing and constrained-host embeddings
+
+**Changed**
+- Added `AI_MODEL_SERVICE_URL` so model/recommendation traffic can use the full AI runtime while governed AI Team work remains on the focused runtime.
+- Added a deterministic hashing embedding backend and separate index filenames for memory-constrained deployments; existing Sentence Transformer indexes are preserved.
+- Detailed health now reports the real heuristic risk and configured embedding backends.
+
+**Verification**
+- Backend AI gateway regression tests pass (2 tests); backend lint has warnings only.
+- Hashing embedding regression passes; unrelated focused-runtime tests are locally blocked by the repository's Starlette/httpx version mismatch.
+- Render failure was traced to the full runtime exceeding the free instance's 512 MiB memory limit during Sentence Transformer startup.
+
 ### 2026-09-28 — Production release-gate audit and security hardening
 
 **Changed**

@@ -20,9 +20,16 @@ _model_name = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 _embedding_dim = 384  # Default for all-MiniLM-L6-v2
 
 
+def get_embedding_backend() -> str:
+    """Return the configured embedding backend."""
+    return os.getenv("EMBEDDING_PROVIDER", "sentence-transformer").strip().lower()
+
+
 def _load_model():
     """Lazy-load the sentence transformer model."""
     global _model, _embedding_dim
+    if get_embedding_backend() == "hashing":
+        return None
     if _model is not None:
         return _model
 
@@ -37,8 +44,20 @@ def _load_model():
         return _model
     except Exception as e:
         logger.warning(f"⚠️ Failed to load SentenceTransformer: {e}")
-        logger.warning("Falling back to random embeddings (for development only)")
+        logger.warning("Falling back to deterministic hashing embeddings")
         return None
+
+
+def _hash_embeddings(texts: List[str]) -> np.ndarray:
+    """Generate bounded, deterministic token-overlap embeddings."""
+    from sklearn.feature_extraction.text import HashingVectorizer
+
+    vectorizer = HashingVectorizer(
+        n_features=_embedding_dim,
+        alternate_sign=False,
+        norm="l2",
+    )
+    return vectorizer.transform(texts).toarray().astype(np.float32)
 
 
 def get_embedding_dimension() -> int:
@@ -64,9 +83,7 @@ def generate_embedding(text: str) -> np.ndarray:
         embedding = model.encode([text], normalize_embeddings=True)[0]
         return embedding.astype(np.float32)
     else:
-        # Fallback: deterministic hash-based pseudo-embedding (dev only)
-        np.random.seed(hash(text) % (2**31))
-        return np.random.randn(_embedding_dim).astype(np.float32)
+        return _hash_embeddings([text])[0]
 
 
 def batch_embeddings(texts: List[str]) -> np.ndarray:
@@ -90,12 +107,7 @@ def batch_embeddings(texts: List[str]) -> np.ndarray:
         embeddings = model.encode(cleaned, normalize_embeddings=True, batch_size=32, show_progress_bar=False)
         return embeddings.astype(np.float32)
     else:
-        # Fallback: deterministic pseudo-embeddings
-        result = []
-        for t in cleaned:
-            np.random.seed(hash(t) % (2**31))
-            result.append(np.random.randn(_embedding_dim).astype(np.float32))
-        return np.array(result, dtype=np.float32)
+        return _hash_embeddings(cleaned)
 
 
 def combine_text_for_embedding(
@@ -133,4 +145,4 @@ def combine_text_for_embedding(
 def load_embedding_model():
     """Explicitly load the model (called during app startup)."""
     _load_model()
-    logger.info("Embedding service initialized")
+    logger.info("Embedding service initialized with %s backend", get_embedding_backend())
