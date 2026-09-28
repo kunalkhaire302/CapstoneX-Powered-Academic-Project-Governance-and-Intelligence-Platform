@@ -49,6 +49,27 @@ const AGENTS = [
   { key: 'quality_auditor', name: 'Quality Auditor', role: 'Evidence and consistency gate', icon: ShieldCheck, tone: 'green' },
 ] as const;
 
+const WORKFLOWS = {
+  proposal_review: {
+    label: 'Review a proposal',
+    description: 'Checks scope, feasibility, technical readiness and evidence.',
+    objective: 'Review this capstone proposal for feasibility, technical readiness, novelty, delivery risk, and submission quality.',
+    agents: ['head_agent', 'project_analyst', 'technical_reviewer', 'research_agent', 'recommendation_agent', 'quality_auditor'],
+  },
+  progress_review: {
+    label: 'Review project progress',
+    description: 'Finds blockers, missing evidence and the next practical actions.',
+    objective: 'Review current project progress, identify blockers and risks, and provide the highest-priority next actions.',
+    agents: ['head_agent', 'project_analyst', 'progress_monitor', 'documentation_agent', 'recommendation_agent', 'quality_auditor'],
+  },
+  technical_review: {
+    label: 'Review technical delivery',
+    description: 'Checks architecture, security, reliability and delivery risk.',
+    objective: 'Review the technical design, implementation risks, security boundaries, reliability, and delivery readiness of this capstone project.',
+    agents: ['head_agent', 'technical_reviewer', 'documentation_agent', 'progress_monitor', 'quality_auditor'],
+  },
+} as const;
+
 const statusStyle: Record<string, string> = {
   queued: 'bg-slate-100 text-slate-600 border-slate-200',
   working: 'bg-blue-50 text-blue-700 border-blue-200', running: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -78,7 +99,8 @@ export default function AgentTeamWorkspace({ role }: { role: Role }) {
   const [runs, setRuns] = useState<AgentRun[]>([]);
   const [activeRunId, setActiveRunId] = useState('');
   const [groupId, setGroupId] = useState('');
-  const [objective, setObjective] = useState('Evaluate this capstone proposal for feasibility, technical readiness, novelty, delivery risk, and submission quality.');
+  const [workflow, setWorkflow] = useState<keyof typeof WORKFLOWS>('proposal_review');
+  const [objective, setObjective] = useState<string>(WORKFLOWS.proposal_review.objective);
   const [projectTitle, setProjectTitle] = useState('');
   const [projectSummary, setProjectSummary] = useState('');
   const [technologyStack, setTechnologyStack] = useState('');
@@ -124,13 +146,13 @@ export default function AgentTeamWorkspace({ role }: { role: Role }) {
     setCreating(true);
     try {
       const response = await api.post('/agent-team/runs', {
-        group_id: groupId, workflow: 'proposal_review', objective,
+        group_id: groupId, workflow, objective,
         context: {
           project_title: projectTitle, project_summary: projectSummary,
           technology_stack: technologyStack.split(',').map(item => item.trim()).filter(Boolean), submitted_by_role: role,
         },
         constraints: constraints.split('\n').map(item => item.trim()).filter(Boolean),
-        selected_agents: AGENTS.map(agent => agent.key),
+        selected_agents: WORKFLOWS[workflow].agents,
       });
       const run = response.data.data;
       setRuns(current => [run, ...current.filter(item => item.id !== run.id)]);
@@ -163,12 +185,16 @@ export default function AgentTeamWorkspace({ role }: { role: Role }) {
 
   const completedTasks = activeRun?.tasks?.filter(task => task.status === 'completed').length || 0;
   const quality = activeRun?.quality_report_json;
+  const chooseWorkflow = (nextWorkflow: keyof typeof WORKFLOWS) => {
+    setWorkflow(nextWorkflow);
+    setObjective(WORKFLOWS[nextWorkflow].objective);
+  };
 
   return <DashboardLayout role={role} title="AI Team">
     <div className="relative min-h-full pb-12">
       <div className="pointer-events-none absolute inset-x-0 -top-10 h-80 overflow-hidden rounded-[32px]" aria-hidden="true"><div className="absolute left-[8%] top-2 h-44 w-44 rounded-full bg-red-300/20 blur-3xl" /><div className="absolute right-[12%] top-8 h-52 w-52 rounded-full bg-blue-300/20 blur-3xl" /></div>
       <header className="relative mb-7 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-        <div className="max-w-3xl"><div className="mb-3 inline-flex items-center gap-2 rounded-full border border-brand/15 bg-brand/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-brand"><span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-50" /><span className="relative inline-flex h-2 w-2 rounded-full bg-brand" /></span>Agent mission control</div><h1 className="font-display text-3xl tracking-tight text-slate-950 sm:text-4xl">One accountable head. Eight exacting specialists.</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">Evidence-first project review with visible reasoning boundaries, quality gates, and a mandatory faculty decision before consequential use.</p></div>
+        <div className="max-w-3xl"><div className="mb-3 inline-flex items-center gap-2 rounded-full border border-brand/15 bg-brand/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-brand"><span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-50" /><span className="relative inline-flex h-2 w-2 rounded-full bg-brand" /></span>AI project review</div><h1 className="font-display text-3xl tracking-tight text-slate-950 sm:text-4xl">Choose a review. The team does the rest.</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">1. Select a project and review type. 2. Specialists run automatically in the background. 3. A mentor or admin confirms any official decision.</p></div>
         <div className="flex flex-wrap items-center gap-2">{activeRun && <StatusPill status={activeRun.status} />}{isLive && <button onClick={() => runAction('cancel')} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-red-200 hover:text-red-700"><Square className="h-3.5 w-3.5" /> Cancel</button>}{activeRun && ['failed', 'cancelled', 'revision_requested'].includes(activeRun.status) && <button onClick={() => runAction('retry')} disabled={serviceStatus?.available === false} title={serviceStatus?.available === false ? serviceStatus.reason || 'AI service unavailable' : undefined} className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-3.5 py-2 text-xs font-semibold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45"><RefreshCcw className="h-3.5 w-3.5" /> Retry run</button>}</div>
       </header>
 
@@ -177,6 +203,7 @@ export default function AgentTeamWorkspace({ role }: { role: Role }) {
           <section className="rounded-[26px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_60px_rgba(15,23,42,.08)] backdrop-blur-xl">
             <div className="mb-5 flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand">New mission</p><h2 className="mt-1 font-display text-xl text-slate-950">Deploy the team</h2></div><div className="rounded-2xl bg-slate-950 p-3 text-white"><Play className="h-5 w-5" /></div></div>
             <div className="space-y-4">
+              <fieldset><legend className="mb-1.5 block text-xs font-semibold text-slate-700">What do you need reviewed?</legend><div className="grid gap-2">{Object.entries(WORKFLOWS).map(([key, option]) => <button key={key} type="button" onClick={() => chooseWorkflow(key as keyof typeof WORKFLOWS)} className={`rounded-xl border p-3 text-left transition ${workflow === key ? 'border-brand bg-brand/5 ring-2 ring-brand/10' : 'border-slate-200 bg-slate-50 hover:border-slate-300'}`}><span className="block text-sm font-bold text-slate-900">{option.label}</span><span className="mt-0.5 block text-xs leading-5 text-slate-500">{option.description}</span></button>)}</div></fieldset>
               <label className="block"><span className="mb-1.5 block text-xs font-semibold text-slate-700">Project workspace</span><select value={groupId} onChange={event => setGroupId(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10"><option value="">Select a project</option>{groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}</select></label>
               <label className="block"><span className="mb-1.5 block text-xs font-semibold text-slate-700">Review objective</span><textarea rows={4} value={objective} onChange={event => setObjective(event.target.value)} className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-5 text-slate-800 outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10" /></label>
               <div className="grid grid-cols-2 gap-3"><label className="block"><span className="mb-1.5 block text-xs font-semibold text-slate-700">Project title</span><input value={projectTitle} onChange={event => setProjectTitle(event.target.value)} placeholder="Project name" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-brand" /></label><label className="block"><span className="mb-1.5 block text-xs font-semibold text-slate-700">Tech stack</span><input value={technologyStack} onChange={event => setTechnologyStack(event.target.value)} placeholder="React, Python" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-brand" /></label></div>

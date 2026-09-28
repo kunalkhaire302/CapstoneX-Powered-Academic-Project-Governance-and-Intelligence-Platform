@@ -10,6 +10,10 @@ const AI_INTERNAL_SECRET = process.env.AI_INTERNAL_SECRET;
 const EXECUTION_TIMEOUT_MS = Number(process.env.AGENT_TEAM_TIMEOUT_MS || 120000);
 let readinessCache = { checkedAt: 0, value: null };
 
+function isRetryableAgentError(error) {
+  return error.code === 'ECONNABORTED' || [429, 502, 503, 504].includes(error.response?.status);
+}
+
 async function getAIServiceReadiness({ refresh = false } = {}) {
   if (!AI_SERVICE_URL) {
     return { available: false, reason: 'AI service is not configured. Set AI_SERVICE_URL to a deployed service.' };
@@ -160,6 +164,15 @@ async function executeRun(runId) {
     logger.error(`AI agent run ${runId} failed: ${message}`);
     const currentRun = await AgentRun.findByPk(runId, { attributes: ['status', 'started_at'] });
     if (!currentRun || currentRun.status !== 'running' || new Date(currentRun.started_at).getTime() !== executionStartedAt) return;
+    if (isRetryableAgentError(error) && run.tasks.some(task => task.attempt + 1 < task.max_attempts)) {
+      await AgentTask.update(
+        { status: 'queued', error_message: `Automatic retry scheduled: ${message}`, started_at: null },
+        { where: { run_id: runId, status: 'working' } },
+      );
+      await run.update({ status: 'queued', error_message: `Temporary AI-service error; retrying once: ${message}`, completed_at: null });
+      setTimeout(() => dispatchRun(runId), 2000);
+      return;
+    }
     await AgentTask.update(
       { status: 'failed', error_message: message, completed_at: new Date() },
       { where: { run_id: runId, status: 'working' } },
@@ -191,4 +204,5 @@ module.exports = {
   resumePendingRuns,
   getAIServiceReadiness,
   assertAIServiceReady,
+  isRetryableAgentError,
 };
