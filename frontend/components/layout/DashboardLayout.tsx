@@ -102,7 +102,7 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
   if (!isAuthorized) return <AppLoader label="Verifying workspace access" />;
 
   return (
-    <div className="min-h-screen w-full overflow-hidden bg-cx-bg text-cx-text font-body selection:bg-brand-200 selection:text-brand-900 lg:grid lg:[grid-template-columns:auto_1fr]">
+    <div className="min-h-screen w-full overflow-hidden flex bg-cx-bg text-cx-text font-body selection:bg-brand-200 selection:text-brand-900">
       {isEntering && <AppLoader compact label={`Opening ${title}`} />}
 
       {/* Mobile overlay */}
@@ -124,7 +124,7 @@ export default function DashboardLayout({ children, role = 'student', title = 'D
       />
 
       {/* Main App Canvas */}
-      <div className="flex flex-col min-h-screen min-w-0 transition-all duration-300 z-10">
+      <div className="flex-1 flex flex-col min-h-screen transition-all duration-300 z-10 w-full max-w-[100vw] lg:pl-[280px]">
         <Topbar 
           title={title} 
           role={role}
