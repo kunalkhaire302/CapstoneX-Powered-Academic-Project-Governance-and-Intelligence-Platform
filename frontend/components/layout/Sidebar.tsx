@@ -232,7 +232,7 @@ export default function Sidebar({ role = 'student', userName = '', userRole = ''
           tabIndex={0}
           onClick={() => setUserMenuOpen(!userMenuOpen)}
         >
-          <div className="w-9 h-9 rounded-full bg-cx-brand/20 text-cx-brand-subtle flex items-center justify-center ring-1 ring-white/10 flex-shrink-0 group-hover:ring-white/20 transition-all">
+          <div className="w-9 h-9 rounded-full bg-brand-500/25 text-brand-100 flex items-center justify-center ring-1 ring-white/10 flex-shrink-0 group-hover:ring-white/20 transition-all">
             <span className="font-semibold text-sm">{userName?.charAt(0) || 'U'}</span>
           </div>
           

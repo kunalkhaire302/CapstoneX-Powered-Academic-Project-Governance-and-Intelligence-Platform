@@ -199,6 +199,22 @@ const checkDetailedHealth = async (req, res, next) => {
     });
     res.json(response.data);
   } catch (error) {
+    if (error.response?.status === 404) {
+      try {
+        const response = await axios.get(`${AI_SERVICE_URL}/api/ai/health`, {
+          headers: { 'x-internal-token': process.env.AI_INTERNAL_SECRET }
+        });
+        return res.json({
+          status: response.data.status || 'healthy',
+          service: response.data.service || 'capstonex-ai-service',
+          version: response.data.version || 'limited runtime',
+          models: { risk_model: 'not available in this runtime', embedding_model: 'not available in this runtime', vector_store_projects: 0 },
+          infrastructure: { database: 'not reported', cache: 'not reported' },
+        });
+      } catch (fallbackError) {
+        logger.error('AI Health Check fallback error:', fallbackError.message);
+      }
+    }
     logger.error('AI Health Check error:', error.message);
     if (error.code === 'ECONNREFUSED') return res.status(503).json({ error: 'AI service unavailable.' });
     res.status(500).json({ error: 'AI service health check failed' });

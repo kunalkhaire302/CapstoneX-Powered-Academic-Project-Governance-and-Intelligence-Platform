@@ -266,7 +266,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--cx-font-display);
   font-weight: 400;
   line-height: var(--cx-leading-tight);
-  color: var(--cx-text);
+  color: inherit;
 }
 
 code, pre, .mono {
