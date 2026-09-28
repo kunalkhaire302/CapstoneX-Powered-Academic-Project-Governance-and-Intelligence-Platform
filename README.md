@@ -4,7 +4,7 @@
 
 ### AI-Powered Academic Project Governance & Intelligence Platform
 
-**A production-grade, microservices platform that uses machine learning to run a university's capstone program end-to-end — AI project matching, automated risk detection, smart team formation, and role-based governance for every stakeholder.**
+**A development-stage academic project governance platform for Students, Mentors, and Administrators. Core workflows are implemented; production-readiness blockers are tracked in [`docs/PRODUCTION_READINESS_MATRIX.md`](docs/PRODUCTION_READINESS_MATRIX.md).**
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-capstonex.me-D2232A?style=for-the-badge&logo=googlechrome&logoColor=white)](https://www.capstonex.me)
 [![Source Code](https://img.shields.io/badge/Source-GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/kunalkhaire302/CapstoneX-Powered-Academic-Project-Governance-and-Intelligence-Platform)
@@ -27,7 +27,7 @@
 
 ## 👋 For Recruiters & Reviewers
 
-> **TL;DR** — CapstoneX is a full-stack, **four-service** platform (Next.js · Express · FastAPI · PostgreSQL) with **four real, trained ML models** running live — not notebook demos. It ships with role-based access control, CI/CD with scheduled model retraining, Prometheus/Grafana monitoring, and k6 load testing. Every claim below is verifiable directly in the codebase.
+> **TL;DR** — CapstoneX combines a Next.js client, Express governance API, PostgreSQL persistence, and FastAPI AI runtimes. The backend and focused governed AI Team runtime have deployment evidence; the complete ML workload, model quality, monitoring, migrations, recovery, and full lifecycle E2E coverage are not production-verified.
 
 | | |
 |---|---|
@@ -81,7 +81,7 @@ Running a university capstone program the traditional way breaks down at scale:
 | Mentors burn hours on repetitive feedback | An **AI feedback generator** drafts structured, context-aware comments automatically |
 | Manually formed teams are unbalanced | **K-Means clustering** groups students into skill-diverse, balanced teams |
 
-Access is governed by a **6-role RBAC system** (Admin, HOD, Coordinator, Mentor, Examiner, Student), so every stakeholder sees exactly what they need — and nothing they don't.
+Access is governed by three implemented roles: **Admin, Mentor, and Student**. Express middleware and controller ownership checks are the authoritative security boundary.
 
 **[⬆ back to top](#-capstonex)**
 
@@ -91,13 +91,13 @@ Access is governed by a **6-role RBAC system** (Admin, HOD, Coordinator, Mentor,
 
 What pushes this past a typical academic CRUD project:
 
-- 🧠 **Four real ML models in production** — trained scikit-learn models served through a live FastAPI microservice with its own auto-generated Swagger docs.
+- 🧠 **Governed AI workflows** — model-backed and deterministic fallback paths are separated, with evidence/confidence fields and human approval for consequential use.
 - 🏗️ **True microservices** — four independently deployable services (frontend, backend, AI service, database), each with its own runtime, port, and single responsibility.
-- 🔐 **Enterprise-style auth** — dual-layer JWT + Firebase Authentication with 6-tier RBAC enforced at the middleware level, not just hidden in the UI.
-- ⚙️ **CI/CD that does real work** — GitHub Actions lints, tests, and deploys on every merge, *and* retrains all four ML models automatically every week.
-- 📊 **Actual observability** — Prometheus scrapes live metrics into Grafana dashboards, plus Firebase Analytics on the frontend.
-- 🧪 **Load-tested, not just unit-tested** — k6 scripts simulate concurrent, university-scale traffic against the most critical endpoints.
-- ♿ **Accessibility checked in CI** — `eslint-plugin-jsx-a11y` and Lighthouse CI catch accessibility regressions before they ship.
+- 🔐 **Server-side auth** — local JWT plus optional Firebase verification with three-role RBAC and object-level checks on core workflows.
+- ⚙️ **CI/CD definitions** — GitHub Actions define lint, test, deployment and retraining jobs; hosted behavior still requires release evidence.
+- 📊 **Basic diagnostics** — request IDs, logs and health endpoints exist; production metrics, tracing, dashboards and alerts are not configured.
+- 🧪 **Test foundations** — unit and synthetic tests plus k6 scripts exist; representative authenticated load and full E2E evidence remain open.
+- ♿ **Accessibility foundations** — focus, modal, reduced-motion and touch-target primitives exist; WCAG conformance is not claimed.
 - 🐳 **One-command local setup** — `docker-compose up --build` boots all four services together.
 
 **[⬆ back to top](#-capstonex)**
@@ -108,10 +108,10 @@ What pushes this past a typical academic CRUD project:
 
 | | |
 |---|---|
-| 🏗️ **Architecture** | Microservices — 4 independently deployable services |
-| 🧠 **ML Models** | 4 in production — recommender, risk predictor, feedback generator, team former |
-| 🗄️ **Database** | PostgreSQL 15 · 13 tables · UUID keys · JSONB metadata |
-| 🔐 **Access Control** | 6-tier RBAC enforced at the middleware layer |
+| 🏗️ **Architecture** | Next.js client, Express gateway, PostgreSQL, and focused/full FastAPI entry points |
+| 🧠 **AI/ML** | Implemented workloads; production quality and full-runtime deployment remain unverified |
+| 🗄️ **Database** | PostgreSQL 15 · UUID keys · JSONB metadata · baseline migration still required |
+| 🔐 **Access Control** | Student, Mentor, and Admin RBAC |
 | 🧪 **Test Coverage** | Jest (backend) · pytest (AI service) · k6 (load testing) |
 | ⚙️ **CI/CD** | 3 automated GitHub Actions pipelines, including weekly model retraining |
 | 💻 **Languages** | TypeScript 51% · JavaScript 25% · Python 21% · CSS 2% |
@@ -139,12 +139,12 @@ What pushes this past a typical academic CRUD project:
 
 ## 🏗 System Architecture
 
-CapstoneX runs as **four independent services** that talk to each other over HTTP/REST, orchestrated locally with Docker Compose and deployed through GitHub Actions.
+CapstoneX has three application services (Next.js, Express and FastAPI) backed by PostgreSQL. A focused FastAPI entry point serves the governed AI Team separately from the larger unverified ML runtime.
 
 ```mermaid
 graph TB
     subgraph Client["Client"]
-        FE["Next.js 14 App Router<br/>TypeScript, Tailwind, Zustand<br/>Port 3000"]
+        FE["Next.js 16 App Router<br/>TypeScript, Tailwind<br/>Port 3000"]
     end
 
     subgraph Backend["Backend API"]
@@ -171,16 +171,12 @@ graph TB
     subgraph Infra["Infrastructure"]
         DOCKER["Docker Compose"]
         ACTIONS["GitHub Actions"]
-        PROM["Prometheus :9090"]
-        GRAF["Grafana :3001"]
     end
 
     FE -->|REST / JSON| BE
     BE -->|Model requests| FAST
     BE -->|Sequelize ORM| DB
     ADMIN -.->|Admin access| DB
-    BE -->|/metrics| PROM
-    PROM --> GRAF
     ACTIONS -.->|Deploys| FE
     ACTIONS -.->|Deploys| BE
     ACTIONS -.->|Weekly retrain| FAST
@@ -192,11 +188,11 @@ graph TB
 
 **How it fits together:**
 
-1. The **frontend** (Next.js 14, App Router) owns all UI, client state (Zustand), and server-side rendering.
+1. The **frontend** (Next.js 16 App Router) owns the browser UI and calls Express for governed business operations.
 2. The **backend** (Express.js) is the central hub — authentication, RBAC enforcement, business logic, and proxying AI requests.
-3. The **AI service** (FastAPI) is fully decoupled — it only knows about ML, exposes its own REST endpoints, and has its own interactive docs at `/docs`.
+3. The **AI service** (FastAPI) exposes focused and full-runtime entry points; only the focused AI Team runtime has recorded deployment evidence.
 4. **PostgreSQL** is the single source of truth, with UUID primary keys and JSONB columns for flexible metadata.
-5. **Prometheus + Grafana** watch the backend in real time; **GitHub Actions** builds, tests, deploys, and retrains models on a schedule.
+5. **GitHub Actions** defines CI, deployment and retraining workflows. Metrics dashboards and alerting remain open work.
 
 **[⬆ back to top](#-capstonex)**
 
@@ -282,7 +278,7 @@ balanced_teams = apply_diversity_balance(labels, all_students)
 
 ### 🔁 Weekly Automated Retraining
 
-A scheduled `retrain.yml` GitHub Actions workflow retrains all four models **every Sunday at 02:00 UTC** against the latest project data, validates accuracy, and only promotes the new model if it performs at least as well as the one already in production.
+A scheduled `retrain.yml` workflow exists, but dataset versioning, metric enforcement, approval, artifact integrity and rollback are not yet sufficient for automatic production promotion.
 
 **[⬆ back to top](#-capstonex)**
 
@@ -290,11 +286,11 @@ A scheduled `retrain.yml` GitHub Actions workflow retrains all four models **eve
 
 ## 🛠 Tech Stack
 
-### Frontend — Next.js 14 + TypeScript
+### Frontend — Next.js 16 + TypeScript
 
 | Technology | Purpose |
 |---|---|
-| **Next.js 14** (App Router) | Full-stack React framework — SSR, SSG, and API routes |
+| **Next.js 16** (App Router) | React application framework |
 | **TypeScript** | Type safety across the majority of the codebase |
 | **Tailwind CSS** | Utility-first, responsive styling |
 | **Zustand** | Lightweight global state management |
@@ -309,7 +305,7 @@ A scheduled `retrain.yml` GitHub Actions workflow retrains all four models **eve
 | **Express.js** | REST API server and business logic layer |
 | **JWT + Firebase Auth** | Dual-layer authentication — stateless tokens plus Firebase identity |
 | **Sequelize ORM** | Type-safe database access with migrations and seeders |
-| **RBAC middleware** | 6-role access control enforced on every route |
+| **RBAC middleware** | Student, Mentor, and Admin access controls |
 | **Rate limiting** | Protects endpoints from abuse and brute-force attempts |
 | **Audit logging** | Records every sensitive action for compliance |
 
@@ -329,7 +325,7 @@ A scheduled `retrain.yml` GitHub Actions workflow retrains all four models **eve
 | **PostgreSQL 15** | Primary relational data store |
 | **Docker Compose** | One-command orchestration of all four services |
 | **GitHub Actions** | CI/CD — lint, test, deploy, and weekly model retraining |
-| **Prometheus + Grafana** | Real-time API metrics and dashboards |
+| **Operational diagnostics** | Request IDs, logs, health/readiness, and audit records; metrics/alerts remain open |
 | **k6** | Load testing under simulated concurrent traffic |
 | **Firebase Analytics** | Frontend event tracking |
 
@@ -368,15 +364,15 @@ erDiagram
 
 ## 👥 User Roles & Access Control
 
-CapstoneX enforces **6-role RBAC** at the API middleware layer — every request is checked against the caller's role before it reaches business logic.
+CapstoneX implements **three-role RBAC** at the API layer: Student, Mentor, and Admin.
 
-| Role | Demo Email | Password | Key Permissions |
-|---|---|---|---|
-| 👑 **Admin** | admin@capstonex.com |  | Full system access, user management, configuration |
-| 🧑‍🏫 **Mentor** | mentor1@capstonex.com | `CapstoneX@2024` | Review logbooks, write feedback, track progress |
-| 🎓 **Student** | student1@capstonex.com | `CapstoneX@2024` | Submit logbooks, view projects, collaborate |
+| Role | Key permissions |
+|---|---|
+| 👑 **Admin** | User administration, allocation, audit, analytics, broadcasts, governed AI review |
+| 🧑‍🏫 **Mentor** | Assigned-group supervision, topic/logbook review, evaluations, governed AI review |
+| 🎓 **Student** | Group participation, topic/logbook submission, recommendations and permitted AI workflows |
 
-> Head to **[capstonex.me](https://www.capstonex.me)** and log in with any account above to explore the live platform from that role's perspective.
+Development seed identities are not production credentials and are intentionally omitted here.
 
 **[⬆ back to top](#-capstonex)**
 
@@ -387,7 +383,7 @@ CapstoneX enforces **6-role RBAC** at the API middleware layer — every request
 ```
 CapstoneX/
 │
-├── frontend/                   # Next.js 14 application
+├── frontend/                   # Next.js 16 application
 │   ├── app/                    # App Router pages & layouts
 │   ├── components/             # Reusable UI components
 │   ├── lib/                    # Utilities, API clients, firebase.ts
@@ -593,17 +589,7 @@ k6 run k6-load-test.js
 
 ## 📊 Monitoring & Observability
 
-- **Prometheus + Grafana** — `express-prometheus-bundle` exposes HTTP request rate, latency, and error rate per route; Grafana visualizes it in real time.
-
-  ```bash
-  docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up
-  # Prometheus → http://localhost:9090
-  # Grafana    → http://localhost:3001
-  ```
-
-- **Firebase Analytics** — tracks frontend product events, e.g. `logEvent(analytics, 'logbook_submitted', { project_id, student_id })`.
-- **Accessibility (WCAG 2.1 AA)** — `eslint-plugin-jsx-a11y` runs in CI, and Lighthouse CI scores every pull request automatically.
-- **Load testing (k6)** — `k6-load-test.js` simulates concurrent users hitting the most critical endpoints to verify the system holds up under university-scale traffic.
+The implementation currently provides request IDs, application/access logs, health/readiness endpoints, audit records, and persistent AI Team state. Prometheus/Grafana, tracing, alerts, SLOs, and verified load capacity are not configured. See [`docs/OBSERVABILITY.md`](docs/OBSERVABILITY.md).
 
 **[⬆ back to top](#-capstonex)**
 
@@ -611,14 +597,11 @@ k6 run k6-load-test.js
 
 ## 🗺 Roadmap
 
-- [x] Core RBAC with 6 roles
-- [x] TF-IDF project recommendation engine
-- [x] Gradient Boosting risk prediction
-- [x] K-Means team formation
-- [x] AI feedback generation with flan-t5
+- [x] Core RBAC with Student, Mentor, and Admin roles
+- [ ] Independently validate recommendation, risk, team-formation, feedback and similarity quality
 - [x] Docker Compose full-stack setup
 - [x] GitHub Actions CI/CD + weekly ML retraining
-- [x] Prometheus + Grafana monitoring scaffold
+- [ ] Production metrics, tracing, dashboards and alerting
 - [ ] Real-time notifications (WebSockets)
 - [ ] Internationalization — Hindi, Marathi via `next-intl`
 - [ ] Mobile app (React Native)

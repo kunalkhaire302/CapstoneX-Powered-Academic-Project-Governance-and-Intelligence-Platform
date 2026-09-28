@@ -21,6 +21,14 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const recoveryLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many password recovery attempts. Please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 /**
  * General API rate limiter.
  * 500 requests per 15 minutes per IP.
@@ -33,4 +41,4 @@ const generalLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-module.exports = { authLimiter, loginLimiter, generalLimiter };
+module.exports = { authLimiter, loginLimiter, recoveryLimiter, generalLimiter };

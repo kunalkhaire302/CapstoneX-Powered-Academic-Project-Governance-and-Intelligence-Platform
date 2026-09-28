@@ -1,13 +1,15 @@
 const { Sequelize } = require('sequelize');
 
 const isTest = process.env.NODE_ENV === 'test';
+const isProduction = process.env.NODE_ENV === 'production';
 const isCloud = process.env.DB_HOST && !process.env.DB_HOST.includes('localhost');
+const sqlLogging = isTest || isProduction ? false : (msg) => console.log(`[SQL] ${msg}`);
 
 // Support DATABASE_URL (Neon, Render, Railway, etc.) or individual vars
 const sequelize = process.env.DATABASE_URL
   ? new Sequelize(process.env.DATABASE_URL, {
       dialect: 'postgres',
-      logging: isTest ? false : (msg) => console.log(`[SQL] ${msg}`),
+      logging: sqlLogging,
       dialectOptions: {
         ssl: { require: true, rejectUnauthorized: false },
       },
@@ -22,7 +24,7 @@ const sequelize = process.env.DATABASE_URL
         host: process.env.DB_HOST || 'localhost',
         port: parseInt(process.env.DB_PORT || '5432', 10),
         dialect: 'postgres',
-        logging: isTest ? false : (msg) => console.log(`[SQL] ${msg}`),
+        logging: sqlLogging,
         dialectOptions: isCloud ? { ssl: { require: true, rejectUnauthorized: false } } : {},
         pool: { max: 20, min: 5, acquire: 30000, idle: 10000 },
         define: { timestamps: true, underscored: true, freezeTableName: true },

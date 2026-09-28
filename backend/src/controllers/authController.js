@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const { User, Institution, PasswordResetToken } = require('../models');
+const { sequelize, User, Institution, PasswordResetToken } = require('../models');
+const { Op } = require('sequelize');
 const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwt');
 const { getFirebaseAuth } = require('../config/firebase');
 const { sendEmail, emailTemplates } = require('../utils/email');
@@ -235,11 +236,17 @@ const forgotPassword = async (req, res, next) => {
     const resetToken = crypto.randomBytes(32).toString('hex');
     const tokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
 
-    // Save token in the database (expires in 15 minutes)
-    await PasswordResetToken.create({
-      user_id: user.id,
-      token_hash: tokenHash,
-      expires_at: new Date(Date.now() + 15 * 60 * 1000),
+    // Keep only one usable recovery token per user.
+    await sequelize.transaction(async transaction => {
+      await PasswordResetToken.update(
+        { used: true },
+        { where: { user_id: user.id, used: false }, transaction },
+      );
+      await PasswordResetToken.create({
+        user_id: user.id,
+        token_hash: tokenHash,
+        expires_at: new Date(Date.now() + 15 * 60 * 1000),
+      }, { transaction });
     });
 
     const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
@@ -276,27 +283,33 @@ const resetPassword = async (req, res, next) => {
 
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-    const resetRecord = await PasswordResetToken.findOne({
-      where: {
-        token_hash: tokenHash,
-        used: false,
+    let user;
+    await sequelize.transaction(async transaction => {
+      const resetRecord = await PasswordResetToken.findOne({
+        where: { token_hash: tokenHash, used: false, expires_at: { [Op.gt]: new Date() } },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (!resetRecord) {
+        const invalidToken = new Error('Invalid or expired reset token.');
+        invalidToken.statusCode = 400;
+        throw invalidToken;
       }
+
+      user = await User.findByPk(resetRecord.user_id, { transaction, lock: transaction.LOCK.UPDATE });
+      if (!user) {
+        const invalidToken = new Error('Invalid or expired reset token.');
+        invalidToken.statusCode = 400;
+        throw invalidToken;
+      }
+
+      const passwordHash = await bcrypt.hash(newPassword, 12);
+      await user.update({ password_hash: passwordHash }, { transaction });
+      await PasswordResetToken.update(
+        { used: true },
+        { where: { user_id: user.id, used: false }, transaction },
+      );
     });
-
-    if (!resetRecord || resetRecord.expires_at < new Date()) {
-      return res.status(400).json({ error: 'Invalid or expired reset token.' });
-    }
-
-    const user = await User.findByPk(resetRecord.user_id);
-    if (!user) {
-      return res.status(400).json({ error: 'Invalid or expired reset token.' });
-    }
-
-    const passwordHash = await bcrypt.hash(newPassword, 12);
-    await user.update({ password_hash: passwordHash });
-
-    // Invalidate the token
-    await resetRecord.update({ used: true });
 
     // Audit log
     await createAuditLog({

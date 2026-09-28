@@ -2,11 +2,11 @@
 
 > Living documentation for AI-assisted development. This file describes the repository as implemented; it is not a product brochure.
 
-**Last Updated:** `2026-09-28T00:00:00+05:30`
+**Last Updated:** `2026-09-28T18:51:00+05:30`
 
-**Last Verified Against Codebase:** `2026-09-24T20:10:00+05:30`
+**Last Verified Against Codebase:** `2026-09-28T18:51:00+05:30`
 
-**Context Version:** `1.3.0`
+**Context Version:** `1.4.0`
 
 ---
 
@@ -46,7 +46,7 @@ The platform centralizes capstone governance that is otherwise spread across doc
 
 ## Current Status
 
-**Deployed development-stage beta; not yet production-ready.** The Vercel frontend, Render backend, and a focused Render AI Team runtime are live. Core request-contract defects, login throttling, password recovery UI, student notifications, and AI availability handling have been repaired. Incomplete baseline migrations, unverified recovery/rotation controls, limited integration coverage, an experimental worker, and the absence of independently reviewed AI-quality data still prevent a production classification. The README's “production-grade” and “six-role RBAC” claims remain unsupported.
+**Deployed development-stage beta; not yet production-ready.** The Vercel frontend, Render backend, and a focused Render AI Team runtime are live. Core request-contract defects, login throttling, password recovery UI, student notifications, and AI availability handling have been repaired. A sidebar collapse layout fix (CSS Grid - grid-template-columns: auto 1fr) exists locally but was reverted from GitHub at user request and is pending re-push. Incomplete baseline migrations, unverified recovery/rotation controls, limited integration coverage, an experimental worker, and the absence of independently reviewed AI-quality data still prevent a production classification. The README's “production-grade” and “six-role RBAC” claims remain unsupported.
 
 ---
 
@@ -168,7 +168,7 @@ Status: **REQUIRES OPERATOR ACTION**.
 - **P1.1:** Extend the verified focused AI Team runtime to the full recommendation/risk/plagiarism workload only after right-sizing its dependency and compute requirements. The focused runtime and backend secret pairing are live and smoke-tested.
 - **P1.2:** Replace in-process `setImmediate` agent execution with a durable queue/worker, leasing, idempotency, cancellation, and recovery.
 - **P1.3:** Verify hosted password-reset delivery and token reuse behavior; the frontend flow exists, while SMTP absence currently degrades to logging behind a generic response.
-- **P1.4:** Fix `/auth/admin/register`; the route permits Admin/Mentor but the shared controller always creates Student.
+- **P1.4:** Privileged `/auth/admin/register` now preserves the requested Mentor/Admin role and does not replace the administrator session; targeted integration coverage remains desirable.
 - **P1.5:** Enforce accepted group membership and lifecycle transitions consistently for logbooks, group join/invite, and updates.
 - **P1.6:** Remove production mock/fallback behavior for Cloudinary URLs and dashboard data, or label demo data unambiguously.
 - **P1.7:** Add browser/API integration tests for login, group, topic, logbook, AI Team approval, and tenant isolation.
@@ -885,6 +885,44 @@ AI agents MUST:
 
 # 27. Change Log
 
+### 2026-09-28 — Sidebar collapse layout fix (CSS Grid)
+
+**Changed**
+- Diagnosed sidebar minimize bug: main content area retained the full `lg:pl-[280px]` padding even when sidebar collapsed to `80px`, leaving a visual gap.
+- Applied CSS Grid layout (`lg:grid lg:[grid-template-columns:auto_1fr]`) on the outer shell in `DashboardLayout.tsx` so the content column auto-fills remaining space without any JS padding calculation.
+- `Sidebar.tsx` retains its own `isCollapsed` state internally — no prop drilling (`isCollapsed`/`onCollapse`) required.
+- Committed as `d811f68`; subsequently reverted from GitHub (`c1c5188`) at user request. Local working-tree change remains present but uncommitted.
+
+**Verification**
+- Visual inspection confirmed the content area no longer reserves sidebar space after collapse.
+- No TypeScript errors; no lint regressions introduced.
+
+**Files**
+- `frontend/components/layout/DashboardLayout.tsx`
+- `frontend/components/layout/Sidebar.tsx`
+
+**Status:** Local fix ready; push to GitHub pending user decision.
+
+### 2026-09-28 — Production release-gate audit and security hardening
+
+**Changed**
+- Added the evidence-based production readiness matrix and required security, database, AI/ML, governance, deployment, observability, recovery, testing, performance, UI/UX and accessibility audits.
+- Added dedicated password-recovery throttling, transactionally locked one-time reset consumption, and invalidation of older recovery links.
+- Disabled SQL query logging in production and made production startup reject `DB_SYNC=true`.
+- Reconciled README claims with the implemented three-role beta and removed published demo credentials and unsupported production/monitoring/model claims.
+
+**Verification**
+- Backend lint completed with warnings and no errors.
+- All 9 backend Jest suites passed without coverage instrumentation (24 tests), including recovery transaction and limiter regressions.
+- The configured backend coverage gate still fails; frontend lint and TypeScript passed, while the local production build was blocked by Windows `EPERM` on `.next/trace`.
+- AI pytest collected 9 tests but did not return a conclusive full-run summary; authenticated browser E2E remains unverified.
+- Full verification results and environment limitations are recorded in the audit documents.
+
+**Remaining blockers**
+- Complete baseline/upgrade migrations, institution-wide isolation, refresh-token family revocation, secret rotation, authenticated E2E/security/load/accessibility tests, independently reviewed AI metrics, production observability and an executed restore exercise.
+
+**Release decision:** NOT PRODUCTION READY.
+
 ### 2026-09-28 — UI functionality repair pass
 
 **Changed**
@@ -1019,7 +1057,7 @@ AI agents MUST:
 - `.env.example`, `docker-compose.yml`.
 - `.github/workflows/ci.yml`, `deploy.yml`, `retrain.yml`, Dependabot configuration.
 - `load-tests/k6/`.
-- Recent Git history through commit `6724fe1`.
+- Recent Git history through commit `c1c5188` (2026-09-28 revert of sidebar CSS Grid fix).
 - Render service/deploy/log inspection and authenticated focused-runtime smoke result on 2026-09-24.
 - Local verification command outputs recorded in sections 18–19.
 

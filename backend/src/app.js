@@ -146,6 +146,9 @@ const startServer = async () => {
     await sequelize.authenticate();
     logger.info('✅ PostgreSQL connected successfully');
     // Explicit opt-in only. Production and normal development use migrations.
+    if (process.env.NODE_ENV === 'production' && process.env.DB_SYNC === 'true') {
+      throw new Error('DB_SYNC must never be enabled in production. Run reviewed migrations instead.');
+    }
     if (process.env.DB_SYNC === 'true') {
       await sequelize.sync();
       logger.warn('⚠️  DB_SYNC is enabled; use migrations for persistent environments');
