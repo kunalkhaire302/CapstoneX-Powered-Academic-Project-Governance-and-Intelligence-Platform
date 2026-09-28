@@ -907,7 +907,7 @@ AI agents MUST:
 
 **Changed**
 - Added `AI_MODEL_SERVICE_URL` so model/recommendation traffic can use the full AI runtime while governed AI Team work remains on the focused runtime.
-- Added a deterministic hashing embedding backend and separate index filenames for memory-constrained deployments; existing Sentence Transformer indexes are preserved.
+- Made deterministic hashing embeddings the memory-safe default and added separate index filenames; existing Sentence Transformer indexes are preserved and remain available through `EMBEDDING_PROVIDER=sentence-transformer` on sized infrastructure.
 - Detailed health now reports the real heuristic risk and configured embedding backends.
 
 **Verification**

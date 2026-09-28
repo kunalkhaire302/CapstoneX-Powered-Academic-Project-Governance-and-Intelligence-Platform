@@ -22,7 +22,7 @@ _embedding_dim = 384  # Default for all-MiniLM-L6-v2
 
 def get_embedding_backend() -> str:
     """Return the configured embedding backend."""
-    return os.getenv("EMBEDDING_PROVIDER", "sentence-transformer").strip().lower()
+    return os.getenv("EMBEDDING_PROVIDER", "hashing").strip().lower()
 
 
 def _load_model():
