@@ -6,7 +6,7 @@ import { useCurrentUser } from '@/lib/hooks';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import Link from 'next/link';
-import { Users, FileText, CheckCircle, Activity, Download, FileSpreadsheet, ShieldAlert, Bot, Bell } from 'lucide-react';
+import { Users, FileText, CheckCircle, Activity, FileSpreadsheet, ShieldAlert, Bot, Bell } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 function getGreeting() {
@@ -29,14 +29,14 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState<string | null>(null);
 
-  const handleDownload = async (type: 'pdf' | 'excel') => {
+  const handleDownload = async (type: 'excel') => {
     setDownloading(type);
     try {
       const res = await api.get(`/export/groups/${type}`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `groups_report.${type === 'excel' ? 'xlsx' : 'pdf'}`);
+      link.setAttribute('download', 'groups_report.xlsx');
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
@@ -52,18 +52,6 @@ export default function AdminDashboardPage() {
       try {
         const res = await api.get('/analytics/system');
         setAnalytics(res.data);
-      } catch {
-        setAnalytics({
-          overview: { totalUsers: 17, totalGroups: 3, totalTopics: 2, totalLogbooks: 0, totalEvaluations: 0 },
-          usersByRole: [
-            { role: 'student', count: '10' }, { role: 'mentor', count: '2' },
-            { role: 'admin', count: '1' },
-          ],
-          groupsByStatus: [
-            { status: 'not_started', count: '1' }, { status: 'in_progress', count: '2' },
-          ],
-          recentActivity: { submissionsLast7Days: 0, evaluationsThisMonth: 0 },
-        });
       } finally {
         setLoading(false);
       }
@@ -100,10 +88,6 @@ export default function AdminDashboardPage() {
           <p className="text-sm text-white/50 mt-1">Here&apos;s what&apos;s happening on CapstoneX today.</p>
         </div>
         <div className="relative z-10 flex items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/10 rounded-full text-xs font-semibold text-white">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            System Online
-          </span>
           <Link href="/admin/analytics"
             className="px-4 py-2 text-sm font-semibold bg-brand hover:bg-brand-hover text-white rounded-xl transition-colors shadow-brand">
             View Analytics →
@@ -170,16 +154,6 @@ export default function AdminDashboardPage() {
         <Card>
           <h3 className="text-lg font-display font-semibold text-cx-text mb-5">System Reports</h3>
           <div className="flex flex-col gap-3">
-            <button onClick={() => handleDownload('pdf')} disabled={downloading === 'pdf'}
-              className="w-full flex items-center gap-4 p-4 border border-cx-border rounded-xl hover:border-red-200 hover:bg-red-50/50 transition-all text-left group disabled:opacity-50">
-              <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
-                <Download className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-cx-text group-hover:text-red-600 transition-colors">PDF Report</p>
-                <p className="text-xs text-cx-text-muted mt-0.5">Formal document format</p>
-              </div>
-            </button>
             <button onClick={() => handleDownload('excel')} disabled={downloading === 'excel'}
               className="w-full flex items-center gap-4 p-4 border border-cx-border rounded-xl hover:border-emerald-200 hover:bg-emerald-50/50 transition-all text-left group disabled:opacity-50">
               <div className="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">

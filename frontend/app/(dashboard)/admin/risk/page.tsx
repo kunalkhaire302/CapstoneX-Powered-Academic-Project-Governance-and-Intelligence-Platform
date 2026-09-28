@@ -14,10 +14,10 @@ interface GroupRisk {
   department: string;
   risk: 'low' | 'medium' | 'high'; 
   score: number;
-  submissionRate: number; 
-  avgDaysLate: number; 
-  feedbackScore: number; 
-  logins7d: number;
+  submissionRate?: number;
+  avgDaysLate?: number;
+  feedbackScore?: number;
+  logins7d?: number;
 }
 
 export default function AdminRiskPage() {
@@ -34,8 +34,7 @@ export default function AdminRiskPage() {
         const res = await api.get('/ai/risk-scores');
         const dbScores = res.data.data || [];
         
-        // If the AI service actually generated scores, map them. 
-        // Because risk-scores might only have group_ids, we also fetch the groups to merge names.
+        // Stored scores are the only source of truth for risk. Group data supplies labels only.
         const groupsRes = await api.get('/groups');
         const rawGroups = groupsRes.data.data || [];
 
@@ -44,42 +43,22 @@ export default function AdminRiskPage() {
              const group = rawGroups.find((g: any) => g.id === rs.group_id);
              return {
                id: rs.group_id,
-               name: group ? group.name : `Group ${rs.group_id}`,
+               name: group ? group.name : 'Group record unavailable',
                status: group ? group.status : 'unknown',
-               department: group ? group.department : 'CS',
+               department: group?.department || '',
                risk: rs.label || 'medium',
-               score: rs.score || 0.5,
-               submissionRate: rs.features_json?.submissionRate || 0.8,
-               avgDaysLate: rs.features_json?.avgDaysLate || 2,
-               feedbackScore: rs.features_json?.feedbackScore || 7,
-               logins7d: rs.features_json?.logins7d || 10
+               score: Number(rs.score),
+               submissionRate: rs.features_json?.submissionRate,
+               avgDaysLate: rs.features_json?.avgDaysLate,
+               feedbackScore: rs.features_json?.feedbackScore,
+               logins7d: rs.features_json?.logins7d
              };
            });
            setGroups(riskGroups);
            return;
         }
 
-        // Fallback Heuristics: If the python service is offline or hasn't run, calculate locally
-        const riskGroups: GroupRisk[] = rawGroups.map((g: any) => {
-          // Use real member count as a pseudo-heuristic
-          const activeMembers = g.members?.length || 0;
-          const score = activeMembers < 2 ? 0.3 : activeMembers >= 4 ? 0.85 : 0.6;
-          const risk = score >= 0.7 ? 'low' : score >= 0.45 ? 'medium' : 'high';
-          
-          return {
-            id: g.id, 
-            name: g.name, 
-            status: g.status, 
-            department: g.department || 'CS',
-            risk, 
-            score,
-            submissionRate: Math.round((score + 0.1) * 100) / 100,
-            avgDaysLate: Math.round((1 - score) * 15),
-            feedbackScore: Math.round(score * 10 * 10) / 10,
-            logins7d: Math.round(score * 25),
-          };
-        });
-        setGroups(riskGroups.length > 0 ? riskGroups : []);
+        setGroups([]);
       } catch (error) {
         console.error("Failed to fetch risk data", error);
         setGroups([]);
@@ -144,7 +123,7 @@ export default function AdminRiskPage() {
               {loading ? (
                 <tr><td colSpan={7} className="py-8 text-center text-slate">Analyzing risk factors...</td></tr>
               ) : groups.length === 0 ? (
-                <tr><td colSpan={7} className="py-8 text-center text-slate">No active groups to analyze.</td></tr>
+                <tr><td colSpan={7} className="py-8 text-center text-slate">No stored AI risk scores are available. CapstoneX does not infer scores from unrelated group data.</td></tr>
               ) : (
                 sorted.map(g => (
                   <tr key={g.id} className={`border-b border-border last:border-0 hover:bg-surface transition-colors ${g.risk === 'high' ? 'bg-red-50/50' : ''}`}>
@@ -159,10 +138,10 @@ export default function AdminRiskPage() {
                         <span className="text-xs text-slate">{Math.round(g.score * 100)}%</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-slate">{Math.round(g.submissionRate * 100)}%</td>
-                    <td className="py-3 px-4"><span className={g.avgDaysLate > 5 ? 'text-red-600 font-medium' : 'text-slate'}>{g.avgDaysLate}</span></td>
-                    <td className="py-3 px-4 text-slate">{g.feedbackScore}/10</td>
-                    <td className="py-3 px-4"><span className={g.logins7d < 5 ? 'text-red-600 font-medium' : 'text-slate'}>{g.logins7d}</span></td>
+                    <td className="py-3 px-4 text-slate">{g.submissionRate == null ? '—' : `${Math.round(g.submissionRate * 100)}%`}</td>
+                    <td className="py-3 px-4"><span className={g.avgDaysLate != null && g.avgDaysLate > 5 ? 'text-red-600 font-medium' : 'text-slate'}>{g.avgDaysLate ?? '—'}</span></td>
+                    <td className="py-3 px-4 text-slate">{g.feedbackScore == null ? '—' : `${g.feedbackScore}/10`}</td>
+                    <td className="py-3 px-4"><span className={g.logins7d != null && g.logins7d < 5 ? 'text-red-600 font-medium' : 'text-slate'}>{g.logins7d ?? '—'}</span></td>
                   </tr>
                 ))
               )}

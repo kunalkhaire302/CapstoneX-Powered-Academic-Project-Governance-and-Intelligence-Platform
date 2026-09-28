@@ -1,34 +1,27 @@
 'use client';
 
+import { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import { Alert } from '@/components/ui/Feedback';
+import { useCurrentUser } from '@/lib/hooks';
+import api from '@/lib/api';
 
-export default function CoordinatorReportsPage() {
-  const reports = [
-    { title: 'Department Progress Report', description: 'Overall group progress, submission rates, and completion metrics', type: 'PDF' },
-    { title: 'Student Marks Summary', description: 'Aggregated evaluation scores across all groups', type: 'Excel' },
-    { title: 'Risk Analysis Report', description: 'AI-generated risk assessments with feature importance', type: 'PDF' },
-    { title: 'Mentor Activity Report', description: 'Mentor feedback frequency, review times, and coverage', type: 'Excel' },
-  ];
-
-  return (
-    <DashboardLayout role="mentor" title="Reports" userName="Dr. Priya Nair">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {reports.map((r, i) => (
-          <Card key={i} className="hover:shadow-elevated transition-shadow cursor-pointer">
-            <div className="flex items-start gap-4">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold ${r.type === 'PDF' ? 'bg-red-500' : 'bg-green-600'}`}>
-                {r.type}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-thunder">{r.title}</h3>
-                <p className="text-xs text-slate mt-1">{r.description}</p>
-                <button className="text-xs text-brand hover:text-brand-hover font-medium mt-2">Download →</button>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-    </DashboardLayout>
-  );
+export default function MentorReportsPage() {
+  const user = useCurrentUser();
+  const [downloading, setDownloading] = useState(false);
+  const [error, setError] = useState('');
+  const downloadExcel = async () => {
+    setDownloading(true); setError('');
+    try {
+      const response = await api.get('/export/groups/excel', { responseType: 'blob' });
+      const url = URL.createObjectURL(new Blob([response.data], { type: String(response.headers['content-type'] || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') }));
+      const link = document.createElement('a'); link.href = url; link.download = 'capstonex_groups.xlsx'; link.click(); URL.revokeObjectURL(url);
+    } catch (requestError: any) { setError(requestError.response?.data?.error || 'The group export could not be downloaded.'); }
+    finally { setDownloading(false); }
+  };
+  return <DashboardLayout role="mentor" title="Reports" userName={user?.name || 'Mentor'}>
+    <div className="space-y-5">{error && <Alert title="Export unavailable" tone="danger">{error}</Alert>}<Card><h2 className="font-display text-xl text-thunder">Group export</h2><p className="mt-2 text-sm text-slate">Download the current groups, members, topics and allocation data as an Excel workbook.</p><Button className="mt-5" onClick={downloadExcel} loading={downloading}>Download Excel export</Button></Card><Card><h2 className="font-display text-xl text-thunder">PDF reports</h2><p className="mt-2 text-sm text-slate">PDF delivery is unavailable: the current API returns a document definition rather than a downloadable PDF.</p><Button className="mt-5" variant="secondary" disabled title="No downloadable PDF API is available">PDF export unavailable</Button></Card></div>
+  </DashboardLayout>;
 }

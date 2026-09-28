@@ -3,10 +3,10 @@
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Card from '@/components/ui/Card';
 import { StatusBadge } from '@/components/ui/Badge';
-import Button from '@/components/ui/Button';
 import { useCurrentUser } from '@/lib/hooks';
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
+import Link from 'next/link';
 
 export default function MentorGroupsPage() {
   const user = useCurrentUser();
@@ -65,7 +65,7 @@ export default function MentorGroupsPage() {
                   ))}
                 </div>
                 <div className="mt-4 flex gap-2">
-                  <Button variant="secondary" className="w-full">View Logbooks</Button>
+                  <Link href={`/mentor/logbook-review?group_id=${group.id}`} className="btn-secondary inline-flex min-h-[40px] w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold">View Logbooks</Link>
                 </div>
               </div>
             </Card>

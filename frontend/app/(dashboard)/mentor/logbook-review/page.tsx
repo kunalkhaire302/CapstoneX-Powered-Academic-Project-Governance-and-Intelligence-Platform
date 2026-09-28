@@ -1,64 +1,24 @@
 'use client';
 
+import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
-import PageHeader from '@/components/ui/PageHeader';
-import EmptyState from '@/components/ui/EmptyState';
-import { BookOpen, Check, Eye } from 'lucide-react';
+import Modal from '@/components/ui/Modal';
+import { EmptyState, ErrorState, LoadingState } from '@/components/ui/Feedback';
+import { BookOpen, Eye } from 'lucide-react';
 import { useCurrentUser } from '@/lib/hooks';
+import api from '@/lib/api';
+
+type Logbook = { id: string; week_number: number; title: string; content: string; status: string; submitted_at?: string; Group?: { name: string }; student?: { name: string }; feedback?: Array<{ comment: string }> };
 
 export default function MentorLogbookReviewPage() {
-  const user = useCurrentUser();
-  
-  const pending = [
-    { id: '1', student: 'Student 1', group: 'Team Alpha', week: 8, title: 'Model Training & Evaluation', date: '2026-05-20' },
-    { id: '2', student: 'Student 4', group: 'Team Alpha', week: 8, title: 'Frontend Integration', date: '2026-05-20' },
-    { id: '3', student: 'Student 5', group: 'Team Delta', week: 7, title: 'IoT Sensor Calibration', date: '2026-05-15' },
-  ];
-
-  return (
-    <DashboardLayout role="mentor" title="Logbook Review" userName={user?.name || 'Mentor'}>
-      <PageHeader 
-        title="Pending Logbooks" 
-        description="Review and grade weekly logbook submissions from your assigned groups."
-        badge={
-          <Badge variant="warning">{pending.length} pending</Badge>
-        }
-      />
-
-      {pending.length === 0 ? (
-        <Card className="border-dashed border-2 bg-cx-bg-subtle shadow-none">
-          <EmptyState 
-            icon={<BookOpen className="w-8 h-8 text-cx-text-muted" />}
-            title="All caught up!"
-            description="There are no pending logbooks to review at this time."
-          />
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {pending.map(entry => (
-            <Card key={entry.id} hover>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-xs font-mono font-semibold bg-cx-bg-muted px-2 py-0.5 rounded border border-cx-border text-cx-text-secondary">Week {entry.week}</span>
-                    <span className="text-xs text-cx-text-muted">•</span>
-                    <span className="text-xs text-cx-text-secondary font-medium">{entry.group}</span>
-                  </div>
-                  <h3 className="text-base font-semibold text-cx-text">{entry.title}</h3>
-                  <p className="text-xs text-cx-text-muted mt-1">Submitted by <span className="font-medium text-cx-text-secondary">{entry.student}</span> • {entry.date}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="secondary" icon={<Eye className="w-4 h-4" />}>Review</Button>
-                  <Button size="sm" icon={<Check className="w-4 h-4" />}>Approve</Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
-    </DashboardLayout>
-  );
+  const user = useCurrentUser(); const search = useSearchParams(); const groupId = search.get('group_id');
+  const [entries, setEntries] = useState<Logbook[]>([]); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [selected, setSelected] = useState<Logbook | null>(null); const [comment, setComment] = useState(''); const [outcome, setOutcome] = useState<'graded' | 'revision_requested'>('graded'); const [saving, setSaving] = useState(false);
+  const load = useCallback(async () => { setLoading(true); setError(''); try { const { data } = await api.get('/logbooks', { params: groupId ? { group_id: groupId } : undefined }); setEntries((data.data || []).filter((entry: Logbook) => entry.status !== 'draft')); } catch (requestError: any) { setError(requestError.response?.data?.error || 'Logbooks could not be loaded.'); } finally { setLoading(false); } }, [groupId]);
+  useEffect(() => { load(); }, [load]);
+  const open = (entry: Logbook) => { setSelected(entry); setComment(entry.feedback?.[0]?.comment || ''); setOutcome(entry.status === 'revision_requested' ? 'revision_requested' : 'graded'); };
+  const save = async () => { if (!selected || !comment.trim()) return; setSaving(true); setError(''); try { await api.post(`/logbooks/${selected.id}/feedback`, { comment: comment.trim(), status: outcome }); setSelected(null); await load(); } catch (requestError: any) { setError(requestError.response?.data?.error || 'Feedback could not be saved.'); } finally { setSaving(false); } };
+  return <DashboardLayout role="mentor" title="Logbook Review" userName={user?.name || 'Mentor'}><div className="mb-6"><h2 className="font-display text-2xl text-thunder">Submitted logbooks</h2><p className="mt-1 text-sm text-slate">Review only entries from groups assigned to you.</p></div>{error && <ErrorState title="Logbook review unavailable" description={error} onRetry={load} />}{loading ? <LoadingState message="Loading submitted logbooks" /> : !error && entries.length === 0 ? <Card><EmptyState icon={BookOpen} title="No submitted logbooks" description="Submitted work from your assigned groups will appear here." /></Card> : <div className="space-y-4">{entries.map(entry => <Card key={entry.id}><div className="flex flex-col justify-between gap-4 sm:flex-row"><div><div className="flex gap-2 text-xs text-slate"><span>Week {entry.week_number}</span><span>•</span><span>{entry.Group?.name || 'Assigned group'}</span><span>•</span><span>{entry.student?.name || 'Student'}</span></div><h3 className="mt-2 font-semibold text-thunder">{entry.title}</h3><p className="mt-2 whitespace-pre-wrap text-sm text-slate">{entry.content}</p>{entry.feedback?.[0] && <p className="mt-3 rounded-lg bg-slate-50 p-3 text-xs text-slate"><b>Saved feedback:</b> {entry.feedback[0].comment}</p>}</div><Button size="sm" variant="secondary" icon={<Eye className="h-4 w-4" />} onClick={() => open(entry)}>Review</Button></div></Card>)}</div>}<Modal isOpen={Boolean(selected)} onClose={() => setSelected(null)} title="Review logbook" footer={<><Button variant="secondary" onClick={() => setSelected(null)}>Cancel</Button><Button onClick={save} loading={saving} disabled={!comment.trim()}>Save review</Button></>}><p className="text-sm text-slate">{selected?.title}</p><label className="mt-5 block text-sm font-medium text-thunder">Decision</label><select className="mt-1 w-full rounded-lg border border-border p-2 text-sm" value={outcome} onChange={event => setOutcome(event.target.value as 'graded' | 'revision_requested')}><option value="graded">Mark reviewed</option><option value="revision_requested">Request revision</option></select><label className="mt-4 block text-sm font-medium text-thunder">Feedback</label><textarea className="mt-1 w-full rounded-lg border border-border p-3 text-sm" rows={5} value={comment} onChange={event => setComment(event.target.value)} required /></Modal></DashboardLayout>;
 }

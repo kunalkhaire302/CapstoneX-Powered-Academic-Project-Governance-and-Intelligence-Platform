@@ -2,7 +2,7 @@
 
 > Living documentation for AI-assisted development. This file describes the repository as implemented; it is not a product brochure.
 
-**Last Updated:** `2026-09-24T20:30:00+05:30`
+**Last Updated:** `2026-09-28T00:00:00+05:30`
 
 **Last Verified Against Codebase:** `2026-09-24T20:10:00+05:30`
 
@@ -884,6 +884,22 @@ AI agents MUST:
 ---
 
 # 27. Change Log
+
+### 2026-09-28 — UI functionality repair pass
+
+**Changed**
+- Audited all 33 user-facing routes and recorded the findings in `docs/UI_FUNCTIONALITY_AUDIT.md`.
+- Replaced fabricated Mentor/Admin dashboard, topic, review, report, risk, model and schedule experiences with API-backed views or explicit unavailable states.
+- Aligned Mentor evaluations with the backend enum, Student topics with the one-to-three server contract, and Mentor risk-score access with group assignment.
+- Replaced simulated Settings persistence with the supported profile update path and disabled unsupported account controls.
+
+**Verification**
+- Frontend TypeScript check passed; lint completed with existing warnings.
+- Backend Jest ran 17 passing tests, but configured coverage thresholds and Windows coverage-file permissions cause the command to fail.
+- Frontend production build and dev server were blocked by Windows `EPERM` (`.next/trace-build` / child-process spawn); authenticated browser E2E was not available locally.
+
+**Limitations**
+- Calendar, downloadable PDF, model registry/retraining, avatar/email/security Settings controls, and unrecorded AI risk remain deliberately unavailable until matching APIs are implemented.
 
 ### 2026-09-24 — Frontend production foundation and trust pass
 

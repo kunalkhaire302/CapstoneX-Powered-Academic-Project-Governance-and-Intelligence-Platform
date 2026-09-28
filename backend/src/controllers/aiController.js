@@ -1,5 +1,6 @@
 const axios = require('axios');
-const { AiReport, RiskScore } = require('../models');
+const { AiReport, RiskScore, Group } = require('../models');
+const { Op } = require('sequelize');
 const logger = require('../utils/logger');
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
@@ -177,7 +178,13 @@ const generateAccreditationReport = async (req, res, next) => {
 
 const listRiskScores = async (req, res, next) => {
   try {
+    const where = {};
+    if (req.user.role === 'mentor') {
+      const groups = await Group.findAll({ where: { mentor_id: req.user.id }, attributes: ['id'] });
+      where.group_id = { [Op.in]: groups.map(group => group.id) };
+    }
     const scores = await RiskScore.findAll({
+      where,
       order: [['predicted_at', 'DESC']],
       limit: parseInt(req.query.limit, 10) || 50,
     });

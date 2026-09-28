@@ -58,16 +58,20 @@ export default function StudentTopicsPage() {
     e.preventDefault();
     if (!groupId) return toast.error('You must join or create a group first before submitting a topic.');
 
-    for (const t of topicsForm) {
+    const submittedTopics = topicsForm.filter(t => t.title || t.description || t.domains || t.techStack);
+    if (submittedTopics.length === 0) {
+      return toast.error('Add at least one complete project topic.');
+    }
+    for (const t of submittedTopics) {
       if (!t.title || !t.description || !t.domains || !t.techStack) {
-        return toast.error('Please completely fill out all 3 project topic proposals.');
+        return toast.error('Complete every field for each topic you add.');
       }
     }
 
     setSubmitting(true);
-    const loadingToast = toast.loading('Submitting topics and analyzing with AI (approx 15s)...');
+    const loadingToast = toast.loading('Submitting topics...');
     try {
-      const payload = topicsForm.map(t => ({
+      const payload = submittedTopics.map(t => ({
         title: t.title,
         abstract: t.description,
         domain_tags: t.domains.split(',').map(d => d.trim()).filter(Boolean),
@@ -78,7 +82,7 @@ export default function StudentTopicsPage() {
         group_id: groupId,
         topics: payload
       });
-      toast.success('Topics submitted successfully! AI analysis complete.', { id: loadingToast });
+      toast.success('Topics submitted. AI analysis will appear when available.', { id: loadingToast });
       setTopicsForm(initialFormState);
       fetchGroupAndTopics();
     } catch (error: any) {
@@ -182,7 +186,7 @@ export default function StudentTopicsPage() {
               Submit Project Proposals
             </h3>
             <p className="text-sm text-slate mt-2 max-w-2xl leading-relaxed">
-              Submit exactly 3 project ideas. Our AI recommendation engine will evaluate each idea based on uniqueness, impact, and feasibility to help your mentor select the most viable option.
+              Submit one to three project ideas. AI analysis is shown when the analysis service returns a result.
             </p>
           </div>
           
@@ -201,7 +205,7 @@ export default function StudentTopicsPage() {
                     placeholder="Enter project title" 
                     value={topicsForm[i].title}
                     onChange={e => updateForm(i, 'title', e.target.value)}
-                    required
+                    required={i === 0}
                   />
                   <div className="space-y-1.5">
                     <label className="block text-sm font-semibold text-thunder">Abstract / Description</label>
@@ -210,7 +214,7 @@ export default function StudentTopicsPage() {
                       placeholder="Describe your project in 100-200 words..." 
                       value={topicsForm[i].description}
                       onChange={e => updateForm(i, 'description', e.target.value)}
-                      required
+                      required={i === 0}
                     />
                   </div>
                   <Input 
@@ -218,14 +222,14 @@ export default function StudentTopicsPage() {
                     placeholder="e.g., AI/ML, Web, IoT" 
                     value={topicsForm[i].domains}
                     onChange={e => updateForm(i, 'domains', e.target.value)}
-                    required
+                    required={i === 0}
                   />
                   <Input 
                     label="Technology Tags" 
                     placeholder="e.g., Python, React" 
                     value={topicsForm[i].techStack}
                     onChange={e => updateForm(i, 'techStack', e.target.value)}
-                    required
+                    required={i === 0}
                   />
                 </div>
               ))}
@@ -241,7 +245,7 @@ export default function StudentTopicsPage() {
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
-                      <Brain className="w-4 h-4" /> Submit 3 Topics for Analysis
+                      <Brain className="w-4 h-4" /> Submit Topics
                     </span>
                   )}
                 </Button>

@@ -3,7 +3,6 @@
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
 import Input from '@/components/ui/Input';
 import { useCurrentUser } from '@/lib/hooks';
 import { useState, useEffect } from 'react';
@@ -20,7 +19,7 @@ export default function MentorEvaluationsPage() {
   const [formData, setFormData] = useState({
     group_id: '',
     student_id: '',
-    type: 'Mid-Term',
+    type: 'mid_term',
     total_score: '',
     max_score: '100'
   });
@@ -60,7 +59,7 @@ export default function MentorEvaluationsPage() {
         rubric_json: { notes: "Submitted via UI" }
       });
       setShowModal(false);
-      setFormData({ group_id: '', student_id: '', type: 'Mid-Term', total_score: '', max_score: '100' });
+      setFormData({ group_id: '', student_id: '', type: 'mid_term', total_score: '', max_score: '100' });
       fetchEvaluations();
     } catch (error: any) {
       alert(error.response?.data?.error || 'Failed to submit evaluation');
@@ -102,7 +101,7 @@ export default function MentorEvaluationsPage() {
                   <tr key={ev.id} className="border-b border-border last:border-0 hover:bg-surface transition-colors">
                     <td className="py-3 px-4 font-medium text-thunder">{ev.Group?.name || 'Unknown'}</td>
                     <td className="py-3 px-4 text-slate">{ev.evaluated_student?.name || 'Group Evaluation'}</td>
-                    <td className="py-3 px-4 text-slate">{ev.type}</td>
+                    <td className="py-3 px-4 text-slate">{ev.type?.replace('_', ' ')}</td>
                     <td className="py-3 px-4 font-medium text-brand">{ev.total_score}/{ev.max_score}</td>
                     <td className="py-3 px-4 text-slate">{new Date(ev.submitted_at).toLocaleDateString()}</td>
                   </tr>
@@ -145,10 +144,11 @@ export default function MentorEvaluationsPage() {
                   value={formData.type}
                   onChange={e => setFormData({ ...formData, type: e.target.value })}
                 >
-                  <option value="Proposal">Proposal</option>
-                  <option value="Mid-Term">Mid-Term</option>
-                  <option value="Presentation">Presentation</option>
-                  <option value="Final">Final</option>
+                  <option value="mid_term">Mid-Term</option>
+                  <option value="final">Final</option>
+                  <option value="viva">Viva</option>
+                  <option value="presentation">Presentation</option>
+                  <option value="report">Report</option>
                 </select>
               </div>
 
