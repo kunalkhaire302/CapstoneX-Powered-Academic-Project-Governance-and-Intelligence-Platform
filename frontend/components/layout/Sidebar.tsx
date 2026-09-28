@@ -160,7 +160,7 @@ export default function Sidebar({ role = 'student', userName = '', userRole = ''
 
       {/* Logo */}
       <div className={cn("px-5 pb-6 pt-8 transition-all", isCollapsed ? "items-center" : "")}>
-        <Link href="/" className={cn("flex items-center gap-3 group", isCollapsed ? "justify-center" : "")} aria-label="CapstoneX — Go to homepage">
+        <Link href={`/${role}`} className={cn("flex items-center gap-3 group", isCollapsed ? "justify-center" : "")} aria-label="CapstoneX — Go to dashboard">
           <div className="relative w-10 h-10 rounded-[12px] bg-cx-brand flex items-center justify-center shadow-brand group-hover:scale-105 transition-all duration-300 flex-shrink-0">
             <img src="/logo.png" alt="" className="w-5 h-5 object-contain brightness-0 invert" aria-hidden="true" />
             <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 border-[#0b101d] bg-emerald-400" />
